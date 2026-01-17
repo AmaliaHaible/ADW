@@ -162,7 +162,7 @@ Rectangle {
                 height: parent.height + 4
                 radius: 2
                 color: "white"
-                border.color: Theme.textMuted
+                border.color: Theme.borderColor
                 border.width: 1
                 anchors.verticalCenter: parent.verticalCenter
             }
@@ -218,7 +218,7 @@ Rectangle {
                 height: parent.height + 4
                 radius: 2
                 color: "white"
-                border.color: Theme.textMuted
+                    border.color: Theme.borderColor
                 border.width: 1
                 anchors.verticalCenter: parent.verticalCenter
             }
@@ -274,7 +274,7 @@ Rectangle {
                 Layout.preferredHeight: 32
                 radius: 4
                 color: Theme.windowBackground
-                border.color: Theme.textMuted
+                border.color: Theme.borderColor
                 border.width: 1
 
                 TextInput {

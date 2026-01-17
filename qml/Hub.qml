@@ -101,7 +101,7 @@ WidgetWindow {
                             Layout.preferredHeight: 20
                             radius: 10
                             color: hubBackend.editMode ? Theme.accentColor : Theme.accentInactive
-                            border.color: hubBackend.editMode ? Theme.accentColor : Theme.textMuted
+                            border.color: hubBackend.editMode ? Theme.accentColor : Theme.borderColor
                             border.width: 1
 
                             Rectangle {
@@ -154,7 +154,7 @@ WidgetWindow {
                             Layout.preferredHeight: 20
                             radius: 10
                             color: hubBackend.weatherVisible ? Theme.accentColor : Theme.accentInactive
-                            border.color: hubBackend.weatherVisible ? Theme.accentColor : Theme.textMuted
+                            border.color: hubBackend.weatherVisible ? Theme.accentColor : Theme.borderColor
                             border.width: 1
 
                             Rectangle {
@@ -207,7 +207,7 @@ WidgetWindow {
                             Layout.preferredHeight: 20
                             radius: 10
                             color: hubBackend.themeVisible ? Theme.accentColor : Theme.accentInactive
-                            border.color: hubBackend.themeVisible ? Theme.accentColor : Theme.textMuted
+                            border.color: hubBackend.themeVisible ? Theme.accentColor : Theme.borderColor
                             border.width: 1
 
                             Rectangle {

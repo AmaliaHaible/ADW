@@ -65,17 +65,18 @@ WidgetWindow {
 
                     // Color editors
                     Repeater {
-                        model: [
-                            {name: "windowBackground", label: "Window Background"},
-                            {name: "surfaceColor", label: "Surface"},
-                            {name: "titleBarBackground", label: "Title Bar"},
-                            {name: "titleBarText", label: "Title Text"},
-                            {name: "accentColor", label: "Accent"},
-                            {name: "accentInactive", label: "Accent Inactive"},
-                            {name: "textPrimary", label: "Text Primary"},
-                            {name: "textSecondary", label: "Text Secondary"},
-                            {name: "textMuted", label: "Text Muted"}
-                        ]
+                            model: [
+                                {name: "windowBackground", label: "Window Background"},
+                                {name: "surfaceColor", label: "Surface"},
+                                {name: "titleBarBackground", label: "Title Bar"},
+                                {name: "titleBarText", label: "Title Text"},
+                                {name: "accentColor", label: "Accent"},
+                                {name: "accentInactive", label: "Accent Inactive"},
+                                {name: "textPrimary", label: "Text Primary"},
+                                {name: "textSecondary", label: "Text Secondary"},
+                                {name: "textMuted", label: "Text Muted"},
+                                {name: "borderColor", label: "Border"}
+                            ]
 
                         Rectangle {
                             Layout.fillWidth: true
@@ -101,7 +102,7 @@ WidgetWindow {
                                     height: 24
                                     radius: 4
                                     color: themeProvider ? themeProvider[modelData.name] : "#000"
-                                    border.color: Theme.textMuted
+                                    border.color: Theme.borderColor
                                     border.width: 1
 
                                     MouseArea {

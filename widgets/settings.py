@@ -44,6 +44,7 @@ DEFAULT_SETTINGS = {
         "textPrimary": "#cdd6f4",
         "textSecondary": "#a6adc8",
         "textMuted": "#6c7086",
+        "borderColor": "#6c7086",
         "success": "#a6e3a1",
         "warning": "#f9e2af",
         "error": "#f38ba8",

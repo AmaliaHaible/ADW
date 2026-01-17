@@ -22,6 +22,7 @@ QtObject {
     readonly property color textPrimary: themeProvider ? themeProvider.textPrimary : "#cdd6f4"
     readonly property color textSecondary: themeProvider ? themeProvider.textSecondary : "#a6adc8"
     readonly property color textMuted: themeProvider ? themeProvider.textMuted : "#6c7086"
+    readonly property color borderColor: themeProvider ? themeProvider.borderColor : "#6c7086"
 
     // Status colors
     readonly property color success: themeProvider ? themeProvider.success : "#a6e3a1"

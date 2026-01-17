@@ -19,6 +19,7 @@ DEFAULT_THEME = {
     "textPrimary": "#cdd6f4",
     "textSecondary": "#a6adc8",
     "textMuted": "#6c7086",
+    "borderColor": "#6c7086",
     "success": "#a6e3a1",
     "warning": "#f9e2af",
     "error": "#f38ba8",
@@ -52,6 +53,7 @@ class ThemeProvider(QObject):
     textPrimaryChanged = Signal()
     textSecondaryChanged = Signal()
     textMutedChanged = Signal()
+    borderColorChanged = Signal()
     successChanged = Signal()
     warningChanged = Signal()
     errorChanged = Signal()
@@ -121,6 +123,7 @@ class ThemeProvider(QObject):
         self.textPrimaryChanged.emit()
         self.textSecondaryChanged.emit()
         self.textMutedChanged.emit()
+        self.borderColorChanged.emit()
         self.successChanged.emit()
         self.warningChanged.emit()
         self.errorChanged.emit()
@@ -188,6 +191,10 @@ class ThemeProvider(QObject):
     @Property(QColor, notify=textMutedChanged)
     def textMuted(self):
         return QColor(self._theme["textMuted"])
+
+    @Property(QColor, notify=borderColorChanged)
+    def borderColor(self):
+        return QColor(self._theme["borderColor"])
 
     @Property(QColor, notify=successChanged)
     def success(self):
