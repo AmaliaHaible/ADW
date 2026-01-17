@@ -115,9 +115,8 @@ Window {
 
     Item {
         id: resizeHandle
-        width: Math.max(16, Theme.windowRadius)
-        height: Math.max(16, Theme.windowRadius)
-        property real cornerRadius: Theme.windowRadius
+        width: 16
+        height: 16
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.rightMargin: 4
@@ -126,26 +125,20 @@ Window {
         z: 20
 
         Canvas {
-            id: resizeHandleCanvas
             anchors.fill: parent
             onPaint: {
                 var ctx = getContext("2d")
-                var radius = resizeHandle.cornerRadius
                 ctx.clearRect(0, 0, width, height)
                 ctx.fillStyle = Theme.accentColor
                 ctx.beginPath()
-                ctx.moveTo(width, radius)
-                ctx.arcTo(width, height, width - radius, height, radius)
+                ctx.moveTo(width, 0)
+                ctx.lineTo(width, height)
                 ctx.lineTo(0, height)
                 ctx.lineTo(width, 0)
                 ctx.closePath()
                 ctx.fill()
             }
         }
-
-        onCornerRadiusChanged: resizeHandleCanvas.requestPaint()
-        onWidthChanged: resizeHandleCanvas.requestPaint()
-        onHeightChanged: resizeHandleCanvas.requestPaint()
 
         MouseArea {
             anchors.fill: parent
