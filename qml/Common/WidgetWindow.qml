@@ -81,9 +81,6 @@ Window {
         radius: windowRadius
         z: 10
 
-        property point resizeStartPos
-        property size resizeStartSize
-
         Rectangle {
             anchors.fill: parent
             color: Theme.accentColor
@@ -106,19 +103,9 @@ Window {
 
             onPressed: function(mouse) {
                 if (mouse.button === Qt.RightButton) {
-                    editOverlay.resizeStartPos = Qt.point(mouse.x, mouse.y)
-                    editOverlay.resizeStartSize = Qt.size(widgetWindow.width, widgetWindow.height)
+                    widgetWindow.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
                 } else if (mouse.button === Qt.LeftButton) {
                     widgetWindow.startSystemMove()
-                }
-            }
-
-            onPositionChanged: function(mouse) {
-                if (pressedButtons & Qt.RightButton) {
-                    var deltaX = mouse.x - editOverlay.resizeStartPos.x
-                    var deltaY = mouse.y - editOverlay.resizeStartPos.y
-                    widgetWindow.width = Math.max(minResizeWidth, editOverlay.resizeStartSize.width + deltaX)
-                    widgetWindow.height = Math.max(minResizeHeight, editOverlay.resizeStartSize.height + deltaY)
                 }
             }
         }

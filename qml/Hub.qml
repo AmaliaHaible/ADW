@@ -31,10 +31,6 @@ WidgetWindow {
         }
     }
 
-    // Resize tracking for Hub
-    property point resizeStartPos
-    property size resizeStartSize
-
     Column {
         anchors.fill: parent
         spacing: 0
@@ -246,16 +242,8 @@ WidgetWindow {
         z: 100
 
         onPressed: function(mouse) {
-            hubWindow.resizeStartPos = Qt.point(mouse.x, mouse.y)
-            hubWindow.resizeStartSize = Qt.size(hubWindow.width, hubWindow.height)
-        }
-
-        onPositionChanged: function(mouse) {
-            if (pressedButtons & Qt.RightButton) {
-                var deltaX = mouse.x - hubWindow.resizeStartPos.x
-                var deltaY = mouse.y - hubWindow.resizeStartPos.y
-                hubWindow.width = Math.max(200, hubWindow.resizeStartSize.width + deltaX)
-                hubWindow.height = Math.max(150, hubWindow.resizeStartSize.height + deltaY)
+            if (mouse.button === Qt.RightButton) {
+                hubWindow.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
             }
         }
     }
