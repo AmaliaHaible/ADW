@@ -9,12 +9,16 @@ Window {
     property var settingsStore
     property bool editMode: false
     property bool editOverlayEnabled: true
+    property bool resizeHandleEnabled: true
     property int minResizeWidth: 150
     property int minResizeHeight: 100
     property color backgroundColor: Theme.windowBackground
     property real windowRadius: Theme.windowRadius
 
     default property alias content: mainContainer.data
+
+    minimumWidth: minResizeWidth
+    minimumHeight: minResizeHeight
 
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint
     color: "transparent"
@@ -98,14 +102,49 @@ Window {
 
         MouseArea {
             anchors.fill: parent
-            acceptedButtons: Qt.RightButton | Qt.LeftButton
+            acceptedButtons: Qt.LeftButton
             hoverEnabled: true
 
             onPressed: function(mouse) {
-                if (mouse.button === Qt.RightButton) {
-                    widgetWindow.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
-                } else if (mouse.button === Qt.LeftButton) {
+                if (mouse.button === Qt.LeftButton) {
                     widgetWindow.startSystemMove()
+                }
+            }
+        }
+    }
+
+    Item {
+        id: resizeHandle
+        width: 16
+        height: 16
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.rightMargin: 4
+        anchors.bottomMargin: 4
+        visible: resizeHandleEnabled && editMode
+        z: 20
+
+        Canvas {
+            anchors.fill: parent
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.clearRect(0, 0, width, height)
+                ctx.fillStyle = Theme.accentColor
+                ctx.beginPath()
+                ctx.moveTo(width, 0)
+                ctx.lineTo(width, height)
+                ctx.lineTo(0, height)
+                ctx.closePath()
+                ctx.fill()
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.SizeFDiagCursor
+            onPressed: function(mouse) {
+                if (mouse.button === Qt.LeftButton) {
+                    widgetWindow.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
                 }
             }
         }

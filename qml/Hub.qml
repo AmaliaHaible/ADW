@@ -10,6 +10,8 @@ WidgetWindow {
     settingsStore: settingsBackend
     editMode: hubBackend.editMode
     editOverlayEnabled: false
+    minResizeWidth: 200
+    minResizeHeight: 150
 
     width: 300
     height: 300
@@ -234,17 +236,4 @@ WidgetWindow {
         }
     }
 
-    // Right-click resize handler for Hub (only in edit mode)
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.RightButton
-        enabled: hubBackend.editMode
-        z: 100
-
-        onPressed: function(mouse) {
-            if (mouse.button === Qt.RightButton) {
-                hubWindow.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
-            }
-        }
-    }
 }
