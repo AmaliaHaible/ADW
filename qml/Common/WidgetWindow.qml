@@ -82,14 +82,14 @@ Window {
         anchors.fill: parent
         color: "transparent"
         visible: editOverlayEnabled && editMode
-        radius: windowRadius
+        // radius: windowRadius
         z: 10
 
         Rectangle {
             anchors.fill: parent
             color: Theme.accentColor
             opacity: 0.1
-            radius: windowRadius
+            // radius: windowRadius
         }
 
         Rectangle {
@@ -97,7 +97,7 @@ Window {
             color: "transparent"
             border.color: Theme.accentColor
             border.width: 2
-            radius: windowRadius
+            // radius: windowRadius
         }
 
         MouseArea {
@@ -115,9 +115,9 @@ Window {
 
     Item {
         id: resizeHandle
-        width: 16
-        height: 16
-        property real cornerRadius: Math.min(Theme.windowRadius, width, height)
+        width: Math.max(16, Theme.windowRadius)
+        height: Math.max(16, Theme.windowRadius)
+        property real cornerRadius: Theme.windowRadius
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.rightMargin: 4
@@ -126,6 +126,7 @@ Window {
         z: 20
 
         Canvas {
+            id: resizeHandleCanvas
             anchors.fill: parent
             onPaint: {
                 var ctx = getContext("2d")
@@ -141,6 +142,10 @@ Window {
                 ctx.fill()
             }
         }
+
+        onCornerRadiusChanged: resizeHandleCanvas.requestPaint()
+        onWidthChanged: resizeHandleCanvas.requestPaint()
+        onHeightChanged: resizeHandleCanvas.requestPaint()
 
         MouseArea {
             anchors.fill: parent
