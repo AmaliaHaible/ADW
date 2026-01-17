@@ -16,6 +16,7 @@ QtObject {
     // Accent colors
     readonly property color accentColor: themeProvider ? themeProvider.accentColor : "#89b4fa"
     readonly property color accentHover: themeProvider ? themeProvider.accentHover : "#b4befe"
+    readonly property color accentInactive: themeProvider ? themeProvider.accentInactive : "#45475a"
 
     // Text colors
     readonly property color textPrimary: themeProvider ? themeProvider.textPrimary : "#cdd6f4"
@@ -37,6 +38,7 @@ QtObject {
     readonly property int titleBarHeight: themeProvider ? themeProvider.titleBarHeight : 32
     readonly property int buttonSize: themeProvider ? themeProvider.buttonSize : 24
     readonly property int borderRadius: themeProvider ? themeProvider.borderRadius : 8
+    readonly property int windowRadius: themeProvider ? themeProvider.windowRadius : 12
     readonly property int spacing: themeProvider ? themeProvider.spacing : 8
     readonly property int padding: themeProvider ? themeProvider.padding : 12
 }

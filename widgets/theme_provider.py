@@ -15,6 +15,7 @@ DEFAULT_THEME = {
     "titleBarButtonPressed": "#585b70",
     "accentColor": "#89b4fa",
     "accentHover": "#b4befe",
+    "accentInactive": "#45475a",
     "textPrimary": "#cdd6f4",
     "textSecondary": "#a6adc8",
     "textMuted": "#6c7086",
@@ -28,6 +29,7 @@ DEFAULT_THEME = {
     "titleBarHeight": 32,
     "buttonSize": 24,
     "borderRadius": 8,
+    "windowRadius": 12,
     "spacing": 8,
     "padding": 12
 }
@@ -46,6 +48,7 @@ class ThemeProvider(QObject):
     titleBarButtonPressedChanged = Signal()
     accentColorChanged = Signal()
     accentHoverChanged = Signal()
+    accentInactiveChanged = Signal()
     textPrimaryChanged = Signal()
     textSecondaryChanged = Signal()
     textMutedChanged = Signal()
@@ -61,6 +64,7 @@ class ThemeProvider(QObject):
     titleBarHeightChanged = Signal()
     buttonSizeChanged = Signal()
     borderRadiusChanged = Signal()
+    windowRadiusChanged = Signal()
     spacingChanged = Signal()
     paddingChanged = Signal()
 
@@ -113,6 +117,7 @@ class ThemeProvider(QObject):
         self.titleBarButtonPressedChanged.emit()
         self.accentColorChanged.emit()
         self.accentHoverChanged.emit()
+        self.accentInactiveChanged.emit()
         self.textPrimaryChanged.emit()
         self.textSecondaryChanged.emit()
         self.textMutedChanged.emit()
@@ -126,6 +131,7 @@ class ThemeProvider(QObject):
         self.titleBarHeightChanged.emit()
         self.buttonSizeChanged.emit()
         self.borderRadiusChanged.emit()
+        self.windowRadiusChanged.emit()
         self.spacingChanged.emit()
         self.paddingChanged.emit()
         self.themeChanged.emit()
@@ -166,6 +172,10 @@ class ThemeProvider(QObject):
     @Property(QColor, notify=accentHoverChanged)
     def accentHover(self):
         return QColor(self._theme["accentHover"])
+
+    @Property(QColor, notify=accentInactiveChanged)
+    def accentInactive(self):
+        return QColor(self._theme["accentInactive"])
 
     @Property(QColor, notify=textPrimaryChanged)
     def textPrimary(self):
@@ -219,6 +229,10 @@ class ThemeProvider(QObject):
     @Property(int, notify=borderRadiusChanged)
     def borderRadius(self):
         return self._theme["borderRadius"]
+
+    @Property(int, notify=windowRadiusChanged)
+    def windowRadius(self):
+        return self._theme["windowRadius"]
 
     @Property(int, notify=spacingChanged)
     def spacing(self):

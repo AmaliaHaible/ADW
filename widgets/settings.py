@@ -40,6 +40,7 @@ DEFAULT_SETTINGS = {
         "titleBarButtonPressed": "#585b70",
         "accentColor": "#89b4fa",
         "accentHover": "#b4befe",
+        "accentInactive": "#45475a",
         "textPrimary": "#cdd6f4",
         "textSecondary": "#a6adc8",
         "textMuted": "#6c7086",
@@ -53,6 +54,7 @@ DEFAULT_SETTINGS = {
         "titleBarHeight": 32,
         "buttonSize": 24,
         "borderRadius": 8,
+        "windowRadius": 12,
         "spacing": 8,
         "padding": 12
     }

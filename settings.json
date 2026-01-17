@@ -2,24 +2,24 @@
   "widgets": {
     "hub": {
       "visible": true,
-      "x": 1418,
-      "y": 720,
+      "x": 1347,
+      "y": 719,
       "width": 350,
       "height": 279
     },
     "weather": {
-      "visible": true,
-      "x": 1360,
-      "y": 147,
+      "visible": false,
+      "x": 1098,
+      "y": 216,
       "width": 315,
       "height": 248
     },
     "theme": {
       "visible": true,
-      "x": 614,
-      "y": 330,
-      "width": 515,
-      "height": 480
+      "x": 475,
+      "y": 178,
+      "width": 495,
+      "height": 471
     }
   },
   "theme": {
@@ -30,8 +30,9 @@
     "titleBarText": "#cdd6f4",
     "titleBarButtonHover": "#45475a",
     "titleBarButtonPressed": "#585b70",
-    "accentColor": "#89b4fa",
+    "accentColor": "#89f3fa",
     "accentHover": "#b4befe",
+    "accentInactive": "#999bae",
     "textPrimary": "#cdd6f4",
     "textSecondary": "#a6adc8",
     "textMuted": "#6c7086",
@@ -45,6 +46,7 @@
     "titleBarHeight": 32,
     "buttonSize": 24,
     "borderRadius": 8,
+    "windowRadius": 12,
     "spacing": 8,
     "padding": 12
   }

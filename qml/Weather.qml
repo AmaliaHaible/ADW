@@ -13,7 +13,7 @@ Window {
     visible: hubBackend.weatherVisible
     title: "Weather"
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint
-    color: Theme.windowBackground
+    color: "transparent"
 
     onXChanged: if (visible) saveGeometryTimer.restart()
     onYChanged: if (visible) saveGeometryTimer.restart()
@@ -30,86 +30,134 @@ Window {
         }
     }
 
-    // Right-click resize in edit mode
-    MouseArea {
+    // Main container with border radius
+    Rectangle {
         anchors.fill: parent
-        acceptedButtons: Qt.RightButton
-        enabled: hubBackend.editMode
-        onPressed: function(mouse) {
-            weatherWindow.startSystemResize(Qt.BottomEdge | Qt.RightEdge)
-        }
-    }
+        color: Theme.windowBackground
+        radius: Theme.windowRadius
 
-    Column {
-        anchors.fill: parent
-        spacing: 0
+        Column {
+            anchors.fill: parent
+            spacing: 0
 
-        // Title bar with settings and refresh on left
-        TitleBar {
-            id: titleBar
-            width: parent.width
-            title: "Weather"
-            dragEnabled: hubBackend.editMode
-            leftButtons: [
-                {icon: "settings.svg", action: "settings"},
-                {icon: "refresh-cw.svg", action: "refresh"}
-            ]
+            // Title bar with settings and refresh on left
+            TitleBar {
+                id: titleBar
+                width: parent.width
+                title: "Weather"
+                dragEnabled: hubBackend.editMode
+                leftButtons: [
+                    {icon: "settings.svg", action: "settings"},
+                    {icon: "refresh-cw.svg", action: "refresh"}
+                ]
 
-            onButtonClicked: function(action) {
-                if (action === "settings") {
-                    console.log("Weather settings clicked")
-                } else if (action === "refresh") {
-                    console.log("Weather refresh clicked")
+                onButtonClicked: function(action) {
+                    if (action === "settings") {
+                        console.log("Weather settings clicked")
+                    } else if (action === "refresh") {
+                        console.log("Weather refresh clicked")
+                    }
+                }
+            }
+
+            // Content area
+            Rectangle {
+                width: parent.width
+                height: parent.height - titleBar.height
+                color: "transparent"
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: Theme.padding
+                    spacing: Theme.spacing
+
+                    // Weather icon placeholder
+                    Item {
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.preferredWidth: 64
+                        Layout.preferredHeight: 64
+
+                        Image {
+                            anchors.centerIn: parent
+                            source: iconsPath + "sun.svg"
+                            sourceSize: Qt.size(48, 48)
+                            width: 48
+                            height: 48
+                        }
+                    }
+
+                    // Temperature placeholder
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: "22°C"
+                        color: Theme.textPrimary
+                        font.pixelSize: Theme.fontSizeLarge * 2
+                        font.weight: Font.Light
+                    }
+
+                    // Location placeholder
+                    Text {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: "Weather Widget"
+                        color: Theme.textSecondary
+                        font.pixelSize: Theme.fontSizeNormal
+                    }
+
+                    // Spacer
+                    Item {
+                        Layout.fillHeight: true
+                    }
                 }
             }
         }
 
-        // Content area
+        // Edit mode overlay - blocks all interactions and handles resize
         Rectangle {
-            width: parent.width
-            height: parent.height - titleBar.height
-            color: Theme.windowBackground
+            id: editOverlay
+            anchors.fill: parent
+            color: "transparent"
+            visible: hubBackend.editMode
+            radius: Theme.windowRadius
 
-            ColumnLayout {
+            property point startPos
+            property size startSize
+
+            // Visual indicator for edit mode
+            Rectangle {
                 anchors.fill: parent
-                anchors.margins: Theme.padding
-                spacing: Theme.spacing
+                color: Theme.accentColor
+                opacity: 0.1
+                radius: Theme.windowRadius
+            }
 
-                // Weather icon placeholder
-                Item {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: 64
-                    Layout.preferredHeight: 64
+            // Border highlight in edit mode
+            Rectangle {
+                anchors.fill: parent
+                color: "transparent"
+                border.color: Theme.accentColor
+                border.width: 2
+                radius: Theme.windowRadius
+            }
 
-                    Image {
-                        anchors.centerIn: parent
-                        source: iconsPath + "sun.svg"
-                        sourceSize: Qt.size(48, 48)
-                        width: 48
-                        height: 48
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.RightButton | Qt.LeftButton
+                hoverEnabled: true
+
+                onPressed: function(mouse) {
+                    if (mouse.button === Qt.RightButton) {
+                        editOverlay.startPos = Qt.point(mouse.x, mouse.y)
+                        editOverlay.startSize = Qt.size(weatherWindow.width, weatherWindow.height)
                     }
                 }
 
-                // Temperature placeholder
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "22°C"
-                    color: Theme.textPrimary
-                    font.pixelSize: Theme.fontSizeLarge * 2
-                    font.weight: Font.Light
-                }
-
-                // Location placeholder
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "Weather Widget"
-                    color: Theme.textSecondary
-                    font.pixelSize: Theme.fontSizeNormal
-                }
-
-                // Spacer
-                Item {
-                    Layout.fillHeight: true
+                onPositionChanged: function(mouse) {
+                    if (pressedButtons & Qt.RightButton) {
+                        var deltaX = mouse.x - editOverlay.startPos.x
+                        var deltaY = mouse.y - editOverlay.startPos.y
+                        weatherWindow.width = Math.max(150, editOverlay.startSize.width + deltaX)
+                        weatherWindow.height = Math.max(100, editOverlay.startSize.height + deltaY)
+                    }
                 }
             }
         }
