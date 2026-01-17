@@ -44,7 +44,7 @@ WidgetWindow {
             title: "Widget Hub"
             dragEnabled: hubBackend.editMode
             rightButtons: [
-                {icon: "minimize.svg", action: "minimize"},
+                {icon: "eye-off.svg", action: "minimize"},
                 {icon: "x.svg", action: "exit"}
             ]
 
