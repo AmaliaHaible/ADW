@@ -117,6 +117,7 @@ Window {
         id: resizeHandle
         width: 16
         height: 16
+        property real cornerRadius: Math.min(Theme.windowRadius, width, height)
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.rightMargin: 4
@@ -128,12 +129,14 @@ Window {
             anchors.fill: parent
             onPaint: {
                 var ctx = getContext("2d")
+                var radius = resizeHandle.cornerRadius
                 ctx.clearRect(0, 0, width, height)
                 ctx.fillStyle = Theme.accentColor
                 ctx.beginPath()
-                ctx.moveTo(width, 0)
-                ctx.lineTo(width, height)
+                ctx.moveTo(width, radius)
+                ctx.arcTo(width, height, width - radius, height, radius)
                 ctx.lineTo(0, height)
+                ctx.lineTo(width, 0)
                 ctx.closePath()
                 ctx.fill()
             }
