@@ -97,26 +97,52 @@ WidgetWindow {
                                     Layout.fillWidth: true
                                 }
 
-                                Rectangle {
-                                    width: 60
-                                    height: 24
-                                    radius: 4
-                                    color: themeProvider ? themeProvider[modelData.name] : "#000"
-                                    border.color: Theme.borderColor
-                                    border.width: 1
+                                    Rectangle {
+                                        width: 60
+                                        height: 24
+                                        radius: 4
+                                        color: themeProvider ? themeProvider[modelData.name] : "#000"
+                                        border.color: Theme.borderColor
+                                        border.width: 1
 
-                                    MouseArea {
-                                        anchors.fill: parent
+                                        MouseArea {
+                                            anchors.fill: parent
                                         onClicked: {
                                             colorDialog.colorName = modelData.name
                                             colorDialog.selectedColor = parent.color
                                             colorDialog.open()
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        width: 24
+                                        height: 24
+                                        radius: 4
+                                        color: Theme.surfaceColor
+                                        border.color: Theme.borderColor
+                                        border.width: 1
+
+                                        Image {
+                                            anchors.centerIn: parent
+                                            width: 12
+                                            height: 12
+                                            source: iconsPath + "rotate-ccw.svg"
+                                            sourceSize: Qt.size(12, 12)
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            onClicked: {
+                                                if (themeProvider) {
+                                                    themeProvider.resetValue(modelData.name)
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
 
                     // Spacing
                     Item { height: Theme.spacing }
@@ -201,16 +227,42 @@ WidgetWindow {
                                     }
                                 }
 
-                                Text {
-                                    text: Math.round(slider.value)
-                                    color: Theme.textMuted
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    Layout.preferredWidth: 24
-                                    horizontalAlignment: Text.AlignRight
+                                    Text {
+                                        text: Math.round(slider.value)
+                                        color: Theme.textMuted
+                                        font.pixelSize: Theme.fontSizeSmall
+                                        Layout.preferredWidth: 24
+                                        horizontalAlignment: Text.AlignRight
+                                    }
+
+                                    Rectangle {
+                                        width: 24
+                                        height: 24
+                                        radius: 4
+                                        color: Theme.surfaceColor
+                                        border.color: Theme.borderColor
+                                        border.width: 1
+
+                                        Image {
+                                            anchors.centerIn: parent
+                                            width: 12
+                                            height: 12
+                                            source: iconsPath + "rotate-ccw.svg"
+                                            sourceSize: Qt.size(12, 12)
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            onClicked: {
+                                                if (themeProvider) {
+                                                    themeProvider.resetValue(modelData.name)
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
 
                     // Spacer
                     Item { Layout.fillHeight: true }

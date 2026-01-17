@@ -280,6 +280,17 @@ class ThemeProvider(QObject):
         self._save_theme()
         self._emit_all_signals()
 
+    @Slot(str)
+    def resetValue(self, name: str):
+        """Reset a single theme value to default."""
+        if name in DEFAULT_THEME:
+            self._theme[name] = DEFAULT_THEME[name]
+            self._save_theme()
+            signal = getattr(self, f"{name}Changed", None)
+            if signal:
+                signal.emit()
+            self.themeChanged.emit()
+
     @Slot(result="QVariant")
     def getAllColors(self):
         """Get all color names and values."""
