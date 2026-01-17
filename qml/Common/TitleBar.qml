@@ -7,14 +7,14 @@ Rectangle {
     id: titleBar
 
     property string title: "Window"
-    property bool showMinimize: true
-    property bool showClose: true
-    property url minimizeIcon: iconsPath + "minimize.svg"
-    property url closeIcon: iconsPath + "x.svg"
     property bool dragEnabled: true
 
-    signal closeClicked()
-    signal minimizeClicked()
+    // Button configurations: [{icon: "name.svg", action: "actionName"}]
+    property var leftButtons: []
+    property var rightButtons: []
+
+    // Signals for button actions
+    signal buttonClicked(string action)
 
     height: Theme.titleBarHeight
     color: Theme.titleBarBackground
@@ -34,7 +34,36 @@ Rectangle {
         anchors.fill: parent
         anchors.leftMargin: Theme.padding
         anchors.rightMargin: Theme.spacing
-        spacing: 0
+        spacing: Theme.spacing / 2
+
+        // Left buttons
+        Repeater {
+            model: titleBar.leftButtons
+
+            Rectangle {
+                width: Theme.buttonSize
+                height: Theme.buttonSize
+                radius: 4
+                color: leftMouseArea.containsMouse
+                       ? (leftMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
+                       : "transparent"
+
+                Image {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 14
+                    source: iconsPath + modelData.icon
+                    sourceSize: Qt.size(14, 14)
+                }
+
+                MouseArea {
+                    id: leftMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: titleBar.buttonClicked(modelData.action)
+                }
+            }
+        }
 
         // Title text
         Text {
@@ -46,63 +75,32 @@ Rectangle {
             elide: Text.ElideRight
         }
 
-        // Minimize button
-        Rectangle {
-            id: minimizeButton
-            visible: titleBar.showMinimize
-            width: Theme.buttonSize
-            height: Theme.buttonSize
-            radius: 4
-            color: minimizeMouseArea.containsMouse
-                   ? (minimizeMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
-                   : "transparent"
+        // Right buttons
+        Repeater {
+            model: titleBar.rightButtons
 
-            Image {
-                anchors.centerIn: parent
-                width: 14
-                height: 14
-                source: titleBar.minimizeIcon
-                sourceSize: Qt.size(14, 14)
-            }
+            Rectangle {
+                width: Theme.buttonSize
+                height: Theme.buttonSize
+                radius: 4
+                color: rightMouseArea.containsMouse
+                       ? (rightMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
+                       : "transparent"
 
-            MouseArea {
-                id: minimizeMouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                onClicked: titleBar.minimizeClicked()
-            }
-        }
+                Image {
+                    anchors.centerIn: parent
+                    width: 14
+                    height: 14
+                    source: iconsPath + modelData.icon
+                    sourceSize: Qt.size(14, 14)
+                }
 
-        // Spacer between buttons
-        Item {
-            width: Theme.spacing / 2
-            visible: titleBar.showMinimize && titleBar.showClose
-        }
-
-        // Close button
-        Rectangle {
-            id: closeButton
-            visible: titleBar.showClose
-            width: Theme.buttonSize
-            height: Theme.buttonSize
-            radius: 4
-            color: closeMouseArea.containsMouse
-                   ? (closeMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
-                   : "transparent"
-
-            Image {
-                anchors.centerIn: parent
-                width: 14
-                height: 14
-                source: titleBar.closeIcon
-                sourceSize: Qt.size(14, 14)
-            }
-
-            MouseArea {
-                id: closeMouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                onClicked: titleBar.closeClicked()
+                MouseArea {
+                    id: rightMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: titleBar.buttonClicked(modelData.action)
+                }
             }
         }
     }

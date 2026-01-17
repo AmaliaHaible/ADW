@@ -6,12 +6,29 @@ import Common 1.0
 Window {
     id: hubWindow
 
-    width: 300
-    height: 250
+    width: settingsBackend ? settingsBackend.getWidgetGeometry("hub").width : 300
+    height: settingsBackend ? settingsBackend.getWidgetGeometry("hub").height : 300
+    x: settingsBackend ? settingsBackend.getWidgetGeometry("hub").x : 100
+    y: settingsBackend ? settingsBackend.getWidgetGeometry("hub").y : 100
     visible: true
     title: "Widget Hub"
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint
     color: Theme.windowBackground
+
+    onXChanged: if (visible) saveGeometryTimer.restart()
+    onYChanged: if (visible) saveGeometryTimer.restart()
+    onWidthChanged: if (visible) saveGeometryTimer.restart()
+    onHeightChanged: if (visible) saveGeometryTimer.restart()
+
+    Timer {
+        id: saveGeometryTimer
+        interval: 500
+        onTriggered: {
+            if (settingsBackend) {
+                settingsBackend.setWidgetGeometry("hub", hubWindow.x, hubWindow.y, hubWindow.width, hubWindow.height)
+            }
+        }
+    }
 
     // Handle show request from tray
     Connections {
@@ -26,6 +43,16 @@ Window {
         }
     }
 
+    // Right-click resize in edit mode
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+        enabled: hubBackend.editMode
+        onPressed: function(mouse) {
+            hubWindow.startSystemResize(Qt.BottomEdge | Qt.RightEdge)
+        }
+    }
+
     Column {
         anchors.fill: parent
         spacing: 0
@@ -36,12 +63,17 @@ Window {
             width: parent.width
             title: "Widget Hub"
             dragEnabled: hubBackend.editMode
+            rightButtons: [
+                {icon: "minimize.svg", action: "minimize"},
+                {icon: "x.svg", action: "exit"}
+            ]
 
-            onMinimizeClicked: {
-                hubWindow.hide()
-            }
-            onCloseClicked: {
-                hubBackend.exitApp()
+            onButtonClicked: function(action) {
+                if (action === "minimize") {
+                    hubWindow.hide()
+                } else if (action === "exit") {
+                    hubBackend.exitApp()
+                }
             }
         }
 
@@ -83,9 +115,7 @@ Window {
                             Layout.fillWidth: true
                         }
 
-                        // Custom toggle
                         Rectangle {
-                            id: editToggle
                             Layout.preferredWidth: 40
                             Layout.preferredHeight: 20
                             radius: 10
@@ -100,10 +130,7 @@ Window {
                                 height: 16
                                 radius: 8
                                 color: Theme.textPrimary
-
-                                Behavior on x {
-                                    NumberAnimation { duration: 150 }
-                                }
+                                Behavior on x { NumberAnimation { duration: 150 } }
                             }
 
                             MouseArea {
@@ -135,15 +162,13 @@ Window {
                         }
 
                         Text {
-                            text: "Weather Widget"
+                            text: "Weather"
                             color: Theme.textPrimary
                             font.pixelSize: Theme.fontSizeNormal
                             Layout.fillWidth: true
                         }
 
-                        // Custom toggle
                         Rectangle {
-                            id: weatherToggle
                             Layout.preferredWidth: 40
                             Layout.preferredHeight: 20
                             radius: 10
@@ -158,15 +183,65 @@ Window {
                                 height: 16
                                 radius: 8
                                 color: Theme.textPrimary
-
-                                Behavior on x {
-                                    NumberAnimation { duration: 150 }
-                                }
+                                Behavior on x { NumberAnimation { duration: 150 } }
                             }
 
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: hubBackend.setWeatherVisible(!hubBackend.weatherVisible)
+                            }
+                        }
+                    }
+                }
+
+                // Theme widget toggle
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 48
+                    radius: Theme.borderRadius
+                    color: Theme.surfaceColor
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: Theme.padding
+                        anchors.rightMargin: Theme.padding
+                        spacing: Theme.spacing
+
+                        Image {
+                            source: iconsPath + "palette.svg"
+                            sourceSize: Qt.size(20, 20)
+                            Layout.preferredWidth: 20
+                            Layout.preferredHeight: 20
+                        }
+
+                        Text {
+                            text: "Theme Editor"
+                            color: Theme.textPrimary
+                            font.pixelSize: Theme.fontSizeNormal
+                            Layout.fillWidth: true
+                        }
+
+                        Rectangle {
+                            Layout.preferredWidth: 40
+                            Layout.preferredHeight: 20
+                            radius: 10
+                            color: hubBackend.themeVisible ? Theme.accentColor : Theme.titleBarBackground
+                            border.color: hubBackend.themeVisible ? Theme.accentColor : Theme.textMuted
+                            border.width: 1
+
+                            Rectangle {
+                                x: hubBackend.themeVisible ? parent.width - width - 2 : 2
+                                y: 2
+                                width: 16
+                                height: 16
+                                radius: 8
+                                color: Theme.textPrimary
+                                Behavior on x { NumberAnimation { duration: 150 } }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: hubBackend.setThemeVisible(!hubBackend.themeVisible)
                             }
                         }
                     }

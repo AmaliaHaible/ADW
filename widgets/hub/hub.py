@@ -7,16 +7,25 @@ from PySide6.QtWidgets import QSystemTrayIcon, QMenu
 
 class HubBackend(QObject):
     weatherVisibleChanged = Signal(bool)
+    themeVisibleChanged = Signal(bool)
     editModeChanged = Signal(bool)
     showHubRequested = Signal()
     exitRequested = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
-        self._weather_visible = False
+        self._settings = settings_backend
         self._edit_mode = False
         self._tray_icon = None
         self._tray_menu = None
+
+        # Load initial visibility states from settings
+        if self._settings:
+            self._weather_visible = self._settings.getWidgetVisible("weather")
+            self._theme_visible = self._settings.getWidgetVisible("theme")
+        else:
+            self._weather_visible = False
+            self._theme_visible = False
 
     def setup_tray(self, app):
         """Set up the system tray icon and menu."""
@@ -55,6 +64,7 @@ class HubBackend(QObject):
         """Emit signal to exit the application."""
         self.exitRequested.emit()
 
+    # Weather visibility
     @Property(bool, notify=weatherVisibleChanged)
     def weatherVisible(self):
         return self._weather_visible
@@ -63,29 +73,34 @@ class HubBackend(QObject):
     def weatherVisible(self, value):
         if self._weather_visible != value:
             self._weather_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("weather", value)
             self.weatherVisibleChanged.emit(value)
-
-    @Slot()
-    def minimizeToTray(self):
-        """Minimize the hub to the system tray."""
-        # This is called from QML; the actual hiding is handled in QML
-        pass
-
-    @Slot()
-    def showHub(self):
-        """Request to show the hub window."""
-        self.showHubRequested.emit()
-
-    @Slot()
-    def exitApp(self):
-        """Request to exit the application."""
-        self.exitRequested.emit()
 
     @Slot(bool)
     def setWeatherVisible(self, visible):
         """Set weather widget visibility."""
         self.weatherVisible = visible
 
+    # Theme widget visibility
+    @Property(bool, notify=themeVisibleChanged)
+    def themeVisible(self):
+        return self._theme_visible
+
+    @themeVisible.setter
+    def themeVisible(self, value):
+        if self._theme_visible != value:
+            self._theme_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("theme", value)
+            self.themeVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setThemeVisible(self, visible):
+        """Set theme widget visibility."""
+        self.themeVisible = visible
+
+    # Edit mode
     @Property(bool, notify=editModeChanged)
     def editMode(self):
         return self._edit_mode
@@ -100,3 +115,18 @@ class HubBackend(QObject):
     def setEditMode(self, enabled):
         """Set edit mode (allows moving/resizing windows)."""
         self.editMode = enabled
+
+    @Slot()
+    def minimizeToTray(self):
+        """Minimize the hub to the system tray."""
+        pass
+
+    @Slot()
+    def showHub(self):
+        """Request to show the hub window."""
+        self.showHubRequested.emit()
+
+    @Slot()
+    def exitApp(self):
+        """Request to exit the application."""
+        self.exitRequested.emit()

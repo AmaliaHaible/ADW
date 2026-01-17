@@ -6,27 +6,61 @@ import Common 1.0
 Window {
     id: weatherWindow
 
-    width: 250
-    height: 180
+    width: settingsBackend ? settingsBackend.getWidgetGeometry("weather").width : 250
+    height: settingsBackend ? settingsBackend.getWidgetGeometry("weather").height : 180
+    x: settingsBackend ? settingsBackend.getWidgetGeometry("weather").x : 420
+    y: settingsBackend ? settingsBackend.getWidgetGeometry("weather").y : 100
     visible: hubBackend.weatherVisible
     title: "Weather"
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint
     color: Theme.windowBackground
 
+    onXChanged: if (visible) saveGeometryTimer.restart()
+    onYChanged: if (visible) saveGeometryTimer.restart()
+    onWidthChanged: if (visible) saveGeometryTimer.restart()
+    onHeightChanged: if (visible) saveGeometryTimer.restart()
+
+    Timer {
+        id: saveGeometryTimer
+        interval: 500
+        onTriggered: {
+            if (settingsBackend) {
+                settingsBackend.setWidgetGeometry("weather", weatherWindow.x, weatherWindow.y, weatherWindow.width, weatherWindow.height)
+            }
+        }
+    }
+
+    // Right-click resize in edit mode
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.RightButton
+        enabled: hubBackend.editMode
+        onPressed: function(mouse) {
+            weatherWindow.startSystemResize(Qt.BottomEdge | Qt.RightEdge)
+        }
+    }
+
     Column {
         anchors.fill: parent
         spacing: 0
 
-        // Title bar
+        // Title bar with settings and refresh on left
         TitleBar {
             id: titleBar
             width: parent.width
             title: "Weather"
-            showMinimize: false
             dragEnabled: hubBackend.editMode
+            leftButtons: [
+                {icon: "settings.svg", action: "settings"},
+                {icon: "refresh-cw.svg", action: "refresh"}
+            ]
 
-            onCloseClicked: {
-                hubBackend.setWeatherVisible(false)
+            onButtonClicked: function(action) {
+                if (action === "settings") {
+                    console.log("Weather settings clicked")
+                } else if (action === "refresh") {
+                    console.log("Weather refresh clicked")
+                }
             }
         }
 
@@ -35,7 +69,6 @@ Window {
             width: parent.width
             height: parent.height - titleBar.height
             color: Theme.windowBackground
-            radius: Theme.borderRadius
 
             ColumnLayout {
                 anchors.fill: parent

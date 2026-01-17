@@ -2,42 +2,42 @@ pragma Singleton
 import QtQuick 2.15
 
 QtObject {
-    // Base colors
-    readonly property color baseColor: "#9cbfd7"
-    readonly property color windowBackground: "#1e1e2e"
-    readonly property color surfaceColor: "#313244"
+    // Base colors - read from themeProvider if available, otherwise use defaults
+    readonly property color baseColor: themeProvider ? themeProvider.baseColor : "#9cbfd7"
+    readonly property color windowBackground: themeProvider ? themeProvider.windowBackground : "#1e1e2e"
+    readonly property color surfaceColor: themeProvider ? themeProvider.surfaceColor : "#313244"
 
     // Title bar
-    readonly property color titleBarBackground: "#181825"
-    readonly property color titleBarText: "#cdd6f4"
-    readonly property color titleBarButtonHover: "#45475a"
-    readonly property color titleBarButtonPressed: "#585b70"
+    readonly property color titleBarBackground: themeProvider ? themeProvider.titleBarBackground : "#181825"
+    readonly property color titleBarText: themeProvider ? themeProvider.titleBarText : "#cdd6f4"
+    readonly property color titleBarButtonHover: themeProvider ? themeProvider.titleBarButtonHover : "#45475a"
+    readonly property color titleBarButtonPressed: themeProvider ? themeProvider.titleBarButtonPressed : "#585b70"
 
     // Accent colors
-    readonly property color accentColor: "#89b4fa"
-    readonly property color accentHover: "#b4befe"
+    readonly property color accentColor: themeProvider ? themeProvider.accentColor : "#89b4fa"
+    readonly property color accentHover: themeProvider ? themeProvider.accentHover : "#b4befe"
 
     // Text colors
-    readonly property color textPrimary: "#cdd6f4"
-    readonly property color textSecondary: "#a6adc8"
-    readonly property color textMuted: "#6c7086"
+    readonly property color textPrimary: themeProvider ? themeProvider.textPrimary : "#cdd6f4"
+    readonly property color textSecondary: themeProvider ? themeProvider.textSecondary : "#a6adc8"
+    readonly property color textMuted: themeProvider ? themeProvider.textMuted : "#6c7086"
 
     // Status colors
-    readonly property color success: "#a6e3a1"
-    readonly property color warning: "#f9e2af"
-    readonly property color error: "#f38ba8"
+    readonly property color success: themeProvider ? themeProvider.success : "#a6e3a1"
+    readonly property color warning: themeProvider ? themeProvider.warning : "#f9e2af"
+    readonly property color error: themeProvider ? themeProvider.error : "#f38ba8"
 
     // Font sizes
-    readonly property int fontSizeSmall: 11
-    readonly property int fontSizeNormal: 13
-    readonly property int fontSizeLarge: 16
-    readonly property int fontSizeTitle: 14
+    readonly property int fontSizeSmall: themeProvider ? themeProvider.fontSizeSmall : 11
+    readonly property int fontSizeNormal: themeProvider ? themeProvider.fontSizeNormal : 13
+    readonly property int fontSizeLarge: themeProvider ? themeProvider.fontSizeLarge : 16
+    readonly property int fontSizeTitle: themeProvider ? themeProvider.fontSizeTitle : 14
 
     // Dimensions
-    readonly property int titleBarHeight: 32
-    readonly property int buttonSize: 24
-    readonly property int borderRadius: 8
-    readonly property int spacing: 8
-    readonly property int padding: 12
+    readonly property int titleBarHeight: themeProvider ? themeProvider.titleBarHeight : 32
+    readonly property int buttonSize: themeProvider ? themeProvider.buttonSize : 24
+    readonly property int borderRadius: themeProvider ? themeProvider.borderRadius : 8
+    readonly property int spacing: themeProvider ? themeProvider.spacing : 8
+    readonly property int padding: themeProvider ? themeProvider.padding : 12
 }
 

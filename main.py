@@ -9,7 +9,7 @@ from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from widgets import HubBackend
+from widgets import HubBackend, SettingsBackend, ThemeProvider
 
 
 def main():
@@ -22,13 +22,23 @@ def main():
 
     qml_dir = Path(__file__).parent / "qml"
     icons_dir = Path(__file__).parent / "icons"
+    settings_path = Path(__file__).parent / "settings.json"
+
     engine.addImportPath(qml_dir)
 
     # Pass icons directory as a context property
     engine.rootContext().setContextProperty("iconsPath", QUrl.fromLocalFile(str(icons_dir) + "/"))
 
-    # Set up hub backend
-    hub = HubBackend()
+    # Set up settings backend
+    settings = SettingsBackend()
+    engine.rootContext().setContextProperty("settingsBackend", settings)
+
+    # Set up theme provider
+    theme_provider = ThemeProvider(settings_path)
+    engine.rootContext().setContextProperty("themeProvider", theme_provider)
+
+    # Set up hub backend (with settings for persistence)
+    hub = HubBackend(settings_backend=settings)
     engine.rootContext().setContextProperty("hubBackend", hub)
 
     # Set up system tray
@@ -40,9 +50,11 @@ def main():
     # Load QML files
     hub_qml = qml_dir / "Hub.qml"
     weather_qml = qml_dir / "Weather.qml"
+    theme_qml = qml_dir / "ThemeEditor.qml"
 
     engine.load(hub_qml)
     engine.load(weather_qml)
+    engine.load(theme_qml)
 
     if not engine.rootObjects():
         sys.exit(-1)

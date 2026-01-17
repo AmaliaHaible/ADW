@@ -1,0 +1,51 @@
+{
+  "widgets": {
+    "hub": {
+      "visible": true,
+      "x": 1418,
+      "y": 720,
+      "width": 350,
+      "height": 279
+    },
+    "weather": {
+      "visible": true,
+      "x": 1360,
+      "y": 147,
+      "width": 315,
+      "height": 248
+    },
+    "theme": {
+      "visible": true,
+      "x": 614,
+      "y": 330,
+      "width": 515,
+      "height": 480
+    }
+  },
+  "theme": {
+    "baseColor": "#9cbfd7",
+    "windowBackground": "#1e1e2e",
+    "surfaceColor": "#313244",
+    "titleBarBackground": "#181825",
+    "titleBarText": "#cdd6f4",
+    "titleBarButtonHover": "#45475a",
+    "titleBarButtonPressed": "#585b70",
+    "accentColor": "#89b4fa",
+    "accentHover": "#b4befe",
+    "textPrimary": "#cdd6f4",
+    "textSecondary": "#a6adc8",
+    "textMuted": "#6c7086",
+    "success": "#a6e3a1",
+    "warning": "#f9e2af",
+    "error": "#f38ba8",
+    "fontSizeSmall": 11,
+    "fontSizeNormal": 13,
+    "fontSizeLarge": 16,
+    "fontSizeTitle": 14,
+    "titleBarHeight": 32,
+    "buttonSize": 24,
+    "borderRadius": 8,
+    "spacing": 8,
+    "padding": 12
+  }
+}
