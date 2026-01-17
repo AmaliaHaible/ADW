@@ -2,24 +2,24 @@
   "widgets": {
     "hub": {
       "visible": true,
-      "x": 1347,
-      "y": 719,
-      "width": 350,
-      "height": 279
+      "x": 1491,
+      "y": 636,
+      "width": 356,
+      "height": 296
     },
     "weather": {
-      "visible": false,
-      "x": 1098,
-      "y": 216,
-      "width": 315,
-      "height": 248
+      "visible": true,
+      "x": 126,
+      "y": 233,
+      "width": 462,
+      "height": 367
     },
     "theme": {
       "visible": true,
-      "x": 475,
-      "y": 178,
-      "width": 495,
-      "height": 471
+      "x": 708,
+      "y": 173,
+      "width": 631,
+      "height": 687
     }
   },
   "theme": {
@@ -30,24 +30,24 @@
     "titleBarText": "#cdd6f4",
     "titleBarButtonHover": "#45475a",
     "titleBarButtonPressed": "#585b70",
-    "accentColor": "#89f3fa",
+    "accentColor": "#89b4fa",
     "accentHover": "#b4befe",
-    "accentInactive": "#999bae",
+    "accentInactive": "#45475a",
     "textPrimary": "#cdd6f4",
     "textSecondary": "#a6adc8",
     "textMuted": "#6c7086",
     "success": "#a6e3a1",
     "warning": "#f9e2af",
     "error": "#f38ba8",
-    "fontSizeSmall": 11,
-    "fontSizeNormal": 13,
-    "fontSizeLarge": 16,
+    "fontSizeSmall": 14,
+    "fontSizeNormal": 20,
+    "fontSizeLarge": 30,
     "fontSizeTitle": 14,
-    "titleBarHeight": 32,
+    "titleBarHeight": 30,
     "buttonSize": 24,
     "borderRadius": 8,
     "windowRadius": 12,
     "spacing": 8,
-    "padding": 12
+    "padding": 10
   }
 }

@@ -119,8 +119,10 @@ Window {
             visible: hubBackend.editMode
             radius: Theme.windowRadius
 
-            property point startPos
-            property size startSize
+            property point resizeStartPos
+            property size resizeStartSize
+            property point dragStartPos
+            property point windowStartPos
 
             // Visual indicator for edit mode
             Rectangle {
@@ -146,17 +148,25 @@ Window {
 
                 onPressed: function(mouse) {
                     if (mouse.button === Qt.RightButton) {
-                        editOverlay.startPos = Qt.point(mouse.x, mouse.y)
-                        editOverlay.startSize = Qt.size(weatherWindow.width, weatherWindow.height)
+                        editOverlay.resizeStartPos = Qt.point(mouse.x, mouse.y)
+                        editOverlay.resizeStartSize = Qt.size(weatherWindow.width, weatherWindow.height)
+                    } else if (mouse.button === Qt.LeftButton) {
+                        editOverlay.dragStartPos = Qt.point(mouse.x, mouse.y)
+                        editOverlay.windowStartPos = Qt.point(weatherWindow.x, weatherWindow.y)
                     }
                 }
 
                 onPositionChanged: function(mouse) {
                     if (pressedButtons & Qt.RightButton) {
-                        var deltaX = mouse.x - editOverlay.startPos.x
-                        var deltaY = mouse.y - editOverlay.startPos.y
-                        weatherWindow.width = Math.max(150, editOverlay.startSize.width + deltaX)
-                        weatherWindow.height = Math.max(100, editOverlay.startSize.height + deltaY)
+                        var deltaX = mouse.x - editOverlay.resizeStartPos.x
+                        var deltaY = mouse.y - editOverlay.resizeStartPos.y
+                        weatherWindow.width = Math.max(150, editOverlay.resizeStartSize.width + deltaX)
+                        weatherWindow.height = Math.max(100, editOverlay.resizeStartSize.height + deltaY)
+                    } else if (pressedButtons & Qt.LeftButton) {
+                        var dx = mouse.x - editOverlay.dragStartPos.x
+                        var dy = mouse.y - editOverlay.dragStartPos.y
+                        weatherWindow.x = editOverlay.windowStartPos.x + dx
+                        weatherWindow.y = editOverlay.windowStartPos.y + dy
                     }
                 }
             }

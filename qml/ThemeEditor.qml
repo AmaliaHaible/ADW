@@ -243,8 +243,10 @@ Window {
             visible: hubBackend.editMode
             radius: Theme.windowRadius
 
-            property point startPos
-            property size startSize
+            property point resizeStartPos
+            property size resizeStartSize
+            property point dragStartPos
+            property point windowStartPos
 
             // Visual indicator for edit mode
             Rectangle {
@@ -270,17 +272,25 @@ Window {
 
                 onPressed: function(mouse) {
                     if (mouse.button === Qt.RightButton) {
-                        editOverlay.startPos = Qt.point(mouse.x, mouse.y)
-                        editOverlay.startSize = Qt.size(themeWindow.width, themeWindow.height)
+                        editOverlay.resizeStartPos = Qt.point(mouse.x, mouse.y)
+                        editOverlay.resizeStartSize = Qt.size(themeWindow.width, themeWindow.height)
+                    } else if (mouse.button === Qt.LeftButton) {
+                        editOverlay.dragStartPos = Qt.point(mouse.x, mouse.y)
+                        editOverlay.windowStartPos = Qt.point(themeWindow.x, themeWindow.y)
                     }
                 }
 
                 onPositionChanged: function(mouse) {
                     if (pressedButtons & Qt.RightButton) {
-                        var deltaX = mouse.x - editOverlay.startPos.x
-                        var deltaY = mouse.y - editOverlay.startPos.y
-                        themeWindow.width = Math.max(250, editOverlay.startSize.width + deltaX)
-                        themeWindow.height = Math.max(200, editOverlay.startSize.height + deltaY)
+                        var deltaX = mouse.x - editOverlay.resizeStartPos.x
+                        var deltaY = mouse.y - editOverlay.resizeStartPos.y
+                        themeWindow.width = Math.max(250, editOverlay.resizeStartSize.width + deltaX)
+                        themeWindow.height = Math.max(200, editOverlay.resizeStartSize.height + deltaY)
+                    } else if (pressedButtons & Qt.LeftButton) {
+                        var dx = mouse.x - editOverlay.dragStartPos.x
+                        var dy = mouse.y - editOverlay.dragStartPos.y
+                        themeWindow.x = editOverlay.windowStartPos.x + dx
+                        themeWindow.y = editOverlay.windowStartPos.y + dy
                     }
                 }
             }
