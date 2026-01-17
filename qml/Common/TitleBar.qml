@@ -1,9 +1,9 @@
-import QtQuick 2.15
+import QtQuick 
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import Common 1.0
 
-Item {
+Rectangle {
     id: titleBar
 
     property string title: "Window"
@@ -18,21 +18,9 @@ Item {
 
     height: Theme.titleBarHeight
 
-    // Background with rounded top corners
-    Rectangle {
-        anchors.fill: parent
-        color: Theme.titleBarBackground
-        radius: Theme.windowRadius
-
-        // Cover bottom corners to make them square
-        Rectangle {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            height: Theme.windowRadius
-            color: Theme.titleBarBackground
-        }
-    }
+    color: Theme.titleBarBackground
+    topRightRadius: Theme.windowRadius 
+    topLeftRadius: Theme.windowRadius 
 
     // Drag handler for moving the window
     DragHandler {
