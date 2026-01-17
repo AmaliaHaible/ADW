@@ -1,3 +1,4 @@
 module Common
 singleton Theme 1.0 Theme.qml
 TitleBar 1.0 TitleBar.qml
+WidgetWindow 1.0 WidgetWindow.qml
