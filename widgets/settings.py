@@ -34,7 +34,7 @@ DEFAULT_SETTINGS = {
         "baseColor": "#9cbfd7",
         "windowBackground": "#1e1e2e",
         "surfaceColor": "#313244",
-        "titleBarBackground": "#181825",
+        "titleBarBackground": "#383858",
         "titleBarText": "#cdd6f4",
         "titleBarButtonHover": "#45475a",
         "titleBarButtonPressed": "#585b70",

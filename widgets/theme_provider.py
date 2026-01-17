@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Property, Signal, Slot
+from PySide6.QtCore import QObject, Property, Signal, Slot, QUrl
 from PySide6.QtGui import QColor
 
 
@@ -9,7 +9,7 @@ DEFAULT_THEME = {
     "baseColor": "#9cbfd7",
     "windowBackground": "#1e1e2e",
     "surfaceColor": "#313244",
-    "titleBarBackground": "#181825",
+    "titleBarBackground": "#383858",
     "titleBarText": "#cdd6f4",
     "titleBarButtonHover": "#45475a",
     "titleBarButtonPressed": "#585b70",
@@ -290,6 +290,49 @@ class ThemeProvider(QObject):
             if signal:
                 signal.emit()
             self.themeChanged.emit()
+
+    @Slot(str)
+    def saveThemeToPath(self, path: str):
+        """Save the current theme to a JSON file."""
+        file_path = self._normalize_path(path)
+        if not file_path:
+            return
+        try:
+            with open(file_path, "w") as f:
+                json.dump(self._theme, f, indent=2)
+        except IOError as e:
+            print(f"Error saving theme to {file_path}: {e}")
+
+    @Slot(str)
+    def loadThemeFromPath(self, path: str):
+        """Load a theme from a JSON file."""
+        file_path = self._normalize_path(path)
+        if not file_path:
+            return
+        try:
+            with open(file_path, "r") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"Error loading theme from {file_path}: {e}")
+            return
+
+        if not isinstance(data, dict):
+            return
+
+        updated = DEFAULT_THEME.copy()
+        updated.update(data)
+        self._theme = updated
+        self._save_theme()
+        self._emit_all_signals()
+
+    def _normalize_path(self, path: str) -> str:
+        """Normalize file paths coming from QML."""
+        if not path:
+            return ""
+        url = QUrl(path)
+        if url.isValid() and url.scheme() == "file":
+            return url.toLocalFile()
+        return path
 
     @Slot(result="QVariant")
     def getAllColors(self):

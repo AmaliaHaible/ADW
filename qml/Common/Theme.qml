@@ -8,7 +8,7 @@ QtObject {
     readonly property color surfaceColor: themeProvider ? themeProvider.surfaceColor : "#313244"
 
     // Title bar
-    readonly property color titleBarBackground: themeProvider ? themeProvider.titleBarBackground : "#181825"
+    readonly property color titleBarBackground: themeProvider ? themeProvider.titleBarBackground : "#383858"
     readonly property color titleBarText: themeProvider ? themeProvider.titleBarText : "#cdd6f4"
     readonly property color titleBarButtonHover: themeProvider ? themeProvider.titleBarButtonHover : "#45475a"
     readonly property color titleBarButtonPressed: themeProvider ? themeProvider.titleBarButtonPressed : "#585b70"

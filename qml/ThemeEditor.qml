@@ -30,11 +30,19 @@ WidgetWindow {
             title: "Theme Editor"
             dragEnabled: themeWindow.editMode
             leftButtons: [
+                {icon: "save.svg", action: "save"},
+                {icon: "folder.svg", action: "load"}
+            ]
+            rightButtons: [
                 {icon: "rotate-ccw.svg", action: "reset"}
             ]
 
             onButtonClicked: function(action) {
-                if (action === "reset") {
+                if (action === "save") {
+                    saveThemeDialog.open()
+                } else if (action === "load") {
+                    loadThemeDialog.open()
+                } else if (action === "reset") {
                     themeProvider.resetToDefaults()
                 }
             }
@@ -278,6 +286,32 @@ WidgetWindow {
         onAccepted: {
             if (themeProvider && colorName !== "") {
                 themeProvider.setColor(colorName, selectedColor.toString())
+            }
+        }
+    }
+
+    FileDialog {
+        id: saveThemeDialog
+        title: "Save Theme"
+        nameFilters: ["Theme files (*.json)"]
+        fileMode: FileDialog.SaveFile
+
+        onAccepted: {
+            if (themeProvider) {
+                themeProvider.saveThemeToPath(selectedFile.toString())
+            }
+        }
+    }
+
+    FileDialog {
+        id: loadThemeDialog
+        title: "Load Theme"
+        nameFilters: ["Theme files (*.json)"]
+        fileMode: FileDialog.OpenFile
+
+        onAccepted: {
+            if (themeProvider) {
+                themeProvider.loadThemeFromPath(selectedFile.toString())
             }
         }
     }

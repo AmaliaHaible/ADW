@@ -9,6 +9,7 @@ wheels/
 
 settings.json
 .env
+themes/
 
 # Virtual environments
 .venv
