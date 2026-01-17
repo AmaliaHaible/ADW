@@ -30,11 +30,11 @@ WidgetWindow {
             title: "Theme Editor"
             dragEnabled: themeWindow.editMode
             leftButtons: [
-                {icon: "save.svg", action: "save"},
-                {icon: "folder.svg", action: "load"}
+                {icon: "save.svg", action: "save", enabled: !hubBackend.editMode},
+                {icon: "folder.svg", action: "load", enabled: !hubBackend.editMode}
             ]
             rightButtons: [
-                {icon: "rotate-ccw.svg", action: "reset"}
+                {icon: "rotate-ccw.svg", action: "reset", enabled: !hubBackend.editMode}
             ]
 
             onButtonClicked: function(action) {

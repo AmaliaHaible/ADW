@@ -30,8 +30,8 @@ WidgetWindow {
             title: "Weather"
             dragEnabled: weatherWindow.editMode
             leftButtons: [
-                {icon: "settings.svg", action: "settings"},
-                {icon: "refresh-cw.svg", action: "refresh"}
+                {icon: "settings.svg", action: "settings", enabled: !hubBackend.editMode},
+                {icon: "refresh-cw.svg", action: "refresh", enabled: !hubBackend.editMode}
             ]
 
             onButtonClicked: function(action) {

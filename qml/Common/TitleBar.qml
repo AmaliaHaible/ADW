@@ -9,7 +9,7 @@ Rectangle {
     property string title: "Window"
     property bool dragEnabled: true
 
-    // Button configurations: [{icon: "name.svg", action: "actionName"}]
+    // Button configurations: [{icon: "name.svg", action: "actionName", enabled: bool}]
     property var leftButtons: []
     property var rightButtons: []
 
@@ -47,7 +47,7 @@ Rectangle {
                 width: Theme.buttonSize
                 height: Theme.buttonSize
                 radius: 4
-                color: leftMouseArea.containsMouse
+                color: leftMouseArea.containsMouse && leftMouseArea.enabled
                        ? (leftMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
                        : "transparent"
 
@@ -63,6 +63,7 @@ Rectangle {
                     id: leftMouseArea
                     anchors.fill: parent
                     hoverEnabled: true
+                    enabled: modelData.enabled === undefined ? true : modelData.enabled
                     onClicked: titleBar.buttonClicked(modelData.action)
                 }
             }
@@ -86,7 +87,7 @@ Rectangle {
                 width: Theme.buttonSize
                 height: Theme.buttonSize
                 radius: 4
-                color: rightMouseArea.containsMouse
+                color: rightMouseArea.containsMouse && rightMouseArea.enabled
                        ? (rightMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
                        : "transparent"
 
@@ -102,6 +103,7 @@ Rectangle {
                     id: rightMouseArea
                     anchors.fill: parent
                     hoverEnabled: true
+                    enabled: modelData.enabled === undefined ? true : modelData.enabled
                     onClicked: titleBar.buttonClicked(modelData.action)
                 }
             }
