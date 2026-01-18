@@ -64,176 +64,176 @@ WidgetWindow {
             height: parent.height - titleBar.height
             color: "transparent"
 
-            ColumnLayout {
+            ScrollView {
                 anchors.fill: parent
                 anchors.margins: Theme.padding
-                spacing: Theme.spacing
+                clip: true
+                contentWidth: availableWidth
 
-                // Edit mode toggle
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 48
-                    radius: Theme.borderRadius
-                    color: Theme.surfaceColor
+                ColumnLayout {
+                    width: parent.width
+                    spacing: Theme.spacing
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: Theme.padding
-                        anchors.rightMargin: Theme.padding
-                        spacing: Theme.spacing
+                    // Edit mode toggle
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
 
-                        Image {
-                            source: iconsPath + "move.svg"
-                            sourceSize: Qt.size(20, 20)
-                            Layout.preferredWidth: 20
-                            Layout.preferredHeight: 20
-                        }
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
 
-                        Text {
-                            text: "Edit Mode"
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeNormal
-                            Layout.fillWidth: true
-                        }
-
-                        Rectangle {
-                            Layout.preferredWidth: 40
-                            Layout.preferredHeight: 20
-                            radius: 10
-                            color: hubBackend.editMode ? Theme.accentColor : Theme.accentInactive
-                            border.color: hubBackend.editMode ? Theme.accentColor : Theme.borderColor
-                            border.width: 1
-
-                            Rectangle {
-                                x: hubBackend.editMode ? parent.width - width - 2 : 2
-                                y: 2
-                                width: 16
-                                height: 16
-                                radius: 8
-                                color: Theme.textPrimary
-                                Behavior on x { NumberAnimation { duration: 150 } }
+                            Image {
+                                source: iconsPath + "move.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
                             }
 
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: hubBackend.setEditMode(!hubBackend.editMode)
+                            Text {
+                                text: "Edit Mode"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.editMode ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.editMode ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.editMode ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: hubBackend.setEditMode(!hubBackend.editMode)
+                                }
                             }
                         }
                     }
-                }
 
-                // Weather widget toggle
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 48
-                    radius: Theme.borderRadius
-                    color: Theme.surfaceColor
+                    // Weather widget toggle
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: Theme.padding
-                        anchors.rightMargin: Theme.padding
-                        spacing: Theme.spacing
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
 
-                        Image {
-                            source: iconsPath + "sun.svg"
-                            sourceSize: Qt.size(20, 20)
-                            Layout.preferredWidth: 20
-                            Layout.preferredHeight: 20
-                        }
-
-                        Text {
-                            text: "Weather"
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeNormal
-                            Layout.fillWidth: true
-                        }
-
-                        Rectangle {
-                            Layout.preferredWidth: 40
-                            Layout.preferredHeight: 20
-                            radius: 10
-                            color: hubBackend.weatherVisible ? Theme.accentColor : Theme.accentInactive
-                            border.color: hubBackend.weatherVisible ? Theme.accentColor : Theme.borderColor
-                            border.width: 1
-
-                            Rectangle {
-                                x: hubBackend.weatherVisible ? parent.width - width - 2 : 2
-                                y: 2
-                                width: 16
-                                height: 16
-                                radius: 8
-                                color: Theme.textPrimary
-                                Behavior on x { NumberAnimation { duration: 150 } }
+                            Image {
+                                source: iconsPath + "sun.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
                             }
 
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: hubBackend.setWeatherVisible(!hubBackend.weatherVisible)
+                            Text {
+                                text: "Weather"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.weatherVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.weatherVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.weatherVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: hubBackend.setWeatherVisible(!hubBackend.weatherVisible)
+                                }
                             }
                         }
                     }
-                }
 
-                // Theme widget toggle
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 48
-                    radius: Theme.borderRadius
-                    color: Theme.surfaceColor
+                    // Theme widget toggle
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: Theme.padding
-                        anchors.rightMargin: Theme.padding
-                        spacing: Theme.spacing
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
 
-                        Image {
-                            source: iconsPath + "palette.svg"
-                            sourceSize: Qt.size(20, 20)
-                            Layout.preferredWidth: 20
-                            Layout.preferredHeight: 20
-                        }
-
-                        Text {
-                            text: "Theme Editor"
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeNormal
-                            Layout.fillWidth: true
-                        }
-
-                        Rectangle {
-                            Layout.preferredWidth: 40
-                            Layout.preferredHeight: 20
-                            radius: 10
-                            color: hubBackend.themeVisible ? Theme.accentColor : Theme.accentInactive
-                            border.color: hubBackend.themeVisible ? Theme.accentColor : Theme.borderColor
-                            border.width: 1
-
-                            Rectangle {
-                                x: hubBackend.themeVisible ? parent.width - width - 2 : 2
-                                y: 2
-                                width: 16
-                                height: 16
-                                radius: 8
-                                color: Theme.textPrimary
-                                Behavior on x { NumberAnimation { duration: 150 } }
+                            Image {
+                                source: iconsPath + "palette.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
                             }
 
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: hubBackend.setThemeVisible(!hubBackend.themeVisible)
+                            Text {
+                                text: "Theme Editor"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.themeVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.themeVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.themeVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: hubBackend.setThemeVisible(!hubBackend.themeVisible)
+                                }
                             }
                         }
                     }
-                }
-
-                // Spacer
-                Item {
-                    Layout.fillHeight: true
                 }
             }
         }
     }
-
 }
