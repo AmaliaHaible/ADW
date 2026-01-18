@@ -279,13 +279,411 @@ WidgetWindow {
         }
     }
 
-    ColorDialog {
+    // Custom Color Picker Dialog
+    Rectangle {
         id: colorDialog
         property string colorName: ""
+        property color selectedColor: "#000000"
+        property bool dialogOpen: false
 
-        onAccepted: {
-            if (themeProvider && colorName !== "") {
-                themeProvider.setColor(colorName, selectedColor.toString())
+        visible: dialogOpen
+        anchors.fill: parent
+        color: Qt.rgba(0, 0, 0, 0.5)
+        z: 1000
+
+        function open() {
+            dialogOpen = true
+        }
+
+        function close() {
+            dialogOpen = false
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: parent.close()
+        }
+
+        Rectangle {
+            anchors.centerIn: parent
+            width: 320
+            height: 420
+            radius: Theme.windowRadius
+            color: Theme.windowBackground
+            border.color: Theme.borderColor
+            border.width: 1
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {} // Prevent closing when clicking inside dialog
+            }
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: Theme.padding
+                spacing: Theme.spacing
+
+                // Title
+                Text {
+                    text: "Pick Color"
+                    color: Theme.textPrimary
+                    font.pixelSize: Theme.fontSizeLarge
+                    font.weight: Font.Medium
+                }
+
+                // Color preview
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 60
+                    radius: Theme.borderRadius
+                    color: colorDialog.selectedColor
+                    border.color: Theme.borderColor
+                    border.width: 1
+                }
+
+                // Hex input
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spacing
+
+                    Text {
+                        text: "Hex:"
+                        color: Theme.textSecondary
+                        font.pixelSize: Theme.fontSizeNormal
+                    }
+
+                    TextField {
+                        id: hexInput
+                        Layout.fillWidth: true
+                        text: colorDialog.selectedColor.toString()
+                        color: Theme.textPrimary
+                        font.pixelSize: Theme.fontSizeNormal
+
+                        background: Rectangle {
+                            color: Theme.surfaceColor
+                            border.color: Theme.borderColor
+                            border.width: 1
+                            radius: 4
+                        }
+
+                        onTextChanged: {
+                            if (text.match(/^#[0-9A-Fa-f]{6,8}$/)) {
+                                colorDialog.selectedColor = text
+                            }
+                        }
+                    }
+                }
+
+                // RGB sliders
+                Text {
+                    text: "RGB"
+                    color: Theme.textPrimary
+                    font.pixelSize: Theme.fontSizeNormal
+                    font.weight: Font.Medium
+                }
+
+                // Red slider
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spacing
+
+                    Text {
+                        text: "R:"
+                        color: Theme.textSecondary
+                        font.pixelSize: Theme.fontSizeSmall
+                        Layout.preferredWidth: 20
+                    }
+
+                    Slider {
+                        id: redSlider
+                        Layout.fillWidth: true
+                        from: 0
+                        to: 255
+                        stepSize: 1
+                        value: colorDialog.selectedColor.r * 255
+
+                        onMoved: {
+                            var g = greenSlider.value
+                            var b = blueSlider.value
+                            var a = alphaSlider.value
+                            colorDialog.selectedColor = Qt.rgba(value/255, g/255, b/255, a/255)
+                        }
+
+                        background: Rectangle {
+                            x: redSlider.leftPadding
+                            y: redSlider.topPadding + redSlider.availableHeight / 2 - height / 2
+                            width: redSlider.availableWidth
+                            height: 4
+                            radius: 2
+                            color: Theme.accentInactive
+
+                            Rectangle {
+                                width: redSlider.visualPosition * parent.width
+                                height: parent.height
+                                radius: 2
+                                color: "#ff0000"
+                            }
+                        }
+
+                        handle: Rectangle {
+                            x: redSlider.leftPadding + redSlider.visualPosition * (redSlider.availableWidth - width)
+                            y: redSlider.topPadding + redSlider.availableHeight / 2 - height / 2
+                            width: 14
+                            height: 14
+                            radius: 7
+                            color: Theme.textPrimary
+                        }
+                    }
+
+                    Text {
+                        text: Math.round(redSlider.value)
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontSizeSmall
+                        Layout.preferredWidth: 30
+                        horizontalAlignment: Text.AlignRight
+                    }
+                }
+
+                // Green slider
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spacing
+
+                    Text {
+                        text: "G:"
+                        color: Theme.textSecondary
+                        font.pixelSize: Theme.fontSizeSmall
+                        Layout.preferredWidth: 20
+                    }
+
+                    Slider {
+                        id: greenSlider
+                        Layout.fillWidth: true
+                        from: 0
+                        to: 255
+                        stepSize: 1
+                        value: colorDialog.selectedColor.g * 255
+
+                        onMoved: {
+                            var r = redSlider.value
+                            var b = blueSlider.value
+                            var a = alphaSlider.value
+                            colorDialog.selectedColor = Qt.rgba(r/255, value/255, b/255, a/255)
+                        }
+
+                        background: Rectangle {
+                            x: greenSlider.leftPadding
+                            y: greenSlider.topPadding + greenSlider.availableHeight / 2 - height / 2
+                            width: greenSlider.availableWidth
+                            height: 4
+                            radius: 2
+                            color: Theme.accentInactive
+
+                            Rectangle {
+                                width: greenSlider.visualPosition * parent.width
+                                height: parent.height
+                                radius: 2
+                                color: "#00ff00"
+                            }
+                        }
+
+                        handle: Rectangle {
+                            x: greenSlider.leftPadding + greenSlider.visualPosition * (greenSlider.availableWidth - width)
+                            y: greenSlider.topPadding + greenSlider.availableHeight / 2 - height / 2
+                            width: 14
+                            height: 14
+                            radius: 7
+                            color: Theme.textPrimary
+                        }
+                    }
+
+                    Text {
+                        text: Math.round(greenSlider.value)
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontSizeSmall
+                        Layout.preferredWidth: 30
+                        horizontalAlignment: Text.AlignRight
+                    }
+                }
+
+                // Blue slider
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spacing
+
+                    Text {
+                        text: "B:"
+                        color: Theme.textSecondary
+                        font.pixelSize: Theme.fontSizeSmall
+                        Layout.preferredWidth: 20
+                    }
+
+                    Slider {
+                        id: blueSlider
+                        Layout.fillWidth: true
+                        from: 0
+                        to: 255
+                        stepSize: 1
+                        value: colorDialog.selectedColor.b * 255
+
+                        onMoved: {
+                            var r = redSlider.value
+                            var g = greenSlider.value
+                            var a = alphaSlider.value
+                            colorDialog.selectedColor = Qt.rgba(r/255, g/255, value/255, a/255)
+                        }
+
+                        background: Rectangle {
+                            x: blueSlider.leftPadding
+                            y: blueSlider.topPadding + blueSlider.availableHeight / 2 - height / 2
+                            width: blueSlider.availableWidth
+                            height: 4
+                            radius: 2
+                            color: Theme.accentInactive
+
+                            Rectangle {
+                                width: blueSlider.visualPosition * parent.width
+                                height: parent.height
+                                radius: 2
+                                color: "#0000ff"
+                            }
+                        }
+
+                        handle: Rectangle {
+                            x: blueSlider.leftPadding + blueSlider.visualPosition * (blueSlider.availableWidth - width)
+                            y: blueSlider.topPadding + blueSlider.availableHeight / 2 - height / 2
+                            width: 14
+                            height: 14
+                            radius: 7
+                            color: Theme.textPrimary
+                        }
+                    }
+
+                    Text {
+                        text: Math.round(blueSlider.value)
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontSizeSmall
+                        Layout.preferredWidth: 30
+                        horizontalAlignment: Text.AlignRight
+                    }
+                }
+
+                // Alpha slider
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spacing
+
+                    Text {
+                        text: "A:"
+                        color: Theme.textSecondary
+                        font.pixelSize: Theme.fontSizeSmall
+                        Layout.preferredWidth: 20
+                    }
+
+                    Slider {
+                        id: alphaSlider
+                        Layout.fillWidth: true
+                        from: 0
+                        to: 255
+                        stepSize: 1
+                        value: colorDialog.selectedColor.a * 255
+
+                        onMoved: {
+                            var r = redSlider.value
+                            var g = greenSlider.value
+                            var b = blueSlider.value
+                            colorDialog.selectedColor = Qt.rgba(r/255, g/255, b/255, value/255)
+                        }
+
+                        background: Rectangle {
+                            x: alphaSlider.leftPadding
+                            y: alphaSlider.topPadding + alphaSlider.availableHeight / 2 - height / 2
+                            width: alphaSlider.availableWidth
+                            height: 4
+                            radius: 2
+                            color: Theme.accentInactive
+
+                            Rectangle {
+                                width: alphaSlider.visualPosition * parent.width
+                                height: parent.height
+                                radius: 2
+                                color: Theme.accentColor
+                            }
+                        }
+
+                        handle: Rectangle {
+                            x: alphaSlider.leftPadding + alphaSlider.visualPosition * (alphaSlider.availableWidth - width)
+                            y: alphaSlider.topPadding + alphaSlider.availableHeight / 2 - height / 2
+                            width: 14
+                            height: 14
+                            radius: 7
+                            color: Theme.textPrimary
+                        }
+                    }
+
+                    Text {
+                        text: Math.round(alphaSlider.value)
+                        color: Theme.textMuted
+                        font.pixelSize: Theme.fontSizeSmall
+                        Layout.preferredWidth: 30
+                        horizontalAlignment: Text.AlignRight
+                    }
+                }
+
+                Item { Layout.fillHeight: true }
+
+                // Buttons
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.spacing
+
+                    Button {
+                        text: "Cancel"
+                        Layout.fillWidth: true
+
+                        background: Rectangle {
+                            color: Theme.surfaceColor
+                            border.color: Theme.borderColor
+                            border.width: 1
+                            radius: 4
+                        }
+
+                        contentItem: Text {
+                            text: parent.text
+                            color: Theme.textPrimary
+                            font.pixelSize: Theme.fontSizeNormal
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        onClicked: colorDialog.close()
+                    }
+
+                    Button {
+                        text: "OK"
+                        Layout.fillWidth: true
+
+                        background: Rectangle {
+                            color: Theme.accentColor
+                            radius: 4
+                        }
+
+                        contentItem: Text {
+                            text: parent.text
+                            color: Theme.textPrimary
+                            font.pixelSize: Theme.fontSizeNormal
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        onClicked: {
+                            if (themeProvider && colorDialog.colorName !== "") {
+                                themeProvider.setColor(colorDialog.colorName, colorDialog.selectedColor.toString())
+                            }
+                            colorDialog.close()
+                        }
+                    }
+                }
             }
         }
     }
