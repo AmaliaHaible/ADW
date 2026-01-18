@@ -1,0 +1,31 @@
+"""Shared theme constants for the application."""
+
+DEFAULT_THEME = {
+    "baseColor": "#9cbfd7",
+    "windowBackground": "#1e1e2e",
+    "surfaceColor": "#313244",
+    "titleBarBackground": "#383858",
+    "titleBarText": "#cdd6f4",
+    "titleBarButtonHover": "#45475a",
+    "titleBarButtonPressed": "#585b70",
+    "accentColor": "#89b4fa",
+    "accentHover": "#b4befe",
+    "accentInactive": "#45475a",
+    "textPrimary": "#cdd6f4",
+    "textSecondary": "#a6adc8",
+    "textMuted": "#6c7086",
+    "borderColor": "#6c7086",
+    "success": "#a6e3a1",
+    "warning": "#f9e2af",
+    "error": "#f38ba8",
+    "fontSizeSmall": 11,
+    "fontSizeNormal": 13,
+    "fontSizeLarge": 16,
+    "fontSizeTitle": 14,
+    "titleBarHeight": 32,
+    "buttonSize": 24,
+    "borderRadius": 8,
+    "windowRadius": 12,
+    "spacing": 8,
+    "padding": 12
+}
