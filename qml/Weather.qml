@@ -440,7 +440,7 @@ WidgetWindow {
 
                                 delegate: Rectangle {
                                     Layout.fillWidth: true
-                                    height: resultText.implicitHeight + Theme.padding * 2
+                                    Layout.preferredHeight: resultText.implicitHeight + Theme.padding * 2
                                     color: resultMouseArea.containsMouse ? Theme.borderColor : "transparent"
                                     border.color: Theme.borderColor
                                     border.width: 1
@@ -448,16 +448,12 @@ WidgetWindow {
 
                                     Text {
                                         id: resultText
-                                        anchors.left: parent.left
-                                        anchors.right: parent.right
-                                        anchors.top: parent.top
-                                        anchors.bottom: parent.bottom
-                                        anchors.margins: Theme.padding
+                                        width: parent.width - Theme.padding * 2
+                                        anchors.centerIn: parent
                                         text: modelData.display_name
                                         color: Theme.textPrimary
                                         font.pixelSize: Theme.fontSizeSmall
                                         wrapMode: Text.WordWrap
-                                        verticalAlignment: Text.AlignVCenter
                                     }
 
                                     MouseArea {
