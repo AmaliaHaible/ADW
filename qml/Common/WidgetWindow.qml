@@ -109,8 +109,11 @@ Window {
         if (widgetWindow.visible) {
             var savedX = widgetWindow.x
             var savedY = widgetWindow.y
-            widgetWindow.flags = newFlags
+
+            // Force Qt to reapply flags by toggling them
+            widgetWindow.flags = baseFlags  // Clear both hints first
             widgetWindow.hide()
+            widgetWindow.flags = newFlags   // Then set the correct flags
             widgetWindow.show()
             widgetWindow.x = savedX
             widgetWindow.y = savedY
