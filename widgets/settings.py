@@ -5,6 +5,8 @@ from typing import Any
 from PySide6.QtCore import QObject, Property, Signal, Slot
 from PySide6.QtGui import QColor
 
+from .theme_constants import DEFAULT_THEME
+
 
 DEFAULT_SETTINGS = {
     "widgets": {
@@ -30,41 +32,12 @@ DEFAULT_SETTINGS = {
             "height": 450
         }
     },
-    "theme": {
-        "baseColor": "#9cbfd7",
-        "windowBackground": "#1e1e2e",
-        "surfaceColor": "#313244",
-        "titleBarBackground": "#383858",
-        "titleBarText": "#cdd6f4",
-        "titleBarButtonHover": "#45475a",
-        "titleBarButtonPressed": "#585b70",
-        "accentColor": "#89b4fa",
-        "accentHover": "#b4befe",
-        "accentInactive": "#45475a",
-        "textPrimary": "#cdd6f4",
-        "textSecondary": "#a6adc8",
-        "textMuted": "#6c7086",
-        "borderColor": "#6c7086",
-        "success": "#a6e3a1",
-        "warning": "#f9e2af",
-        "error": "#f38ba8",
-        "fontSizeSmall": 11,
-        "fontSizeNormal": 13,
-        "fontSizeLarge": 16,
-        "fontSizeTitle": 14,
-        "titleBarHeight": 32,
-        "buttonSize": 24,
-        "borderRadius": 8,
-        "windowRadius": 12,
-        "spacing": 8,
-        "padding": 12
-    }
+    "theme": DEFAULT_THEME
 }
 
 
 class SettingsBackend(QObject):
     settingsChanged = Signal()
-    themeChanged = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -143,46 +116,16 @@ class SettingsBackend(QObject):
         self._save_settings()
         self.settingsChanged.emit()
 
-    # Theme methods
-    @Slot(str, result=str)
-    def getThemeColor(self, color_name: str) -> str:
-        """Get a theme color value."""
-        return self._settings["theme"].get(color_name, "#ffffff")
+    @Slot(str, str, result="QVariant")
+    def getWidgetSetting(self, widget_name: str, key: str):
+        """Get a specific widget setting value."""
+        return self._settings.get("widgets", {}).get(widget_name, {}).get(key)
 
-    @Slot(str, str)
-    def setThemeColor(self, color_name: str, color_value: str):
-        """Set a theme color value."""
-        self._settings["theme"][color_name] = color_value
+    @Slot(str, str, "QVariant")
+    def setWidgetSetting(self, widget_name: str, key: str, value):
+        """Set a specific widget setting value."""
+        if widget_name not in self._settings["widgets"]:
+            self._settings["widgets"][widget_name] = {}
+        self._settings["widgets"][widget_name][key] = value
         self._save_settings()
-        self.themeChanged.emit()
-
-    @Slot(str, result=int)
-    def getThemeInt(self, prop_name: str) -> int:
-        """Get a theme integer value."""
-        return self._settings["theme"].get(prop_name, 12)
-
-    @Slot(str, int)
-    def setThemeInt(self, prop_name: str, value: int):
-        """Set a theme integer value."""
-        self._settings["theme"][prop_name] = value
-        self._save_settings()
-        self.themeChanged.emit()
-
-    @Slot(result="QVariant")
-    def getFullTheme(self) -> dict:
-        """Get the full theme dictionary."""
-        return self._settings["theme"].copy()
-
-    @Slot("QVariant")
-    def setFullTheme(self, theme: dict):
-        """Set the full theme dictionary."""
-        self._settings["theme"].update(theme)
-        self._save_settings()
-        self.themeChanged.emit()
-
-    @Slot()
-    def resetThemeToDefaults(self):
-        """Reset theme to default values."""
-        self._settings["theme"] = DEFAULT_SETTINGS["theme"].copy()
-        self._save_settings()
-        self.themeChanged.emit()
+        self.settingsChanged.emit()
