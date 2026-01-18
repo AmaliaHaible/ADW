@@ -158,7 +158,9 @@ WidgetWindow {
                     // Hourly Forecast
                     ColumnLayout {
                         Layout.fillWidth: true
-                        Layout.margins: Theme.padding
+                        // Layout.margins: Theme.padding
+                        Layout.leftMargin: Theme.padding
+                        Layout.rightMargin: Theme.padding
                         spacing: Theme.spacing / 2
                         visible: weatherBackend.hourlyData.length > 0
 
@@ -227,8 +229,8 @@ WidgetWindow {
                         Layout.fillWidth: true
                         Layout.leftMargin: Theme.padding
                         Layout.rightMargin: Theme.padding
-                        Layout.topMargin: Theme.spacing / 2
-                        Layout.bottomMargin: Theme.padding
+                        // Layout.topMargin: Theme.spacing / 2
+                        // Layout.bottomMargin: Theme.padding
                         spacing: Theme.spacing / 2
                         visible: weatherBackend.dailyData.length > 0
 
