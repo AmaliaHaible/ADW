@@ -171,7 +171,7 @@ WidgetWindow {
 
                         ListView {
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 60
+                            Layout.preferredHeight: 80
                             orientation: ListView.Horizontal
                             spacing: Theme.spacing
                             clip: true
@@ -180,7 +180,7 @@ WidgetWindow {
 
                             delegate: Item {
                                 width: 60
-                                height: 60
+                                height: 80
 
                                 ColumnLayout {
                                     anchors.centerIn: parent
@@ -216,7 +216,7 @@ WidgetWindow {
                                         text: modelData.precip + "%"
                                         color: Theme.accentColor
                                         font.pixelSize: Theme.fontSizeSmall
-                                        visible: modelData.precip > 0
+                                        opacity: modelData.precip > 0 ? 1 : 0
                                     }
                                 }
                             }
@@ -226,7 +226,10 @@ WidgetWindow {
                     // Daily Forecast
                     ColumnLayout {
                         Layout.fillWidth: true
-                        Layout.margins: Theme.padding
+                        Layout.leftMargin: Theme.padding
+                        Layout.rightMargin: Theme.padding
+                        Layout.topMargin: Theme.spacing / 2
+                        Layout.bottomMargin: Theme.padding
                         spacing: Theme.spacing / 2
                         visible: weatherBackend.dailyData.length > 0
 
@@ -246,7 +249,7 @@ WidgetWindow {
 
                                 delegate: Item {
                                     width: 60
-                                    height: 80
+                                    height: 100
 
                                     ColumnLayout {
                                         anchors.centerIn: parent
@@ -291,7 +294,7 @@ WidgetWindow {
                                             text: modelData.precip + "%"
                                             color: Theme.accentColor
                                             font.pixelSize: Theme.fontSizeSmall
-                                            visible: modelData.precip > 0
+                                            opacity: modelData.precip > 0 ? 1 : 0
                                         }
                                     }
                                 }
