@@ -230,7 +230,7 @@ WidgetWindow {
                         Layout.fillWidth: true
                         Layout.leftMargin: Theme.padding
                         Layout.rightMargin: Theme.padding
-                        // Layout.topMargin: Theme.spacing / 2
+                        Layout.topMargin: Theme.spacing 
                         // Layout.bottomMargin: Theme.padding
                         spacing: Theme.spacing / 2
                         visible: weatherBackend.dailyData.length > 0
