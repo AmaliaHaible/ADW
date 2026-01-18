@@ -21,14 +21,10 @@ Window {
     minimumWidth: minResizeWidth
     minimumHeight: minResizeHeight
 
-    flags: {
-        var baseFlags = Qt.Tool | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint
-        if (hubBackend.alwaysOnTop || hubVisible) {
-            return baseFlags | Qt.WindowStaysOnTopHint
-        } else {
-            return baseFlags | Qt.WindowStaysOnBottomHint
-        }
-    }
+    // Set initial flags
+    flags: Qt.Tool | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint |
+           (hubBackend.alwaysOnTop || hubVisible ? Qt.WindowStaysOnTopHint : Qt.WindowStaysOnBottomHint)
+
     color: "transparent"
 
     onXChanged: if (visible) saveGeometryTimer.restart()
@@ -74,9 +70,63 @@ Window {
         }
     }
 
+    property bool isUpdatingFlags: false
+
     Component.onCompleted: applyGeometryFromSettings()
     onSettingsStoreChanged: applyGeometryFromSettings()
     onGeometryKeyChanged: applyGeometryFromSettings()
+
+    // Update window flags when conditions change
+    onHubVisibleChanged: {
+        if (!isUpdatingFlags) updateWindowFlags()
+    }
+
+    Connections {
+        target: hubBackend
+        function onAlwaysOnTopChanged() {
+            if (!isUpdatingFlags) updateWindowFlags()
+        }
+    }
+
+    function updateWindowFlags() {
+        if (isUpdatingFlags) return
+        isUpdatingFlags = true
+
+        var baseFlags = Qt.Tool | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint
+        var shouldBeOnTop = hubBackend.alwaysOnTop || hubVisible
+
+        // Get current flags and explicitly remove both top/bottom hints
+        var newFlags = baseFlags & ~Qt.WindowStaysOnTopHint & ~Qt.WindowStaysOnBottomHint
+
+        // Add the appropriate flag
+        if (shouldBeOnTop) {
+            newFlags = newFlags | Qt.WindowStaysOnTopHint
+        } else {
+            newFlags = newFlags | Qt.WindowStaysOnBottomHint
+        }
+
+        // Setting flags alone doesn't work in Qt - need to hide/show to force OS update
+        if (widgetWindow.visible) {
+            var savedX = widgetWindow.x
+            var savedY = widgetWindow.y
+            widgetWindow.flags = newFlags
+            widgetWindow.hide()
+            widgetWindow.show()
+            widgetWindow.x = savedX
+            widgetWindow.y = savedY
+
+            // Explicitly raise window if it should be on top
+            if (shouldBeOnTop) {
+                widgetWindow.raise()
+            } else {
+                widgetWindow.lower()
+            }
+        } else {
+            widgetWindow.flags = newFlags
+        }
+
+        isUpdatingFlags = false
+    }
 
     Rectangle {
         id: mainContainer
