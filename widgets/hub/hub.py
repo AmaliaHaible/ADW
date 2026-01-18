@@ -27,8 +27,7 @@ class HubBackend(QObject):
             self._weather_visible = self._settings.getWidgetVisible("weather")
             self._theme_visible = self._settings.getWidgetVisible("theme")
             # Load always on top setting
-            settings_dict = self._settings._settings
-            self._always_on_top = settings_dict.get("widgets", {}).get("hub", {}).get("always_on_top", False)
+            self._always_on_top = self._settings.getWidgetSetting("hub", "always_on_top") or False
         else:
             self._weather_visible = False
             self._theme_visible = False
@@ -133,14 +132,7 @@ class HubBackend(QObject):
         if self._always_on_top != value:
             self._always_on_top = value
             if self._settings:
-                # Save to settings
-                settings_dict = self._settings._settings
-                if "widgets" not in settings_dict:
-                    settings_dict["widgets"] = {}
-                if "hub" not in settings_dict["widgets"]:
-                    settings_dict["widgets"]["hub"] = {}
-                settings_dict["widgets"]["hub"]["always_on_top"] = value
-                self._settings._save_settings()
+                self._settings.setWidgetSetting("hub", "always_on_top", value)
             self.alwaysOnTopChanged.emit(value)
 
     @Slot(bool)

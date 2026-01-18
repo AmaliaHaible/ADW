@@ -1,3 +1,4 @@
+import copy
 import json
 from pathlib import Path
 from typing import Any
@@ -58,7 +59,8 @@ class SettingsBackend(QObject):
 
     def _merge_defaults(self, loaded: dict) -> dict:
         """Merge loaded settings with defaults to ensure all keys exist."""
-        result = DEFAULT_SETTINGS.copy()
+        # Use deepcopy to avoid modifying the shared DEFAULT_THEME constant
+        result = copy.deepcopy(DEFAULT_SETTINGS)
 
         if "widgets" in loaded:
             for widget, props in loaded["widgets"].items():

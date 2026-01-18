@@ -102,11 +102,8 @@ class WeatherBackend(QObject):
         if not self._settings_backend:
             return
 
-        settings = self._settings_backend._settings
-        weather_settings = settings.get("widgets", {}).get("weather", {})
-
         # Load location
-        location = weather_settings.get("location", {})
+        location = self._settings_backend.getWidgetSetting("weather", "location")
         if location:
             self._location_name = location.get("display_name", "")
             self._lat = location.get("lat")
@@ -116,34 +113,24 @@ class WeatherBackend(QObject):
             self._lon = None
 
         # Load forecast hours (minimum 3)
-        self._forecast_hours = max(3, weather_settings.get("forecast_hours", 5))
+        forecast_hours = self._settings_backend.getWidgetSetting("weather", "forecast_hours")
+        self._forecast_hours = max(3, forecast_hours if forecast_hours is not None else 5)
 
     def _save_settings(self):
         """Save weather settings to SettingsBackend."""
         if not self._settings_backend:
             return
 
-        settings = self._settings_backend._settings
-
-        # Ensure widgets.weather structure exists
-        if "widgets" not in settings:
-            settings["widgets"] = {}
-        if "weather" not in settings["widgets"]:
-            settings["widgets"]["weather"] = {}
-
         # Save location
         if hasattr(self, "_lat") and self._lat is not None:
-            settings["widgets"]["weather"]["location"] = {
+            self._settings_backend.setWidgetSetting("weather", "location", {
                 "display_name": self._location_name,
                 "lat": self._lat,
                 "lon": self._lon
-            }
+            })
 
         # Save forecast hours
-        settings["widgets"]["weather"]["forecast_hours"] = self._forecast_hours
-
-        # Trigger save
-        self._settings_backend._save_settings()
+        self._settings_backend.setWidgetSetting("weather", "forecast_hours", self._forecast_hours)
 
     def _get_icon_path(self, weather_code: int) -> str:
         """Get full path to weather icon based on weather code."""
