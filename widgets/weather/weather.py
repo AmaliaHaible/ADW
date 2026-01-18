@@ -115,8 +115,8 @@ class WeatherBackend(QObject):
             self._lat = None
             self._lon = None
 
-        # Load forecast hours
-        self._forecast_hours = weather_settings.get("forecast_hours", 5)
+        # Load forecast hours (minimum 3)
+        self._forecast_hours = max(3, weather_settings.get("forecast_hours", 5))
 
     def _save_settings(self):
         """Save weather settings to SettingsBackend."""
@@ -280,9 +280,9 @@ class WeatherBackend(QObject):
 
     @Slot(int)
     def setForecastHours(self, hours: int):
-        """Set number of forecast hours (2-7)."""
-        if hours < 2:
-            hours = 2
+        """Set number of forecast hours (3-7)."""
+        if hours < 3:
+            hours = 3
         elif hours > 7:
             hours = 7
 

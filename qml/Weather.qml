@@ -229,46 +229,54 @@ WidgetWindow {
                             font.weight: Font.Medium
                         }
 
-                        Repeater {
-                            model: weatherBackend.dailyData
+                        Flow {
+                            Layout.fillWidth: true
+                            spacing: Theme.spacing
 
-                            delegate: Item {
-                                Layout.fillWidth: true
-                                height: 32
+                            Repeater {
+                                model: weatherBackend.dailyData
 
-                                RowLayout {
-                                    anchors.fill: parent
-                                    spacing: Theme.spacing
+                                delegate: Item {
+                                    width: 60
+                                    height: 80
 
-                                    Text {
-                                        Layout.preferredWidth: 60
-                                        text: {
-                                            var date = new Date(modelData.date)
-                                            return Qt.formatDate(date, "ddd")
+                                    ColumnLayout {
+                                        anchors.centerIn: parent
+                                        spacing: 2
+
+                                        Text {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            text: {
+                                                var date = new Date(modelData.date)
+                                                return Qt.formatDate(date, "ddd")
+                                            }
+                                            color: Theme.textPrimary
+                                            font.pixelSize: Theme.fontSizeSmall
+                                            font.weight: Font.Medium
                                         }
-                                        color: Theme.textPrimary
-                                        font.pixelSize: Theme.fontSizeSmall
-                                    }
 
-                                    Image {
-                                        Layout.preferredWidth: 20
-                                        Layout.preferredHeight: 20
-                                        source: modelData.icon ? "file:///" + modelData.icon : ""
-                                        sourceSize: Qt.size(20, 20)
-                                    }
+                                        Image {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            source: modelData.icon ? "file:///" + modelData.icon : ""
+                                            sourceSize: Qt.size(32, 32)
+                                            width: 32
+                                            height: 32
+                                        }
 
-                                    Text {
-                                        Layout.fillWidth: true
-                                        text: Math.round(modelData.maxTemp) + "° / " + Math.round(modelData.minTemp) + "°"
-                                        color: Theme.textPrimary
-                                        font.pixelSize: Theme.fontSizeSmall
-                                    }
+                                        Text {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            text: Math.round(modelData.maxTemp) + "°"
+                                            color: Theme.textPrimary
+                                            font.pixelSize: Theme.fontSizeSmall
+                                            font.weight: Font.Medium
+                                        }
 
-                                    Text {
-                                        text: modelData.precip + "%"
-                                        color: Theme.textSecondary
-                                        font.pixelSize: Theme.fontSizeSmall
-                                        visible: modelData.precip > 0
+                                        Text {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            text: Math.round(modelData.minTemp) + "°"
+                                            color: Theme.textSecondary
+                                            font.pixelSize: Theme.fontSizeSmall
+                                        }
                                     }
                                 }
                             }
@@ -424,7 +432,6 @@ WidgetWindow {
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             weatherBackend.selectLocation(index)
-                                            searchField.text = ""
                                             stackView.pop()
                                         }
                                     }
@@ -458,7 +465,7 @@ WidgetWindow {
                         spacing: Theme.spacing / 2
 
                         Text {
-                            text: "Forecast Days"
+                            text: "Forecast Hours/Days"
                             color: Theme.textPrimary
                             font.pixelSize: Theme.fontSizeNormal
                             font.weight: Font.Medium
@@ -466,7 +473,7 @@ WidgetWindow {
 
                         SpinBox {
                             id: forecastSpinBox
-                            from: 2
+                            from: 3
                             to: 7
                             value: weatherBackend.forecastHours
                             editable: true
