@@ -9,6 +9,7 @@ WidgetWindow {
     geometryKey: "weather"
     settingsStore: settingsBackend
     editMode: hubBackend.editMode
+    hubVisible: hubBackend.hubVisible
     minResizeWidth: 250
     minResizeHeight: 300
 

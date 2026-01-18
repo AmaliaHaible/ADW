@@ -10,6 +10,7 @@ WidgetWindow {
     geometryKey: "theme"
     settingsStore: settingsBackend
     editMode: hubBackend.editMode
+    hubVisible: hubBackend.hubVisible
     minResizeWidth: 250
     minResizeHeight: 200
 

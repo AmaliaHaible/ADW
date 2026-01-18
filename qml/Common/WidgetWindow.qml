@@ -14,13 +14,21 @@ Window {
     property int minResizeHeight: 100
     property color backgroundColor: Theme.windowBackground
     property real windowRadius: Theme.windowRadius
+    property bool hubVisible: false
 
     default property alias content: mainContainer.data
 
     minimumWidth: minResizeWidth
     minimumHeight: minResizeHeight
 
-    flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.NoDropShadowWindowHint
+    flags: {
+        var baseFlags = Qt.Tool | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint
+        if (hubBackend.alwaysOnTop || hubVisible) {
+            return baseFlags | Qt.WindowStaysOnTopHint
+        } else {
+            return baseFlags | Qt.WindowStaysOnBottomHint
+        }
+    }
     color: "transparent"
 
     onXChanged: if (visible) saveGeometryTimer.restart()

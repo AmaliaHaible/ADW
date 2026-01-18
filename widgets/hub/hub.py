@@ -9,6 +9,8 @@ class HubBackend(QObject):
     weatherVisibleChanged = Signal(bool)
     themeVisibleChanged = Signal(bool)
     editModeChanged = Signal(bool)
+    alwaysOnTopChanged = Signal(bool)
+    hubVisibleChanged = Signal(bool)
     showHubRequested = Signal()
     exitRequested = Signal()
 
@@ -18,14 +20,19 @@ class HubBackend(QObject):
         self._edit_mode = False
         self._tray_icon = None
         self._tray_menu = None
+        self._hub_visible = True  # Hub starts visible by default
 
         # Load initial visibility states from settings
         if self._settings:
             self._weather_visible = self._settings.getWidgetVisible("weather")
             self._theme_visible = self._settings.getWidgetVisible("theme")
+            # Load always on top setting
+            settings_dict = self._settings._settings
+            self._always_on_top = settings_dict.get("widgets", {}).get("hub", {}).get("always_on_top", False)
         else:
             self._weather_visible = False
             self._theme_visible = False
+            self._always_on_top = False
 
     def setup_tray(self, app):
         """Set up the system tray icon and menu."""
@@ -115,6 +122,47 @@ class HubBackend(QObject):
     def setEditMode(self, enabled):
         """Set edit mode (allows moving/resizing windows)."""
         self.editMode = enabled
+
+    # Always on top
+    @Property(bool, notify=alwaysOnTopChanged)
+    def alwaysOnTop(self):
+        return self._always_on_top
+
+    @alwaysOnTop.setter
+    def alwaysOnTop(self, value):
+        if self._always_on_top != value:
+            self._always_on_top = value
+            if self._settings:
+                # Save to settings
+                settings_dict = self._settings._settings
+                if "widgets" not in settings_dict:
+                    settings_dict["widgets"] = {}
+                if "hub" not in settings_dict["widgets"]:
+                    settings_dict["widgets"]["hub"] = {}
+                settings_dict["widgets"]["hub"]["always_on_top"] = value
+                self._settings._save_settings()
+            self.alwaysOnTopChanged.emit(value)
+
+    @Slot(bool)
+    def setAlwaysOnTop(self, enabled):
+        """Set always on top mode for widgets."""
+        self.alwaysOnTop = enabled
+
+    # Hub visibility
+    @Property(bool, notify=hubVisibleChanged)
+    def hubVisible(self):
+        return self._hub_visible
+
+    @hubVisible.setter
+    def hubVisible(self, value):
+        if self._hub_visible != value:
+            self._hub_visible = value
+            self.hubVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setHubVisible(self, visible):
+        """Set hub window visibility state."""
+        self.hubVisible = visible
 
     @Slot()
     def minimizeToTray(self):
