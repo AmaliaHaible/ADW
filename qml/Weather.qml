@@ -210,6 +210,14 @@ WidgetWindow {
                                         color: Theme.textPrimary
                                         font.pixelSize: Theme.fontSizeSmall
                                     }
+
+                                    Text {
+                                        Layout.alignment: Qt.AlignHCenter
+                                        text: modelData.precip + "%"
+                                        color: Theme.accentColor
+                                        font.pixelSize: Theme.fontSizeSmall
+                                        visible: modelData.precip > 0
+                                    }
                                 }
                             }
                         }
@@ -276,6 +284,14 @@ WidgetWindow {
                                             text: Math.round(modelData.minTemp) + "°"
                                             color: Theme.textSecondary
                                             font.pixelSize: Theme.fontSizeSmall
+                                        }
+
+                                        Text {
+                                            Layout.alignment: Qt.AlignHCenter
+                                            text: modelData.precip + "%"
+                                            color: Theme.accentColor
+                                            font.pixelSize: Theme.fontSizeSmall
+                                            visible: modelData.precip > 0
                                         }
                                     }
                                 }
@@ -432,7 +448,7 @@ WidgetWindow {
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             weatherBackend.selectLocation(index)
-                                            stackView.pop()
+                                            StackView.view.pop()
                                         }
                                     }
                                 }
