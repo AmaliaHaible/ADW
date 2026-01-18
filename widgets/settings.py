@@ -22,8 +22,8 @@ DEFAULT_SETTINGS = {
             "visible": False,
             "x": 420,
             "y": 100,
-            "width": 250,
-            "height": 180
+            "width": 320,
+            "height": 280
         },
         "theme": {
             "visible": False,

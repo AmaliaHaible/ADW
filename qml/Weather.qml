@@ -327,6 +327,18 @@ WidgetWindow {
         id: settingsViewComponent
 
         Item {
+            id: settingsViewRoot
+
+            // Auto-navigate back when location is selected
+            Connections {
+                target: weatherBackend
+                function onLocationNameChanged() {
+                    if (weatherBackend.locationName) {
+                        settingsViewRoot.StackView.view.pop()
+                    }
+                }
+            }
+
             ScrollView {
                 anchors.fill: parent
                 contentWidth: availableWidth
@@ -452,7 +464,6 @@ WidgetWindow {
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             weatherBackend.selectLocation(index)
-                                            StackView.view.pop()
                                         }
                                     }
                                 }
