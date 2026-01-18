@@ -9,7 +9,7 @@ from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from widgets import HubBackend, SettingsBackend, ThemeProvider
+from widgets import HubBackend, SettingsBackend, ThemeProvider, WeatherBackend
 
 
 def main():
@@ -40,6 +40,10 @@ def main():
     # Set up hub backend (with settings for persistence)
     hub = HubBackend(settings_backend=settings)
     engine.rootContext().setContextProperty("hubBackend", hub)
+
+    # Set up weather backend
+    weather = WeatherBackend(settings_backend=settings)
+    engine.rootContext().setContextProperty("weatherBackend", weather)
 
     # Set up system tray
     hub.setup_tray(app)
