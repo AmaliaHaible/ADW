@@ -1,1 +1,0 @@
-file:///C:/Users/Florian/projects/aistuff/qml_shell/qml/Weather.qml:455: TypeError: Cannot call method 'pop' of null
