@@ -216,7 +216,6 @@ WidgetWindow {
                                         text: modelData.precip + "%"
                                         color: Theme.accentColor
                                         font.pixelSize: Theme.fontSizeSmall
-                                        opacity: modelData.precip > 0 ? 1 : 0
                                     }
                                 }
                             }
@@ -294,7 +293,6 @@ WidgetWindow {
                                             text: modelData.precip + "%"
                                             color: Theme.accentColor
                                             font.pixelSize: Theme.fontSizeSmall
-                                            opacity: modelData.precip > 0 ? 1 : 0
                                         }
                                     }
                                 }
