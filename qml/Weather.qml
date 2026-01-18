@@ -251,9 +251,10 @@ WidgetWindow {
 
                                 delegate: Item {
                                     width: 60
-                                    height: 100
+                                    height: contentColumn.implicitHeight
 
                                     ColumnLayout {
+                                        id: contentColumn
                                         anchors.centerIn: parent
                                         spacing: 2
 
@@ -398,7 +399,7 @@ WidgetWindow {
                                     color: Theme.surfaceColor
                                     border.color: Theme.borderColor
                                     border.width: 1
-                                    radius: 4
+                                    radius: Theme.borderRadius
                                 }
 
                                 Keys.onReturnPressed: {
@@ -415,7 +416,7 @@ WidgetWindow {
 
                                 background: Rectangle {
                                     color: parent.enabled ? Theme.accentColor : Theme.borderColor
-                                    radius: 4
+                                    radius: Theme.borderRadius
                                 }
 
                                 contentItem: Text {
@@ -439,22 +440,24 @@ WidgetWindow {
 
                                 delegate: Rectangle {
                                     Layout.fillWidth: true
-                                    height: resultText.height + Theme.padding * 2
+                                    height: resultText.implicitHeight + Theme.padding * 2
                                     color: resultMouseArea.containsMouse ? Theme.borderColor : "transparent"
                                     border.color: Theme.borderColor
                                     border.width: 1
-                                    radius: 4
+                                    radius: Theme.borderRadius
 
                                     Text {
                                         id: resultText
                                         anchors.left: parent.left
                                         anchors.right: parent.right
-                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.top: parent.top
+                                        anchors.bottom: parent.bottom
                                         anchors.margins: Theme.padding
                                         text: modelData.display_name
                                         color: Theme.textPrimary
                                         font.pixelSize: Theme.fontSizeSmall
                                         wrapMode: Text.WordWrap
+                                        verticalAlignment: Text.AlignVCenter
                                     }
 
                                     MouseArea {
