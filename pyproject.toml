@@ -8,4 +8,5 @@ dependencies = [
     "dotenv>=0.9.9",
     "pyside6>=6.10.1",
     "watchfiles>=1.1.1",
+    "winrt-windows-media-control>=3.2.1",
 ]
