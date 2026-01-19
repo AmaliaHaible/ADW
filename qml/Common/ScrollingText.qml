@@ -13,6 +13,16 @@ Item {
 
     clip: true
 
+    // Calculate scroll duration based on distance and speed
+    property int scrollDuration: {
+        var distance = textItem.contentWidth - root.width
+        var speed = Theme.textScrollSpeed
+        if (distance <= 0 || speed <= 0) {
+            return 2000
+        }
+        return Math.floor((distance / speed) * 1000)
+    }
+
     // Internal text item
     Text {
         id: textItem
@@ -37,11 +47,7 @@ Item {
                 property: "x"
                 from: 0
                 to: root.width - textItem.contentWidth
-                duration: {
-                    var distance = textItem.contentWidth - root.width
-                    var speed = Theme.textScrollSpeed
-                    return speed > 0 ? (distance / speed) * 1000 : 2000
-                }
+                duration: root.scrollDuration
                 easing.type: Easing.Linear
             }
 
@@ -69,6 +75,13 @@ Item {
 
     onWidthChanged: {
         checkScrollNeeded()
+    }
+
+    // Restart animation when duration changes
+    onScrollDurationChanged: {
+        if (scrollAnimation.running) {
+            scrollAnimation.restart()
+        }
     }
 
     function checkScrollNeeded() {

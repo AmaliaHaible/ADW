@@ -42,5 +42,6 @@ QtObject {
     readonly property int windowRadius: themeProvider ? themeProvider.windowRadius : 12
     readonly property int spacing: themeProvider ? themeProvider.spacing : 8
     readonly property int padding: themeProvider ? themeProvider.padding : 12
+    readonly property int textScrollSpeed: themeProvider ? themeProvider.textScrollSpeed : 50
 }
 
