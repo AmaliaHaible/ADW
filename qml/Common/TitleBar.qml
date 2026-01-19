@@ -8,6 +8,8 @@ Rectangle {
 
     property string title: "Window"
     property bool dragEnabled: true
+    property bool minimized: false
+    property real effectiveRadius: Theme.windowRadius
 
     // Button configurations: [{icon: "name.svg", action: "actionName", enabled: bool}]
     property var leftButtons: []
@@ -19,8 +21,10 @@ Rectangle {
     height: Theme.titleBarHeight
 
     color: Theme.titleBarBackground
-    topRightRadius: Theme.windowRadius 
-    topLeftRadius: Theme.windowRadius 
+    topRightRadius: effectiveRadius
+    topLeftRadius: effectiveRadius
+    bottomLeftRadius: minimized ? effectiveRadius : 0
+    bottomRightRadius: minimized ? effectiveRadius : 0 
 
     // Drag handler for moving the window
     DragHandler {

@@ -30,12 +30,15 @@ WidgetWindow {
             width: parent.width
             title: "General Settings"
             dragEnabled: themeWindow.editMode
+            minimized: themeWindow.minimized
+            effectiveRadius: themeWindow.effectiveWindowRadius
             leftButtons: [
                 {icon: "save.svg", action: "save", enabled: !hubBackend.editMode},
                 {icon: "folder.svg", action: "load", enabled: !hubBackend.editMode}
             ]
             rightButtons: [
-                {icon: "rotate-ccw.svg", action: "reset", enabled: !hubBackend.editMode}
+                {icon: "rotate-ccw.svg", action: "reset", enabled: !hubBackend.editMode},
+                {icon: "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {
@@ -45,6 +48,8 @@ WidgetWindow {
                     loadThemeDialog.open()
                 } else if (action === "reset") {
                     themeProvider.resetToDefaults()
+                } else if (action === "minimize") {
+                    themeWindow.toggleMinimize()
                 }
             }
         }
@@ -54,6 +59,7 @@ WidgetWindow {
             width: parent.width
             height: parent.height - titleBar.height
             color: "transparent"
+            visible: !themeWindow.minimized
 
             ScrollView {
                 anchors.fill: parent

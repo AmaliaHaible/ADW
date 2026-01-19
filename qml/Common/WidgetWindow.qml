@@ -15,8 +15,31 @@ Window {
     property color backgroundColor: Theme.windowBackground
     property real windowRadius: Theme.windowRadius
     property bool hubVisible: false
+    property bool minimized: false
+    property real _expandedHeight: 0
+    property bool anchorTop: true
+    readonly property real effectiveWindowRadius: Math.min(windowRadius, Theme.titleBarHeight / 2)
 
     default property alias content: mainContainer.data
+
+    function toggleMinimize() {
+        if (minimized) {
+            // Expand
+            if (!anchorTop) {
+                y = y - (_expandedHeight - height)
+            }
+            height = _expandedHeight
+            minimized = false
+        } else {
+            // Minimize
+            _expandedHeight = height
+            if (!anchorTop) {
+                y = y + (height - Theme.titleBarHeight)
+            }
+            height = Theme.titleBarHeight
+            minimized = true
+        }
+    }
 
     minimumWidth: minResizeWidth
     minimumHeight: minResizeHeight
@@ -135,7 +158,7 @@ Window {
         id: mainContainer
         anchors.fill: parent
         color: backgroundColor
-        radius: windowRadius
+        radius: effectiveWindowRadius
     }
 
     Rectangle {

@@ -30,11 +30,16 @@ WidgetWindow {
             width: parent.width
             title: "Weather"
             dragEnabled: weatherWindow.editMode
+            minimized: weatherWindow.minimized
+            effectiveRadius: weatherWindow.effectiveWindowRadius
             leftButtons: stackView.depth > 1 ? [
                 {icon: "arrow-left.svg", action: "back", enabled: !hubBackend.editMode}
             ] : [
                 {icon: "settings.svg", action: "settings", enabled: !hubBackend.editMode},
                 {icon: "refresh-cw.svg", action: "refresh", enabled: !hubBackend.editMode}
+            ]
+            rightButtons: [
+                {icon: "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {
@@ -44,6 +49,8 @@ WidgetWindow {
                     weatherBackend.refreshWeather()
                 } else if (action === "back") {
                     stackView.pop()
+                } else if (action === "minimize") {
+                    weatherWindow.toggleMinimize()
                 }
             }
         }
@@ -54,6 +61,7 @@ WidgetWindow {
             width: parent.width
             height: parent.height - titleBar.height
             initialItem: mainViewComponent
+            visible: !weatherWindow.minimized
         }
     }
 

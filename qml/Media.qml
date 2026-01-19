@@ -10,6 +10,7 @@ WidgetWindow {
     editMode: hubBackend.editMode
     visible: hubBackend.mediaVisible
     hubVisible: hubBackend.hubVisible
+    anchorTop: mediaBackend.anchorTop
 
     width: 350
     minResizeWidth: 300
@@ -68,10 +69,15 @@ WidgetWindow {
             width: parent.width
             title: "Media Control"
             dragEnabled: mediaWindow.editMode
+            minimized: mediaWindow.minimized
+            effectiveRadius: mediaWindow.effectiveWindowRadius
             leftButtons: stackView.depth > 1 ? [
                 {icon: "arrow-left.svg", action: "back", enabled: !hubBackend.editMode}
             ] : [
                 {icon: "settings.svg", action: "settings", enabled: !hubBackend.editMode}
+            ]
+            rightButtons: [
+                {icon: "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {
@@ -79,6 +85,8 @@ WidgetWindow {
                     stackView.push(settingsViewComponent)
                 } else if (action === "back") {
                     stackView.pop()
+                } else if (action === "minimize") {
+                    mediaWindow.toggleMinimize()
                 }
             }
         }
@@ -89,6 +97,7 @@ WidgetWindow {
             width: parent.width
             height: parent.height - Theme.titleBarHeight
             initialItem: mainViewComponent
+            visible: !mediaWindow.minimized
         }
     }
 
