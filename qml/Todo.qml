@@ -291,35 +291,42 @@ WidgetWindow {
 
                 onActiveChanged: {
                     if (active) {
-                        console.log("DRAG ACTIVE for:", todoData.text)
                         todoWindow.draggedTodoId = todoData.id
                         todoWindow.dragTargetIndex = itemIndex
                     } else {
-                        console.log("DRAG RELEASED")
-                        if (todoWindow.draggedTodoId === todoData.id && todoWindow.dragTargetIndex >= 0) {
-                            var targetIdx = todoWindow.dragTargetIndex
+                        var targetIdx = todoWindow.dragTargetIndex
+                        var draggedId = todoData.id
+                        var shouldReorder = false
+
+                        if (todoWindow.draggedTodoId === draggedId && targetIdx >= 0) {
                             // Adjust index when dragging down: after removal, indices shift
                             if (targetIdx > itemIndex) {
                                 targetIdx = targetIdx - 1
                             }
                             if (targetIdx !== itemIndex) {
-                                todoBackend.reorderTodo(todoData.id, targetIdx)
+                                shouldReorder = true
                             }
                         }
+
+                        // Reset state BEFORE reorder (component may be recreated)
                         todoWindow.draggedTodoId = ""
                         todoWindow.dragTargetIndex = -1
+
+                        if (shouldReorder) {
+                            todoBackend.reorderTodo(draggedId, targetIdx)
+                        }
                     }
                 }
 
                 onCentroidChanged: {
                     if (active) {
                         var dragOffset = centroid.position.y - centroid.pressPosition.y
-                        var indexChange = Math.round(dragOffset / 50)
+                        // Use 40px threshold for more responsive feel
+                        var indexChange = Math.round(dragOffset / 40)
                         var newIndex = itemIndex + indexChange
                         // Allow targeting up to totalItems (for "after last item" position)
                         newIndex = Math.max(0, Math.min(newIndex, totalItems))
                         todoWindow.dragTargetIndex = newIndex
-                        console.log("Dragging:", todoData.id, "offset:", dragOffset, "target:", newIndex)
                     }
                 }
             }
