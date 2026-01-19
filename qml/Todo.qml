@@ -24,6 +24,8 @@ WidgetWindow {
     property bool showingFinished: false
     // Track the currently dragged item ID
     property string draggedTodoId: ""
+    // Track the dragged item's original index
+    property int draggedItemIndex: -1
     // Track drag position for drop indicator
     property int dragTargetIndex: -1
 
@@ -116,7 +118,10 @@ WidgetWindow {
                                     Layout.rightMargin: Theme.padding
                                     color: Theme.accentColor
                                     radius: 1
-                                    visible: todoWindow.draggedTodoId !== "" && todoWindow.dragTargetIndex === todoBackend.currentTodos.length
+                                    // Hide if dragged item is already last (no change)
+                                    visible: todoWindow.draggedTodoId !== "" &&
+                                             todoWindow.dragTargetIndex === todoBackend.currentTodos.length &&
+                                             todoWindow.draggedItemIndex !== todoBackend.currentTodos.length - 1
                                 }
 
                                 Item { height: Theme.padding / 2 }
@@ -265,7 +270,12 @@ WidgetWindow {
             Layout.preferredHeight: 3
             color: Theme.accentColor
             radius: 1
-            visible: todoWindow.draggedTodoId !== "" && todoWindow.draggedTodoId !== todoData.id && todoWindow.dragTargetIndex === itemIndex
+            // Hide if: no drag, dragging this item, not targeting this position,
+            // or targeting position right after dragged item (no change)
+            visible: todoWindow.draggedTodoId !== "" &&
+                     todoWindow.draggedTodoId !== todoData.id &&
+                     todoWindow.dragTargetIndex === itemIndex &&
+                     todoWindow.draggedItemIndex !== itemIndex - 1
         }
 
         // Main todo item
@@ -292,24 +302,27 @@ WidgetWindow {
                 onActiveChanged: {
                     if (active) {
                         todoWindow.draggedTodoId = todoData.id
+                        todoWindow.draggedItemIndex = itemIndex
                         todoWindow.dragTargetIndex = itemIndex
                     } else {
                         var targetIdx = todoWindow.dragTargetIndex
                         var draggedId = todoData.id
+                        var originalIdx = todoWindow.draggedItemIndex
                         var shouldReorder = false
 
                         if (todoWindow.draggedTodoId === draggedId && targetIdx >= 0) {
                             // Adjust index when dragging down: after removal, indices shift
-                            if (targetIdx > itemIndex) {
+                            if (targetIdx > originalIdx) {
                                 targetIdx = targetIdx - 1
                             }
-                            if (targetIdx !== itemIndex) {
+                            if (targetIdx !== originalIdx) {
                                 shouldReorder = true
                             }
                         }
 
                         // Reset state BEFORE reorder (component may be recreated)
                         todoWindow.draggedTodoId = ""
+                        todoWindow.draggedItemIndex = -1
                         todoWindow.dragTargetIndex = -1
 
                         if (shouldReorder) {
