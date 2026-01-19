@@ -16,78 +16,50 @@ WidgetWindow {
     minResizeHeight: 132
 
     // Dynamic height based on number of sessions shown
-    readonly property int sessionHeight: 100
+    readonly property int baseSessionHeight: 100
     readonly property int visibleSessionCount: Math.min(mediaBackend.sessionList.length, mediaBackend.maxSessions)
-    readonly property int maxSessionCount: 3
-    readonly property int calculatedHeight: Theme.titleBarHeight + (visibleSessionCount * sessionHeight)
-    readonly property int maxHeight: Theme.titleBarHeight + (maxSessionCount * sessionHeight)
+    readonly property int displayCount: mediaWindow.editMode ? mediaBackend.maxSessions : visibleSessionCount
+    readonly property int calculatedHeight: Theme.titleBarHeight + (displayCount * baseSessionHeight)
+
+    // Session height adjusts with vertical resize (cover scales)
+    readonly property int sessionHeight: displayCount > 0 ? (height - Theme.titleBarHeight) / displayCount : baseSessionHeight
 
     height: calculatedHeight
 
     title: "Media Control"
 
-    // Session slot tracking - maintains stable slot assignments
-    QtObject {
-        id: sessionSlots
-
-        // Map of session name -> slot index
-        property var slotAssignments: ({})
-        property int nextSlot: 0
-
-        function assignSlot(sessionName) {
-            if (!slotAssignments[sessionName] && slotAssignments[sessionName] !== 0) {
-                slotAssignments[sessionName] = nextSlot
-                nextSlot = (nextSlot + 1) % mediaBackend.maxSessions
-            }
-            return slotAssignments[sessionName]
+    // Session slot tracking - just use simple index-based assignment
+    function getSessionForSlot(slotIndex) {
+        if (slotIndex < mediaBackend.sessionList.length) {
+            return mediaBackend.sessionList[slotIndex]
         }
-
-        function getSessionAtSlot(slotIndex) {
-            // Find which session is assigned to this slot
-            for (var i = 0; i < mediaBackend.sessionList.length; i++) {
-                var session = mediaBackend.sessionList[i]
-                if (assignSlot(session.name) === slotIndex) {
-                    return session
-                }
-            }
-            return null
-        }
-
-        function cleanup() {
-            // Remove assignments for sessions that no longer exist
-            var currentSessions = {}
-            for (var i = 0; i < mediaBackend.sessionList.length; i++) {
-                currentSessions[mediaBackend.sessionList[i].name] = true
-            }
-
-            var newAssignments = {}
-            for (var name in slotAssignments) {
-                if (currentSessions[name]) {
-                    newAssignments[name] = slotAssignments[name]
-                }
-            }
-            slotAssignments = newAssignments
-        }
+        return null
     }
 
-    Connections {
-        target: mediaBackend
-        function onSessionListChanged() {
-            sessionSlots.cleanup()
-        }
+    function getSessionIndex(slotIndex) {
+        return slotIndex < mediaBackend.sessionList.length ? slotIndex : -1
     }
 
     // Handle dynamic resizing with anchor support
     onCalculatedHeightChanged: {
-        if (mediaBackend.anchorTop) {
-            // Anchor top - height grows downward
+        if (!mediaWindow.editMode) {
+            if (mediaBackend.anchorTop) {
+                // Anchor top - height grows downward
+                height = calculatedHeight
+            } else {
+                // Anchor bottom - adjust y to keep bottom fixed
+                var oldHeight = height
+                var newHeight = calculatedHeight
+                y = y + (oldHeight - newHeight)
+                height = newHeight
+            }
+        }
+    }
+
+    // In edit mode, maintain size to show max sessions
+    onEditModeChanged: {
+        if (editMode) {
             height = calculatedHeight
-        } else {
-            // Anchor bottom - adjust y to keep bottom fixed
-            var oldHeight = height
-            var newHeight = calculatedHeight
-            y = y + (oldHeight - newHeight)
-            height = newHeight
         }
     }
 
@@ -308,7 +280,7 @@ WidgetWindow {
                 visible: mediaBackend.sessionList.length > 0 || mediaWindow.editMode
 
                 Repeater {
-                    model: mediaWindow.editMode ? mediaBackend.maxSessions : Math.min(mediaBackend.sessionList.length, mediaBackend.maxSessions)
+                    model: displayCount
 
                     // Single session item
                     Rectangle {
@@ -316,9 +288,11 @@ WidgetWindow {
                         height: sessionHeight
                         color: "transparent"
 
-                        property var session: mediaWindow.editMode ? null : sessionSlots.getSessionAtSlot(index)
-                        property bool isFirstSession: session && mediaBackend.sessionList.length > 0 && session.name === mediaBackend.sessionList[0].name
-                        property bool isDummy: mediaWindow.editMode && !session
+                        readonly property int sessionIndex: getSessionIndex(index)
+                        readonly property var session: getSessionForSlot(index)
+                        readonly property bool hasSession: session !== null
+                        readonly property bool isCurrentSession: sessionIndex === 0
+                        readonly property bool isDummy: !hasSession
 
                         opacity: isDummy ? 0.5 : 1.0
 
@@ -350,9 +324,9 @@ WidgetWindow {
 
                                 Image {
                                     anchors.fill: parent
-                                    visible: !isDummy
+                                    visible: hasSession
                                     source: {
-                                        if (isFirstSession && mediaBackend.albumArtPath) {
+                                        if (isCurrentSession && mediaBackend.albumArtPath) {
                                             return "file:///" + mediaBackend.albumArtPath
                                         }
                                         return ""
@@ -383,7 +357,7 @@ WidgetWindow {
                                 Text {
                                     Layout.fillWidth: true
                                     text: isDummy ? "Empty Slot " + (index + 1) :
-                                          (isFirstSession && mediaBackend.title ? mediaBackend.title :
+                                          (isCurrentSession && mediaBackend.title ? mediaBackend.title :
                                            (session ? session.name : "Unknown"))
                                     font.pixelSize: Theme.fontSizeNormal
                                     font.bold: !isDummy
@@ -394,7 +368,7 @@ WidgetWindow {
                                 // Artist
                                 Text {
                                     Layout.fillWidth: true
-                                    text: isFirstSession && mediaBackend.artist ? mediaBackend.artist : ""
+                                    text: isCurrentSession && mediaBackend.artist ? mediaBackend.artist : ""
                                     font.pixelSize: Theme.fontSizeSmall
                                     color: Theme.textSecondary
                                     elide: Text.ElideRight
@@ -419,7 +393,8 @@ WidgetWindow {
                                         color: prevMouse.pressed ? Theme.titleBarButtonPressed :
                                                prevMouse.containsMouse ? Theme.titleBarButtonHover :
                                                Theme.surfaceColor
-                                        opacity: isFirstSession && mediaBackend.canGoPrevious && !mediaWindow.editMode ? 1.0 : 0.4
+                                        opacity: hasSession && !mediaWindow.editMode ?
+                                                 (isCurrentSession && mediaBackend.canGoPrevious ? 1.0 : 0.6) : 0.4
 
                                         Image {
                                             anchors.centerIn: parent
@@ -433,8 +408,15 @@ WidgetWindow {
                                             id: prevMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            enabled: isFirstSession && mediaBackend.canGoPrevious && !mediaWindow.editMode
-                                            onClicked: if (isFirstSession) mediaBackend.previous()
+                                            enabled: hasSession && !mediaWindow.editMode
+                                            onClicked: {
+                                                if (!isCurrentSession) {
+                                                    mediaBackend.switchSession(sessionIndex)
+                                                }
+                                                if (mediaBackend.canGoPrevious) {
+                                                    mediaBackend.previous()
+                                                }
+                                            }
                                         }
                                     }
 
@@ -446,13 +428,14 @@ WidgetWindow {
                                         color: playMouse.pressed ? Theme.titleBarButtonPressed :
                                                playMouse.containsMouse ? Theme.titleBarButtonHover :
                                                Theme.surfaceColor
-                                        opacity: isFirstSession && mediaBackend.canPlayPause && !mediaWindow.editMode ? 1.0 : 0.4
+                                        opacity: hasSession && !mediaWindow.editMode ?
+                                                 (isCurrentSession && mediaBackend.canPlayPause ? 1.0 : 0.6) : 0.4
 
                                         Image {
                                             anchors.centerIn: parent
                                             width: 20
                                             height: 20
-                                            source: iconsPath + (isFirstSession && mediaBackend.isPlaying ? "pause.svg" : "play.svg")
+                                            source: iconsPath + (isCurrentSession && mediaBackend.isPlaying ? "pause.svg" : "play.svg")
                                             sourceSize: Qt.size(20, 20)
                                         }
 
@@ -460,8 +443,15 @@ WidgetWindow {
                                             id: playMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            enabled: isFirstSession && mediaBackend.canPlayPause && !mediaWindow.editMode
-                                            onClicked: if (isFirstSession) mediaBackend.playPause()
+                                            enabled: hasSession && !mediaWindow.editMode
+                                            onClicked: {
+                                                if (!isCurrentSession) {
+                                                    mediaBackend.switchSession(sessionIndex)
+                                                }
+                                                if (mediaBackend.canPlayPause) {
+                                                    mediaBackend.playPause()
+                                                }
+                                            }
                                         }
                                     }
 
@@ -473,7 +463,8 @@ WidgetWindow {
                                         color: nextMouse.pressed ? Theme.titleBarButtonPressed :
                                                nextMouse.containsMouse ? Theme.titleBarButtonHover :
                                                Theme.surfaceColor
-                                        opacity: isFirstSession && mediaBackend.canGoNext && !mediaWindow.editMode ? 1.0 : 0.4
+                                        opacity: hasSession && !mediaWindow.editMode ?
+                                                 (isCurrentSession && mediaBackend.canGoNext ? 1.0 : 0.6) : 0.4
 
                                         Image {
                                             anchors.centerIn: parent
@@ -487,8 +478,15 @@ WidgetWindow {
                                             id: nextMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            enabled: isFirstSession && mediaBackend.canGoNext && !mediaWindow.editMode
-                                            onClicked: if (isFirstSession) mediaBackend.next()
+                                            enabled: hasSession && !mediaWindow.editMode
+                                            onClicked: {
+                                                if (!isCurrentSession) {
+                                                    mediaBackend.switchSession(sessionIndex)
+                                                }
+                                                if (mediaBackend.canGoNext) {
+                                                    mediaBackend.next()
+                                                }
+                                            }
                                         }
                                     }
 
@@ -504,7 +502,7 @@ WidgetWindow {
                             height: 1
                             color: Theme.borderColor
                             opacity: 0.3
-                            visible: index < (mediaWindow.editMode ? mediaBackend.maxSessions : Math.min(mediaBackend.sessionList.length, mediaBackend.maxSessions)) - 1
+                            visible: index < displayCount - 1
                         }
                     }
                 }
