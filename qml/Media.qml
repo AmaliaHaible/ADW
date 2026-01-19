@@ -442,7 +442,4 @@ WidgetWindow {
             }
         }
     }
-
-    // Override edit overlay to show max height
-    editOverlayHeight: maxHeight
 }
