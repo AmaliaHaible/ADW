@@ -407,12 +407,7 @@ WidgetWindow {
                                             anchors.fill: parent
                                             hoverEnabled: true
                                             enabled: hasSession && session.canGoPrevious && !mediaWindow.editMode
-                                            onClicked: {
-                                                if (!isCurrentSession) {
-                                                    mediaBackend.switchSession(sessionIndex)
-                                                }
-                                                mediaBackend.previous()
-                                            }
+                                            onClicked: mediaBackend.previous(sessionIndex)
                                         }
                                     }
 
@@ -439,12 +434,7 @@ WidgetWindow {
                                             anchors.fill: parent
                                             hoverEnabled: true
                                             enabled: hasSession && session.canPlayPause && !mediaWindow.editMode
-                                            onClicked: {
-                                                if (!isCurrentSession) {
-                                                    mediaBackend.switchSession(sessionIndex)
-                                                }
-                                                mediaBackend.playPause()
-                                            }
+                                            onClicked: mediaBackend.playPause(sessionIndex)
                                         }
                                     }
 
@@ -471,12 +461,7 @@ WidgetWindow {
                                             anchors.fill: parent
                                             hoverEnabled: true
                                             enabled: hasSession && session.canGoNext && !mediaWindow.editMode
-                                            onClicked: {
-                                                if (!isCurrentSession) {
-                                                    mediaBackend.switchSession(sessionIndex)
-                                                }
-                                                mediaBackend.next()
-                                            }
+                                            onClicked: mediaBackend.next(sessionIndex)
                                         }
                                     }
 

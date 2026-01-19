@@ -88,6 +88,7 @@ class MediaAsyncWorker(QThread):
             return
 
         # Main event loop
+        refresh_counter = 0
         while not self._stop_requested:
             # Process command queue
             try:
@@ -96,28 +97,42 @@ class MediaAsyncWorker(QThread):
             except Empty:
                 pass
 
-            # Periodic state refresh (every second)
-            await self._refresh_state()
+            # Periodic session metadata refresh (every 2 seconds)
+            refresh_counter += 1
+            if refresh_counter >= 4:  # 4 * 0.5s = 2s
+                await self._update_sessions()
+                refresh_counter = 0
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)  # Poll every 500ms for faster response
 
     async def _handle_command(self, cmd: Dict[str, Any]):
         """Handle commands from Qt main thread."""
         action = cmd.get("action")
+        session_index = cmd.get("session_index", 0)
 
-        if not self._current_session:
+        # Get the target session
+        target_session = None
+        if 0 <= session_index < len(self._sessions):
+            target_session = self._sessions[session_index]
+        elif self._current_session:
+            target_session = self._current_session
+
+        if not target_session:
             return
 
         try:
             if action == "play_pause":
-                await self._current_session.try_toggle_play_pause_async()
+                await target_session.try_toggle_play_pause_async()
+                # Immediately refresh state after action
+                await self._update_sessions()
             elif action == "next":
-                await self._current_session.try_skip_next_async()
+                await target_session.try_skip_next_async()
+                await self._update_sessions()
             elif action == "previous":
-                await self._current_session.try_skip_previous_async()
+                await target_session.try_skip_previous_async()
+                await self._update_sessions()
             elif action == "set_position":
                 # Position seeking - WinRT API may not support this directly
-                # We'll just update our local state for now
                 pass
             elif action == "switch_session":
                 index = cmd.get("index", 0)
@@ -242,7 +257,7 @@ class MediaAsyncWorker(QThread):
         """Event handler for playback state changes."""
         if self._loop and not self._stop_requested:
             asyncio.run_coroutine_threadsafe(
-                self._refresh_state(),
+                self._update_sessions(),
                 self._loop
             )
 
@@ -250,7 +265,7 @@ class MediaAsyncWorker(QThread):
         """Event handler for media property changes."""
         if self._loop and not self._stop_requested:
             asyncio.run_coroutine_threadsafe(
-                self._refresh_state(),
+                self._update_sessions(),
                 self._loop
             )
 

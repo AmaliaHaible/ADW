@@ -89,10 +89,10 @@ class MediaBackend(QObject):
         self._position_timer.timeout.connect(self._update_local_position)
         self._position_timer.setInterval(500)
 
-        # Session refresh timer (5 seconds)
+        # Session refresh timer (2 seconds)
         self._session_refresh_timer = QTimer()
         self._session_refresh_timer.timeout.connect(self.refreshSessions)
-        self._session_refresh_timer.start(5000)
+        self._session_refresh_timer.start(2000)
 
         # Initial loading state
         QTimer.singleShot(2000, lambda: self._set_loading(False))
@@ -184,23 +184,32 @@ class MediaBackend(QObject):
         return self._anchor_top
 
     # Slots
-    @Slot()
-    def playPause(self):
-        """Toggle play/pause."""
+    @Slot(int)
+    def playPause(self, session_index=0):
+        """Toggle play/pause on specific session."""
         if self._async_thread:
-            self._async_thread.enqueue_command({"action": "play_pause"})
+            self._async_thread.enqueue_command({
+                "action": "play_pause",
+                "session_index": session_index
+            })
 
-    @Slot()
-    def next(self):
-        """Skip to next track."""
+    @Slot(int)
+    def next(self, session_index=0):
+        """Skip to next track on specific session."""
         if self._async_thread:
-            self._async_thread.enqueue_command({"action": "next"})
+            self._async_thread.enqueue_command({
+                "action": "next",
+                "session_index": session_index
+            })
 
-    @Slot()
-    def previous(self):
-        """Skip to previous track."""
+    @Slot(int)
+    def previous(self, session_index=0):
+        """Skip to previous track on specific session."""
         if self._async_thread:
-            self._async_thread.enqueue_command({"action": "previous"})
+            self._async_thread.enqueue_command({
+                "action": "previous",
+                "session_index": session_index
+            })
 
     @Slot()
     def toggleShuffle(self):
