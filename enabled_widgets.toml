@@ -5,4 +5,4 @@
 [widgets]
 weather = true
 media = true
-general_settings = false
+general_settings = true
