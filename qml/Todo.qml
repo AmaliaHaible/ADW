@@ -28,6 +28,8 @@ WidgetWindow {
     property int draggedItemIndex: -1
     // Track drag position for drop indicator
     property int dragTargetIndex: -1
+    // Track if dragging a parent (true) or child (false)
+    property bool draggingParent: true
 
     Column {
         anchors.fill: parent
@@ -118,8 +120,9 @@ WidgetWindow {
                                     Layout.rightMargin: Theme.padding
                                     color: Theme.accentColor
                                     radius: 1
-                                    // Hide if dragged item is already last (no change)
+                                    // Hide if dragged item is already last (no change) or dragging a child
                                     visible: todoWindow.draggedTodoId !== "" &&
+                                             todoWindow.draggingParent &&
                                              todoWindow.dragTargetIndex === todoBackend.currentTodos.length &&
                                              todoWindow.draggedItemIndex !== todoBackend.currentTodos.length - 1
                                 }
@@ -270,9 +273,10 @@ WidgetWindow {
             Layout.preferredHeight: 3
             color: Theme.accentColor
             radius: 1
-            // Hide if: no drag, dragging this item, not targeting this position,
+            // Hide if: no drag, not dragging parent, dragging this item, not targeting this position,
             // or targeting position right after dragged item (no change)
             visible: todoWindow.draggedTodoId !== "" &&
+                     todoWindow.draggingParent &&
                      todoWindow.draggedTodoId !== todoData.id &&
                      todoWindow.dragTargetIndex === itemIndex &&
                      todoWindow.draggedItemIndex !== itemIndex - 1
@@ -304,6 +308,7 @@ WidgetWindow {
                         todoWindow.draggedTodoId = todoData.id
                         todoWindow.draggedItemIndex = itemIndex
                         todoWindow.dragTargetIndex = itemIndex
+                        todoWindow.draggingParent = true
                     } else {
                         var targetIdx = todoWindow.dragTargetIndex
                         var draggedId = todoData.id
@@ -324,6 +329,7 @@ WidgetWindow {
                         todoWindow.draggedTodoId = ""
                         todoWindow.draggedItemIndex = -1
                         todoWindow.dragTargetIndex = -1
+                        todoWindow.draggingParent = true
 
                         if (shouldReorder) {
                             todoBackend.reorderTodo(draggedId, targetIdx)
@@ -619,6 +625,28 @@ WidgetWindow {
                     property int totalChildren: todoData.children ? todoData.children.length : 0
                     property bool isChildEditing: false
 
+                    // Check if dragged item is a sibling (child of same parent)
+                    property bool isDraggingSibling: {
+                        if (!todoData.children || todoWindow.draggedTodoId === "") return false
+                        for (var i = 0; i < todoData.children.length; i++) {
+                            if (todoData.children[i].id === todoWindow.draggedTodoId) return true
+                        }
+                        return false
+                    }
+
+                    // Child drop indicator (above this child)
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 3
+                        Layout.leftMargin: 24
+                        color: Theme.accentColor
+                        radius: 1
+                        visible: childItemRoot.isDraggingSibling &&
+                                 todoWindow.draggedTodoId !== modelData.id &&
+                                 todoWindow.dragTargetIndex === childIndex &&
+                                 todoWindow.draggedItemIndex !== childIndex - 1
+                    }
+
                     Rectangle {
                         id: childItem
                         Layout.fillWidth: true
@@ -642,11 +670,44 @@ WidgetWindow {
 
                             onActiveChanged: {
                                 if (active) {
-                                    console.log("CHILD DRAG ACTIVE for:", modelData.text)
                                     todoWindow.draggedTodoId = modelData.id
+                                    todoWindow.draggedItemIndex = childIndex
+                                    todoWindow.dragTargetIndex = childIndex
+                                    todoWindow.draggingParent = false
                                 } else {
-                                    console.log("CHILD DRAG RELEASED")
+                                    var targetIdx = todoWindow.dragTargetIndex
+                                    var draggedId = modelData.id
+                                    var originalIdx = todoWindow.draggedItemIndex
+                                    var shouldReorder = false
+
+                                    if (todoWindow.draggedTodoId === draggedId && targetIdx >= 0) {
+                                        if (targetIdx > originalIdx) {
+                                            targetIdx = targetIdx - 1
+                                        }
+                                        if (targetIdx !== originalIdx) {
+                                            shouldReorder = true
+                                        }
+                                    }
+
+                                    // Reset state BEFORE reorder
                                     todoWindow.draggedTodoId = ""
+                                    todoWindow.draggedItemIndex = -1
+                                    todoWindow.dragTargetIndex = -1
+                                    todoWindow.draggingParent = true
+
+                                    if (shouldReorder) {
+                                        todoBackend.reorderTodo(draggedId, targetIdx)
+                                    }
+                                }
+                            }
+
+                            onCentroidChanged: {
+                                if (active) {
+                                    var dragOffset = centroid.position.y - centroid.pressPosition.y
+                                    var indexChange = Math.round(dragOffset / 36)
+                                    var newIndex = childIndex + indexChange
+                                    newIndex = Math.max(0, Math.min(newIndex, totalChildren))
+                                    todoWindow.dragTargetIndex = newIndex
                                 }
                             }
                         }
@@ -770,6 +831,28 @@ WidgetWindow {
 
                     }
                 }
+            }
+
+            // Bottom drop indicator for children (for dragging to last position)
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 3
+                Layout.leftMargin: 24
+                color: Theme.accentColor
+                radius: 1
+
+                // Check if dragged item is a child of this parent
+                function isDraggingChild() {
+                    if (!todoData.children || todoWindow.draggedTodoId === "") return false
+                    for (var i = 0; i < todoData.children.length; i++) {
+                        if (todoData.children[i].id === todoWindow.draggedTodoId) return true
+                    }
+                    return false
+                }
+
+                visible: isDraggingChild() &&
+                         todoWindow.dragTargetIndex === todoData.children.length &&
+                         todoWindow.draggedItemIndex !== todoData.children.length - 1
             }
         }
 
