@@ -16,13 +16,10 @@ WidgetWindow {
     minResizeHeight: 132
 
     // Dynamic height based on number of sessions shown
-    readonly property int baseSessionHeight: 100
+    readonly property int sessionHeight: 100
     readonly property int visibleSessionCount: Math.min(mediaBackend.sessionList.length, mediaBackend.maxSessions)
     readonly property int displayCount: mediaWindow.editMode ? mediaBackend.maxSessions : visibleSessionCount
-    readonly property int calculatedHeight: Theme.titleBarHeight + (displayCount * baseSessionHeight)
-
-    // Session height adjusts with vertical resize (cover scales)
-    readonly property int sessionHeight: displayCount > 0 ? (height - Theme.titleBarHeight) / displayCount : baseSessionHeight
+    readonly property int calculatedHeight: Theme.titleBarHeight + (displayCount * sessionHeight)
 
     height: calculatedHeight
 
@@ -393,8 +390,7 @@ WidgetWindow {
                                         color: prevMouse.pressed ? Theme.titleBarButtonPressed :
                                                prevMouse.containsMouse ? Theme.titleBarButtonHover :
                                                Theme.surfaceColor
-                                        opacity: hasSession && !mediaWindow.editMode ?
-                                                 (isCurrentSession && mediaBackend.canGoPrevious ? 1.0 : 0.6) : 0.4
+                                        opacity: isCurrentSession && mediaBackend.canGoPrevious && !mediaWindow.editMode ? 1.0 : 0.4
 
                                         Image {
                                             anchors.centerIn: parent
@@ -408,15 +404,8 @@ WidgetWindow {
                                             id: prevMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            enabled: hasSession && !mediaWindow.editMode
-                                            onClicked: {
-                                                if (!isCurrentSession) {
-                                                    mediaBackend.switchSession(sessionIndex)
-                                                }
-                                                if (mediaBackend.canGoPrevious) {
-                                                    mediaBackend.previous()
-                                                }
-                                            }
+                                            enabled: isCurrentSession && mediaBackend.canGoPrevious && !mediaWindow.editMode
+                                            onClicked: mediaBackend.previous()
                                         }
                                     }
 
@@ -428,8 +417,7 @@ WidgetWindow {
                                         color: playMouse.pressed ? Theme.titleBarButtonPressed :
                                                playMouse.containsMouse ? Theme.titleBarButtonHover :
                                                Theme.surfaceColor
-                                        opacity: hasSession && !mediaWindow.editMode ?
-                                                 (isCurrentSession && mediaBackend.canPlayPause ? 1.0 : 0.6) : 0.4
+                                        opacity: isCurrentSession && mediaBackend.canPlayPause && !mediaWindow.editMode ? 1.0 : 0.4
 
                                         Image {
                                             anchors.centerIn: parent
@@ -443,15 +431,8 @@ WidgetWindow {
                                             id: playMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            enabled: hasSession && !mediaWindow.editMode
-                                            onClicked: {
-                                                if (!isCurrentSession) {
-                                                    mediaBackend.switchSession(sessionIndex)
-                                                }
-                                                if (mediaBackend.canPlayPause) {
-                                                    mediaBackend.playPause()
-                                                }
-                                            }
+                                            enabled: isCurrentSession && mediaBackend.canPlayPause && !mediaWindow.editMode
+                                            onClicked: mediaBackend.playPause()
                                         }
                                     }
 
@@ -463,8 +444,7 @@ WidgetWindow {
                                         color: nextMouse.pressed ? Theme.titleBarButtonPressed :
                                                nextMouse.containsMouse ? Theme.titleBarButtonHover :
                                                Theme.surfaceColor
-                                        opacity: hasSession && !mediaWindow.editMode ?
-                                                 (isCurrentSession && mediaBackend.canGoNext ? 1.0 : 0.6) : 0.4
+                                        opacity: isCurrentSession && mediaBackend.canGoNext && !mediaWindow.editMode ? 1.0 : 0.4
 
                                         Image {
                                             anchors.centerIn: parent
@@ -478,15 +458,8 @@ WidgetWindow {
                                             id: nextMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            enabled: hasSession && !mediaWindow.editMode
-                                            onClicked: {
-                                                if (!isCurrentSession) {
-                                                    mediaBackend.switchSession(sessionIndex)
-                                                }
-                                                if (mediaBackend.canGoNext) {
-                                                    mediaBackend.next()
-                                                }
-                                            }
+                                            enabled: isCurrentSession && mediaBackend.canGoNext && !mediaWindow.editMode
+                                            onClicked: mediaBackend.next()
                                         }
                                     }
 
