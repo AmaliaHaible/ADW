@@ -246,35 +246,18 @@ WidgetWindow {
         Layout.rightMargin: Theme.padding
         spacing: 2
 
-        // Drop indicator line (shown above this item when dragging)
+        // Drop indicator above this item
         Rectangle {
+            id: dropIndicatorTop
             Layout.fillWidth: true
-            Layout.preferredHeight: 2
-            Layout.bottomMargin: 2
+            Layout.preferredHeight: 3
+            Layout.bottomMargin: -1
             color: Theme.accentColor
-            visible: dropAreaTop.containsDrag && todoWindow.draggedTodoId !== todoData.id
             radius: 1
+            visible: false
         }
 
-        // Top drop area (for inserting above this item)
-        DropArea {
-            id: dropAreaTop
-            Layout.fillWidth: true
-            Layout.preferredHeight: 20
-            Layout.topMargin: -10
-            Layout.bottomMargin: -10
-            z: 10
-
-            onDropped: function(drop) {
-                var draggedId = drop.getDataAsString("todoId")
-                if (draggedId && draggedId !== todoData.id) {
-                    todoBackend.reorderTodo(draggedId, itemIndex)
-                }
-                todoWindow.draggedTodoId = ""
-            }
-        }
-
-        // Main todo item
+        // Main todo item with integrated drop area
         Rectangle {
             id: todoItem
             Layout.fillWidth: true
@@ -283,9 +266,45 @@ WidgetWindow {
             color: dragArea.containsPress || dragArea.containsMouse ? Theme.surfaceColor : "transparent"
             opacity: todoWindow.draggedTodoId === todoData.id ? 0.5 : 1.0
 
-            Drag.active: todoWindow.draggedTodoId === todoData.id
+            // Properties for drag
+            property string dragTodoId: todoData.id
+            property string dragType: "parent"
+            property bool dropOnTop: false
+
+            Drag.source: todoItem
+            Drag.keys: ["todo"]
             Drag.hotSpot: Qt.point(width / 2, height / 2)
-            Drag.mimeData: {"todoId": todoData.id}
+
+            // Drop area covering the entire item
+            DropArea {
+                id: itemDropArea
+                anchors.fill: parent
+                keys: ["todo"]
+
+                onPositionChanged: function(drag) {
+                    if (drag.source && drag.source.dragTodoId !== todoData.id) {
+                        // Top half = insert before, bottom half = insert after
+                        todoItem.dropOnTop = drag.y < parent.height / 2
+                        dropIndicatorTop.visible = todoItem.dropOnTop
+                        dropIndicatorBottom.visible = !todoItem.dropOnTop
+                    }
+                }
+
+                onExited: {
+                    dropIndicatorTop.visible = false
+                    dropIndicatorBottom.visible = false
+                }
+
+                onDropped: function(drop) {
+                    if (drop.source && drop.source.dragTodoId && drop.source.dragTodoId !== todoData.id) {
+                        var newIndex = todoItem.dropOnTop ? itemIndex : itemIndex + 1
+                        todoBackend.reorderTodo(drop.source.dragTodoId, newIndex)
+                    }
+                    dropIndicatorTop.visible = false
+                    dropIndicatorBottom.visible = false
+                    todoWindow.draggedTodoId = ""
+                }
+            }
 
             RowLayout {
                 anchors.fill: parent
@@ -378,27 +397,14 @@ WidgetWindow {
                         }
                     }
 
-                    // Drag area covers the text area
+                    // Mouse area for hover and double-click
                     MouseArea {
                         id: dragArea
                         anchors.fill: parent
                         hoverEnabled: true
-                        visible: !todoItemRoot.isEditing && !isFinishedTab
+                        visible: !todoItemRoot.isEditing
 
                         property bool held: false
-
-                        onPressed: {
-                            held = true
-                            todoWindow.draggedTodoId = todoData.id
-                        }
-
-                        onReleased: {
-                            if (held) {
-                                todoItem.Drag.drop()
-                                todoWindow.draggedTodoId = ""
-                            }
-                            held = false
-                        }
 
                         onDoubleClicked: {
                             todoItemRoot.isEditing = true
@@ -407,16 +413,21 @@ WidgetWindow {
                         }
                     }
 
-                    // Separate mouse area for finished tab (no drag, just double-click)
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        visible: !todoItemRoot.isEditing && isFinishedTab
+                    // Drag handler for drag-and-drop (only in current tab)
+                    DragHandler {
+                        id: dragHandler
+                        enabled: !isFinishedTab && !todoItemRoot.isEditing
+                        target: null
 
-                        onDoubleClicked: {
-                            todoItemRoot.isEditing = true
-                            todoEditField.forceActiveFocus()
-                            todoEditField.selectAll()
+                        onActiveChanged: {
+                            if (active) {
+                                todoWindow.draggedTodoId = todoData.id
+                                todoItem.Drag.active = true
+                            } else {
+                                todoItem.Drag.drop()
+                                todoItem.Drag.active = false
+                                todoWindow.draggedTodoId = ""
+                            }
                         }
                     }
                 }
@@ -488,6 +499,19 @@ WidgetWindow {
                         onClicked: todoBackend.deleteTodo(todoData.id)
                     }
                 }
+            }
+
+            // Drop indicator below this item
+            Rectangle {
+                id: dropIndicatorBottom
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottomMargin: -2
+                height: 3
+                color: Theme.accentColor
+                radius: 1
+                visible: false
             }
         }
 
@@ -592,34 +616,16 @@ WidgetWindow {
                     property int totalChildren: todoData.children ? todoData.children.length : 0
                     property bool isChildEditing: false
 
-                    // Child drop indicator line
+                    // Child drop indicator top
                     Rectangle {
+                        id: childDropIndicatorTop
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 2
+                        Layout.preferredHeight: 3
                         Layout.leftMargin: 24
-                        Layout.bottomMargin: 2
+                        Layout.bottomMargin: -1
                         color: Theme.accentColor
-                        visible: childDropAreaTop.containsDrag && todoWindow.draggedTodoId !== modelData.id
                         radius: 1
-                    }
-
-                    // Child top drop area
-                    DropArea {
-                        id: childDropAreaTop
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 16
-                        Layout.leftMargin: 24
-                        Layout.topMargin: -8
-                        Layout.bottomMargin: -8
-                        z: 10
-
-                        onDropped: function(drop) {
-                            var draggedId = drop.getDataAsString("childTodoId")
-                            if (draggedId && draggedId !== modelData.id) {
-                                todoBackend.reorderTodo(draggedId, childIndex)
-                            }
-                            todoWindow.draggedTodoId = ""
-                        }
+                        visible: false
                     }
 
                     Rectangle {
@@ -631,9 +637,43 @@ WidgetWindow {
                         color: childDragArea.containsPress || childDragArea.containsMouse ? Theme.surfaceColor : "transparent"
                         opacity: todoWindow.draggedTodoId === modelData.id ? 0.5 : 1.0
 
-                        Drag.active: todoWindow.draggedTodoId === modelData.id
+                        property string dragTodoId: modelData.id
+                        property string dragType: "child"
+                        property bool dropOnTop: false
+
+                        Drag.source: childItem
+                        Drag.keys: ["childTodo"]
                         Drag.hotSpot: Qt.point(width / 2, height / 2)
-                        Drag.mimeData: {"childTodoId": modelData.id}
+
+                        // Drop area for child reordering
+                        DropArea {
+                            id: childItemDropArea
+                            anchors.fill: parent
+                            keys: ["childTodo"]
+
+                            onPositionChanged: function(drag) {
+                                if (drag.source && drag.source.dragTodoId !== modelData.id) {
+                                    childItem.dropOnTop = drag.y < parent.height / 2
+                                    childDropIndicatorTop.visible = childItem.dropOnTop
+                                    childDropIndicatorBottom.visible = !childItem.dropOnTop
+                                }
+                            }
+
+                            onExited: {
+                                childDropIndicatorTop.visible = false
+                                childDropIndicatorBottom.visible = false
+                            }
+
+                            onDropped: function(drop) {
+                                if (drop.source && drop.source.dragTodoId && drop.source.dragTodoId !== modelData.id) {
+                                    var newIndex = childItem.dropOnTop ? childIndex : childIndex + 1
+                                    todoBackend.reorderTodo(drop.source.dragTodoId, newIndex)
+                                }
+                                childDropIndicatorTop.visible = false
+                                childDropIndicatorBottom.visible = false
+                                todoWindow.draggedTodoId = ""
+                            }
+                        }
 
                         RowLayout {
                             anchors.fill: parent
@@ -719,27 +759,12 @@ WidgetWindow {
                                     }
                                 }
 
-                                // Child drag area
+                                // Mouse area for hover and double-click
                                 MouseArea {
                                     id: childDragArea
                                     anchors.fill: parent
                                     hoverEnabled: true
-                                    visible: !childItemRoot.isChildEditing && !isFinishedTab
-
-                                    property bool held: false
-
-                                    onPressed: {
-                                        held = true
-                                        todoWindow.draggedTodoId = modelData.id
-                                    }
-
-                                    onReleased: {
-                                        if (held) {
-                                            childItem.Drag.drop()
-                                            todoWindow.draggedTodoId = ""
-                                        }
-                                        held = false
-                                    }
+                                    visible: !childItemRoot.isChildEditing
 
                                     onDoubleClicked: {
                                         childItemRoot.isChildEditing = true
@@ -748,16 +773,21 @@ WidgetWindow {
                                     }
                                 }
 
-                                // Separate mouse area for finished tab children
-                                MouseArea {
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    visible: !childItemRoot.isChildEditing && isFinishedTab
+                                // Drag handler for child drag-and-drop
+                                DragHandler {
+                                    id: childDragHandler
+                                    enabled: !isFinishedTab && !childItemRoot.isChildEditing
+                                    target: null
 
-                                    onDoubleClicked: {
-                                        childItemRoot.isChildEditing = true
-                                        childEditField.forceActiveFocus()
-                                        childEditField.selectAll()
+                                    onActiveChanged: {
+                                        if (active) {
+                                            todoWindow.draggedTodoId = modelData.id
+                                            childItem.Drag.active = true
+                                        } else {
+                                            childItem.Drag.drop()
+                                            childItem.Drag.active = false
+                                            todoWindow.draggedTodoId = ""
+                                        }
                                     }
                                 }
                             }
@@ -783,63 +813,23 @@ WidgetWindow {
                                 }
                             }
                         }
-                    }
 
-                    // Child bottom drop area (only for last child)
-                    DropArea {
-                        id: childDropAreaBottom
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: childIndex === totalChildren - 1 ? 16 : 0
-                        Layout.leftMargin: 24
-                        visible: childIndex === totalChildren - 1
-
-                        onDropped: function(drop) {
-                            var draggedId = drop.getDataAsString("childTodoId")
-                            if (draggedId && draggedId !== modelData.id) {
-                                todoBackend.reorderTodo(draggedId, totalChildren)
-                            }
-                            todoWindow.draggedTodoId = ""
+                        // Child drop indicator bottom
+                        Rectangle {
+                            id: childDropIndicatorBottom
+                            anchors.bottom: parent.bottom
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottomMargin: -2
+                            height: 3
+                            color: Theme.accentColor
+                            radius: 1
+                            visible: false
                         }
                     }
-
-                    // Child bottom drop indicator (only for last child)
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 2
-                        Layout.leftMargin: 24
-                        Layout.topMargin: 2
-                        color: Theme.accentColor
-                        visible: childIndex === totalChildren - 1 && childDropAreaBottom.containsDrag && todoWindow.draggedTodoId !== modelData.id
-                        radius: 1
-                    }
                 }
             }
         }
 
-        // Bottom drop area (for inserting at the end when this is the last item)
-        DropArea {
-            id: dropAreaBottom
-            Layout.fillWidth: true
-            Layout.preferredHeight: itemIndex === totalItems - 1 ? 20 : 0
-            visible: itemIndex === totalItems - 1
-
-            onDropped: function(drop) {
-                var draggedId = drop.getDataAsString("todoId")
-                if (draggedId && draggedId !== todoData.id) {
-                    todoBackend.reorderTodo(draggedId, totalItems)
-                }
-                todoWindow.draggedTodoId = ""
-            }
-        }
-
-        // Drop indicator line at bottom (only for last item)
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 2
-            Layout.topMargin: 2
-            color: Theme.accentColor
-            visible: itemIndex === totalItems - 1 && dropAreaBottom.containsDrag && todoWindow.draggedTodoId !== todoData.id
-            radius: 1
-        }
     }
 }
