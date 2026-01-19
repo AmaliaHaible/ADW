@@ -239,6 +239,7 @@ WidgetWindow {
         property int totalItems: 0
         property bool showAddChild: false
         property bool childrenCollapsed: false
+        property bool isEditing: false
 
         Layout.fillWidth: true
         Layout.leftMargin: Theme.padding
@@ -277,85 +278,20 @@ WidgetWindow {
         Rectangle {
             id: todoItem
             Layout.fillWidth: true
-            Layout.preferredHeight: Math.max(44, todoText.implicitHeight + Theme.padding)
+            Layout.preferredHeight: Math.max(44, (todoItemRoot.isEditing ? todoEditField.implicitHeight : todoText.implicitHeight) + Theme.padding)
             radius: Theme.borderRadius
-            color: itemMouseArea.containsMouse ? Theme.surfaceColor : "transparent"
+            color: dragArea.containsPress || dragArea.containsMouse ? Theme.surfaceColor : "transparent"
             opacity: todoWindow.draggedTodoId === todoData.id ? 0.5 : 1.0
 
-            Drag.active: dragArea.drag.active
+            Drag.active: todoWindow.draggedTodoId === todoData.id
             Drag.hotSpot: Qt.point(width / 2, height / 2)
             Drag.mimeData: {"todoId": todoData.id}
-
-            MouseArea {
-                id: itemMouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-            }
 
             RowLayout {
                 anchors.fill: parent
                 anchors.leftMargin: Theme.padding / 2
                 anchors.rightMargin: Theme.padding / 2
                 spacing: Theme.spacing / 2
-
-                // Drag handle (at the start)
-                Rectangle {
-                    id: dragHandle
-                    Layout.preferredWidth: 24
-                    Layout.preferredHeight: 24
-                    radius: Theme.borderRadius
-                    color: dragArea.containsMouse ? Theme.borderColor : "transparent"
-                    visible: !isFinishedTab
-
-                    Image {
-                        anchors.centerIn: parent
-                        source: iconsPath + "grip-vertical.svg"
-                        sourceSize: Qt.size(14, 14)
-                    }
-
-                    MouseArea {
-                        id: dragArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        drag.target: todoItem
-                        drag.axis: Drag.YAxis
-
-                        onPressed: {
-                            todoWindow.draggedTodoId = todoData.id
-                            todoItem.Drag.active = true
-                        }
-
-                        onReleased: {
-                            todoItem.Drag.drop()
-                            todoItem.Drag.active = false
-                            todoItem.x = 0
-                            todoItem.y = 0
-                            todoWindow.draggedTodoId = ""
-                        }
-                    }
-                }
-
-                // Collapse/expand button (only if has children)
-                Rectangle {
-                    Layout.preferredWidth: 24
-                    Layout.preferredHeight: 24
-                    radius: Theme.borderRadius
-                    color: collapseArea.containsMouse ? Theme.borderColor : "transparent"
-                    visible: (todoData.children && todoData.children.length > 0)
-
-                    Image {
-                        anchors.centerIn: parent
-                        source: iconsPath + (todoItemRoot.childrenCollapsed ? "chevron-down.svg" : "chevron-up.svg")
-                        sourceSize: Qt.size(14, 14)
-                    }
-
-                    MouseArea {
-                        id: collapseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: todoItemRoot.childrenCollapsed = !todoItemRoot.childrenCollapsed
-                    }
-                }
 
                 // Checkbox
                 Rectangle {
@@ -388,16 +324,123 @@ WidgetWindow {
                     }
                 }
 
-                // Todo text
-                Text {
-                    id: todoText
+                // Todo text (or edit field)
+                Item {
                     Layout.fillWidth: true
-                    text: todoData.text
-                    color: todoData.completed ? Theme.textSecondary : Theme.textPrimary
-                    font.pixelSize: Theme.fontSizeNormal
-                    font.strikeout: todoData.completed
-                    wrapMode: Text.WordWrap
-                    verticalAlignment: Text.AlignVCenter
+                    Layout.fillHeight: true
+
+                    Text {
+                        id: todoText
+                        anchors.fill: parent
+                        text: todoData.text
+                        color: todoData.completed ? Theme.textSecondary : Theme.textPrimary
+                        font.pixelSize: Theme.fontSizeNormal
+                        font.strikeout: todoData.completed
+                        wrapMode: Text.WordWrap
+                        verticalAlignment: Text.AlignVCenter
+                        visible: !todoItemRoot.isEditing
+                    }
+
+                    TextField {
+                        id: todoEditField
+                        anchors.fill: parent
+                        text: todoData.text
+                        color: Theme.textPrimary
+                        font.pixelSize: Theme.fontSizeNormal
+                        visible: todoItemRoot.isEditing
+
+                        background: Rectangle {
+                            color: Theme.windowBackground
+                            border.color: Theme.accentColor
+                            border.width: 1
+                            radius: Theme.borderRadius
+                        }
+
+                        onActiveFocusChanged: {
+                            if (!activeFocus) {
+                                if (todoEditField.text.trim() !== "") {
+                                    todoBackend.updateTodoText(todoData.id, todoEditField.text)
+                                }
+                                todoItemRoot.isEditing = false
+                            }
+                        }
+
+                        Keys.onReturnPressed: {
+                            if (todoEditField.text.trim() !== "") {
+                                todoBackend.updateTodoText(todoData.id, todoEditField.text)
+                            }
+                            todoItemRoot.isEditing = false
+                        }
+
+                        Keys.onEscapePressed: {
+                            todoEditField.text = todoData.text
+                            todoItemRoot.isEditing = false
+                        }
+                    }
+
+                    // Drag area covers the text area
+                    MouseArea {
+                        id: dragArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        visible: !todoItemRoot.isEditing && !isFinishedTab
+
+                        property bool held: false
+
+                        onPressed: {
+                            held = true
+                            todoWindow.draggedTodoId = todoData.id
+                        }
+
+                        onReleased: {
+                            if (held) {
+                                todoItem.Drag.drop()
+                                todoWindow.draggedTodoId = ""
+                            }
+                            held = false
+                        }
+
+                        onDoubleClicked: {
+                            todoItemRoot.isEditing = true
+                            todoEditField.forceActiveFocus()
+                            todoEditField.selectAll()
+                        }
+                    }
+
+                    // Separate mouse area for finished tab (no drag, just double-click)
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        visible: !todoItemRoot.isEditing && isFinishedTab
+
+                        onDoubleClicked: {
+                            todoItemRoot.isEditing = true
+                            todoEditField.forceActiveFocus()
+                            todoEditField.selectAll()
+                        }
+                    }
+                }
+
+                // Collapse/expand button (only if has children) - on the right with background
+                Rectangle {
+                    Layout.preferredWidth: 24
+                    Layout.preferredHeight: 24
+                    radius: Theme.borderRadius
+                    color: collapseArea.containsMouse ? Theme.borderColor : Theme.surfaceColor
+                    visible: (todoData.children && todoData.children.length > 0)
+
+                    Image {
+                        anchors.centerIn: parent
+                        source: iconsPath + (todoItemRoot.childrenCollapsed ? "chevron-down.svg" : "chevron-up.svg")
+                        sourceSize: Qt.size(14, 14)
+                    }
+
+                    MouseArea {
+                        id: collapseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: todoItemRoot.childrenCollapsed = !todoItemRoot.childrenCollapsed
+                    }
                 }
 
                 // Add child button (only for parents in current tab)
@@ -547,6 +590,7 @@ WidgetWindow {
 
                     property int childIndex: index
                     property int totalChildren: todoData.children ? todoData.children.length : 0
+                    property bool isChildEditing: false
 
                     // Child drop indicator line
                     Rectangle {
@@ -581,63 +625,21 @@ WidgetWindow {
                     Rectangle {
                         id: childItem
                         Layout.fillWidth: true
-                        Layout.preferredHeight: Math.max(36, childText.implicitHeight + Theme.padding)
+                        Layout.preferredHeight: Math.max(36, (childItemRoot.isChildEditing ? childEditField.implicitHeight : childText.implicitHeight) + Theme.padding)
                         Layout.leftMargin: 24
                         radius: Theme.borderRadius
-                        color: childMouseArea.containsMouse ? Theme.surfaceColor : "transparent"
+                        color: childDragArea.containsPress || childDragArea.containsMouse ? Theme.surfaceColor : "transparent"
                         opacity: todoWindow.draggedTodoId === modelData.id ? 0.5 : 1.0
 
-                        Drag.active: childDragArea.drag.active
+                        Drag.active: todoWindow.draggedTodoId === modelData.id
                         Drag.hotSpot: Qt.point(width / 2, height / 2)
                         Drag.mimeData: {"childTodoId": modelData.id}
-
-                        MouseArea {
-                            id: childMouseArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                        }
 
                         RowLayout {
                             anchors.fill: parent
                             anchors.leftMargin: Theme.padding / 2
                             anchors.rightMargin: Theme.padding / 2
                             spacing: Theme.spacing / 2
-
-                            // Child drag handle
-                            Rectangle {
-                                Layout.preferredWidth: 20
-                                Layout.preferredHeight: 20
-                                radius: Theme.borderRadius
-                                color: childDragArea.containsMouse ? Theme.borderColor : "transparent"
-                                visible: !isFinishedTab
-
-                                Image {
-                                    anchors.centerIn: parent
-                                    source: iconsPath + "grip-vertical.svg"
-                                    sourceSize: Qt.size(12, 12)
-                                }
-
-                                MouseArea {
-                                    id: childDragArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    drag.target: childItem
-                                    drag.axis: Drag.YAxis
-
-                                    onPressed: {
-                                        todoWindow.draggedTodoId = modelData.id
-                                        childItem.Drag.active = true
-                                    }
-
-                                    onReleased: {
-                                        childItem.Drag.drop()
-                                        childItem.Drag.active = false
-                                        childItem.x = 0
-                                        childItem.y = 0
-                                        todoWindow.draggedTodoId = ""
-                                    }
-                                }
-                            }
 
                             // Child checkbox
                             Rectangle {
@@ -663,16 +665,101 @@ WidgetWindow {
                                 }
                             }
 
-                            // Child text
-                            Text {
-                                id: childText
+                            // Child text (or edit field)
+                            Item {
                                 Layout.fillWidth: true
-                                text: modelData.text
-                                color: modelData.completed ? Theme.textSecondary : Theme.textPrimary
-                                font.pixelSize: Theme.fontSizeSmall
-                                font.strikeout: modelData.completed
-                                wrapMode: Text.WordWrap
-                                verticalAlignment: Text.AlignVCenter
+                                Layout.fillHeight: true
+
+                                Text {
+                                    id: childText
+                                    anchors.fill: parent
+                                    text: modelData.text
+                                    color: modelData.completed ? Theme.textSecondary : Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    font.strikeout: modelData.completed
+                                    wrapMode: Text.WordWrap
+                                    verticalAlignment: Text.AlignVCenter
+                                    visible: !childItemRoot.isChildEditing
+                                }
+
+                                TextField {
+                                    id: childEditField
+                                    anchors.fill: parent
+                                    text: modelData.text
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    visible: childItemRoot.isChildEditing
+
+                                    background: Rectangle {
+                                        color: Theme.windowBackground
+                                        border.color: Theme.accentColor
+                                        border.width: 1
+                                        radius: Theme.borderRadius
+                                    }
+
+                                    onActiveFocusChanged: {
+                                        if (!activeFocus) {
+                                            if (childEditField.text.trim() !== "") {
+                                                todoBackend.updateTodoText(modelData.id, childEditField.text)
+                                            }
+                                            childItemRoot.isChildEditing = false
+                                        }
+                                    }
+
+                                    Keys.onReturnPressed: {
+                                        if (childEditField.text.trim() !== "") {
+                                            todoBackend.updateTodoText(modelData.id, childEditField.text)
+                                        }
+                                        childItemRoot.isChildEditing = false
+                                    }
+
+                                    Keys.onEscapePressed: {
+                                        childEditField.text = modelData.text
+                                        childItemRoot.isChildEditing = false
+                                    }
+                                }
+
+                                // Child drag area
+                                MouseArea {
+                                    id: childDragArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    visible: !childItemRoot.isChildEditing && !isFinishedTab
+
+                                    property bool held: false
+
+                                    onPressed: {
+                                        held = true
+                                        todoWindow.draggedTodoId = modelData.id
+                                    }
+
+                                    onReleased: {
+                                        if (held) {
+                                            childItem.Drag.drop()
+                                            todoWindow.draggedTodoId = ""
+                                        }
+                                        held = false
+                                    }
+
+                                    onDoubleClicked: {
+                                        childItemRoot.isChildEditing = true
+                                        childEditField.forceActiveFocus()
+                                        childEditField.selectAll()
+                                    }
+                                }
+
+                                // Separate mouse area for finished tab children
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    visible: !childItemRoot.isChildEditing && isFinishedTab
+
+                                    onDoubleClicked: {
+                                        childItemRoot.isChildEditing = true
+                                        childEditField.forceActiveFocus()
+                                        childEditField.selectAll()
+                                    }
+                                }
                             }
 
                             // Child delete button (always visible)
