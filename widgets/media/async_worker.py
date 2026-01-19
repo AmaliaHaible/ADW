@@ -55,43 +55,57 @@ class MediaAsyncWorker(QThread):
 
     def run(self):
         """Thread entry point - runs asyncio event loop."""
+        print("[MediaWorker] Thread starting...")
         if not WINRT_AVAILABLE:
+            print("[MediaWorker] ERROR: WinRT not available")
             self._emit_to_qt("errorOccurred", "WinRT not available on this system")
             return
 
         try:
+            print("[MediaWorker] Creating asyncio event loop...")
             self._loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._loop)
             self._loop.run_until_complete(self._async_main())
         except Exception as e:
+            print(f"[MediaWorker] ERROR: Worker thread error: {e}")
             self._emit_to_qt("errorOccurred", f"Worker thread error: {str(e)}")
         finally:
             if self._loop:
                 self._loop.close()
+            print("[MediaWorker] Thread stopped")
 
     async def _async_main(self):
         """Main async loop."""
         try:
             # Initialize WinRT MediaManager
+            print("[MediaWorker] Requesting WinRT MediaManager...")
             self._manager = await MediaManager.request_async()
+            print(f"[MediaWorker] MediaManager initialized: {self._manager}")
 
             # Set up event listeners
+            print("[MediaWorker] Setting up event listeners...")
             self._manager.add_current_session_changed(self._on_current_session_changed)
             self._manager.add_sessions_changed(self._on_sessions_changed)
 
             # Initial session discovery
+            print("[MediaWorker] Discovering sessions...")
             await self._update_sessions()
             await self._switch_to_current_session()
 
         except Exception as e:
+            print(f"[MediaWorker] ERROR: Failed to initialize: {e}")
+            import traceback
+            traceback.print_exc()
             self._emit_to_qt("errorOccurred", f"Failed to initialize media manager: {str(e)}")
             return
 
         # Main event loop
+        print("[MediaWorker] Entering main event loop...")
         while not self._stop_requested:
             # Process command queue
             try:
                 cmd = self._command_queue.get_nowait()
+                print(f"[MediaWorker] Processing command: {cmd}")
                 await self._handle_command(cmd)
             except Empty:
                 pass
@@ -181,6 +195,7 @@ class MediaAsyncWorker(QThread):
         try:
             sessions = self._manager.get_sessions()
             self._sessions = list(sessions) if sessions else []
+            print(f"[MediaWorker] Found {len(self._sessions)} sessions")
 
             # Build session list for Qt
             session_list = []
@@ -189,8 +204,10 @@ class MediaAsyncWorker(QThread):
                     # Get session info
                     info = await session.try_get_media_properties_async()
                     name = info.title if info and info.title else f"Session {i+1}"
+                    print(f"[MediaWorker] Session {i}: {name}")
                 except Exception:
                     name = f"Session {i+1}"
+                    print(f"[MediaWorker] Session {i}: (unknown)")
 
                 session_list.append({
                     "id": i,
@@ -201,6 +218,7 @@ class MediaAsyncWorker(QThread):
             self._emit_to_qt("sessionListChanged", session_list)
 
         except Exception as e:
+            print(f"[MediaWorker] ERROR: Failed to update sessions: {e}")
             self._emit_to_qt("errorOccurred", f"Failed to update sessions: {str(e)}")
 
     def _on_playback_changed(self, session, args):
@@ -241,18 +259,27 @@ class MediaAsyncWorker(QThread):
             self._emit_to_qt("mediaStateChanged", state)
             return
 
+        print(f"[MediaWorker] Refreshing state for session: {self._current_session}")
+
         try:
             # Get playback info
             playback_info = self._current_session.get_playback_info()
             controls = playback_info.controls
+            print(f"[MediaWorker] Playback info: {playback_info}")
 
             # Get media properties
             media_props = await self._current_session.try_get_media_properties_async()
+            if media_props:
+                print(f"[MediaWorker] Media: title={media_props.title}, artist={media_props.artist}")
+            else:
+                print("[MediaWorker] No media properties")
 
             # Determine playback state
             status = playback_info.playback_status
             playback_state = "Unknown"
             is_playing = False
+
+            print(f"[MediaWorker] Playback status code: {status}")
 
             if status == 4:  # Playing
                 playback_state = "Playing"
@@ -263,6 +290,8 @@ class MediaAsyncWorker(QThread):
                 playback_state = "Stopped"
             elif status == 2:  # Changing
                 playback_state = "Changing"
+
+            print(f"[MediaWorker] State: {playback_state}, playing={is_playing}")
 
             # Get timeline info if available
             timeline = playback_info.timeline_properties

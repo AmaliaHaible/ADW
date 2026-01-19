@@ -9,5 +9,6 @@ dependencies = [
     "pillow>=12.1.0",
     "pyside6>=6.10.1",
     "watchfiles>=1.1.1",
+    "winrt-windows-foundation>=3.2.1",
     "winrt-windows-media-control>=3.2.1",
 ]

@@ -66,10 +66,12 @@ class MediaBackend(QObject):
         self._default_cover = str((self._assets_dir / "default-cover.png").absolute())
 
         # Initialize async worker
+        print("[MediaBackend] Initializing async worker...")
         self._async_thread = MediaAsyncWorker(self._assets_dir)
         self._async_thread.mediaStateChanged.connect(self._on_media_state_changed)
         self._async_thread.sessionListChanged.connect(self._on_session_list_changed)
         self._async_thread.errorOccurred.connect(self._on_error_occurred)
+        print("[MediaBackend] Starting async worker thread...")
         self._async_thread.start()
 
         # Position update timer (500ms when playing)
@@ -230,10 +232,14 @@ class MediaBackend(QObject):
     @Slot(dict)
     def _on_media_state_changed(self, state):
         """Handle media state updates from async thread."""
+        print(f"[MediaBackend] State update received: has_session={state.get('has_session')}, "
+              f"title={state.get('title')}, state={state.get('playback_state')}")
+
         # Update has_session
         has_session = state.get("has_session", False)
         if self._has_session != has_session:
             self._has_session = has_session
+            print(f"[MediaBackend] hasSession changed to {has_session}")
             self.hasSessionChanged.emit()
 
         # Update title
@@ -329,6 +335,7 @@ class MediaBackend(QObject):
     @Slot(list)
     def _on_session_list_changed(self, session_list):
         """Handle session list updates from async thread."""
+        print(f"[MediaBackend] Session list updated: {len(session_list)} sessions")
         self._session_list = session_list
         self.sessionListChanged.emit()
 
