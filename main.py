@@ -9,7 +9,7 @@ from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from widgets import HubBackend, SettingsBackend, ThemeProvider, WeatherBackend
+from widgets import HubBackend, MediaBackend, SettingsBackend, ThemeProvider, WeatherBackend
 
 
 def main():
@@ -45,6 +45,10 @@ def main():
     weather = WeatherBackend(settings_backend=settings)
     engine.rootContext().setContextProperty("weatherBackend", weather)
 
+    # Set up media control backend
+    media = MediaBackend(settings_backend=settings)
+    engine.rootContext().setContextProperty("mediaBackend", media)
+
     # Set up system tray
     hub.setup_tray(app)
 
@@ -54,10 +58,12 @@ def main():
     # Load QML files
     hub_qml = qml_dir / "Hub.qml"
     weather_qml = qml_dir / "Weather.qml"
+    media_qml = qml_dir / "Media.qml"
     theme_qml = qml_dir / "ThemeEditor.qml"
 
     engine.load(hub_qml)
     engine.load(weather_qml)
+    engine.load(media_qml)
     engine.load(theme_qml)
 
     if not engine.rootObjects():

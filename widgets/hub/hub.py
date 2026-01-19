@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QSystemTrayIcon, QMenu
 
 class HubBackend(QObject):
     weatherVisibleChanged = Signal(bool)
+    mediaVisibleChanged = Signal(bool)
     themeVisibleChanged = Signal(bool)
     editModeChanged = Signal(bool)
     alwaysOnTopChanged = Signal(bool)
@@ -25,11 +26,13 @@ class HubBackend(QObject):
         # Load initial visibility states from settings
         if self._settings:
             self._weather_visible = self._settings.getWidgetVisible("weather")
+            self._media_visible = self._settings.getWidgetVisible("media")
             self._theme_visible = self._settings.getWidgetVisible("theme")
             # Load always on top setting
             self._always_on_top = self._settings.getWidgetSetting("hub", "always_on_top") or False
         else:
             self._weather_visible = False
+            self._media_visible = False
             self._theme_visible = False
             self._always_on_top = False
 
@@ -87,6 +90,24 @@ class HubBackend(QObject):
     def setWeatherVisible(self, visible):
         """Set weather widget visibility."""
         self.weatherVisible = visible
+
+    # Media visibility
+    @Property(bool, notify=mediaVisibleChanged)
+    def mediaVisible(self):
+        return self._media_visible
+
+    @mediaVisible.setter
+    def mediaVisible(self, value):
+        if self._media_visible != value:
+            self._media_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("media", value)
+            self.mediaVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setMediaVisible(self, visible):
+        """Set media widget visibility."""
+        self.mediaVisible = visible
 
     # Theme widget visibility
     @Property(bool, notify=themeVisibleChanged)
