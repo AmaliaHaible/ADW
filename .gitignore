@@ -10,6 +10,7 @@ wheels/
 settings.json
 .env
 themes/
+widgets/media/assets/temp/
 
 # Virtual environments
 .venv

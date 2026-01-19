@@ -239,6 +239,59 @@ WidgetWindow {
                         }
                     }
 
+                    // Media control widget toggle
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
+
+                            Image {
+                                source: iconsPath + "music.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                            }
+
+                            Text {
+                                text: "Media Control"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.mediaVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.mediaVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.mediaVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: hubBackend.setMediaVisible(!hubBackend.mediaVisible)
+                                }
+                            }
+                        }
+                    }
+
                     // Theme widget toggle
                     Rectangle {
                         Layout.fillWidth: true

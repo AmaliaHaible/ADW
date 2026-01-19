@@ -1,9 +1,8 @@
 import asyncio
 import hashlib
-import os
 from pathlib import Path
 from queue import Queue, Empty
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 from PySide6.QtCore import QThread, Signal, Qt, QMetaObject, Q_ARG
 
@@ -150,7 +149,7 @@ class MediaAsyncWorker(QThread):
         try:
             session = self._manager.get_current_session()
             await self._switch_to_session(session)
-        except Exception as e:
+        except Exception:
             # No current session is fine
             await self._switch_to_session(None)
 
@@ -161,7 +160,7 @@ class MediaAsyncWorker(QThread):
             try:
                 self._current_session.remove_playback_info_changed(self._on_playback_changed)
                 self._current_session.remove_media_properties_changed(self._on_media_properties_changed)
-            except:
+            except Exception:
                 pass
 
         self._current_session = session
@@ -190,7 +189,7 @@ class MediaAsyncWorker(QThread):
                     # Get session info
                     info = await session.try_get_media_properties_async()
                     name = info.title if info and info.title else f"Session {i+1}"
-                except:
+                except Exception:
                     name = f"Session {i+1}"
 
                 session_list.append({
@@ -275,7 +274,7 @@ class MediaAsyncWorker(QThread):
                     # Convert TimeSpan to seconds
                     position = timeline.position.total_seconds() if timeline.position else 0
                     duration = timeline.end_time.total_seconds() if timeline.end_time else 0
-                except:
+                except Exception:
                     pass
 
             # Get album art
@@ -325,7 +324,6 @@ class MediaAsyncWorker(QThread):
             # Read bytes
             reader = stream.get_input_stream_at(0)
             size = stream.size
-            buffer = bytearray(size)
 
             # WinRT stream reading
             from winrt.windows.storage.streams import Buffer, InputStreamOptions
@@ -347,7 +345,7 @@ class MediaAsyncWorker(QThread):
 
             return str(cache_path.absolute())
 
-        except Exception as e:
+        except Exception:
             # Return default on error
             return str(self._assets_dir / "default-cover.png")
 
@@ -363,7 +361,7 @@ class MediaAsyncWorker(QThread):
             for f in cache_files[:-self._max_cache_size]:
                 try:
                     f.unlink()
-                except:
+                except Exception:
                     pass
 
     def _emit_to_qt(self, signal_name: str, *args):

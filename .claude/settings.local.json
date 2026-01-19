@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:doc.qt.io)"
+      "WebFetch(domain:doc.qt.io)",
+      "Bash(ruff check:*)"
     ]
   }
 }

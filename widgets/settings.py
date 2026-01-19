@@ -25,6 +25,13 @@ DEFAULT_SETTINGS = {
             "width": 320,
             "height": 280
         },
+        "media": {
+            "visible": False,
+            "x": 780,
+            "y": 100,
+            "width": 350,
+            "height": 450
+        },
         "theme": {
             "visible": False,
             "x": 100,
