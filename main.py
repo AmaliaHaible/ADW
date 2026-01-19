@@ -14,7 +14,7 @@ from widgets import HotkeyBackend, HubBackend, MediaBackend, SettingsBackend, Th
 
 
 def load_widget_config() -> dict:
-    """Load enabled_widgets.toml config, returning defaults if not found."""
+    """Load enabled_widgets.toml config, creating it with defaults if not found."""
     config_path = Path(__file__).parent / "enabled_widgets.toml"
     defaults = {"widgets": {"weather": True, "media": True, "general_settings": True}}
 
@@ -24,6 +24,24 @@ def load_widget_config() -> dict:
                 return tomllib.load(f)
         except (tomllib.TOMLDecodeError, IOError) as e:
             print(f"Error loading enabled_widgets.toml: {e}")
+            return defaults
+
+    # File doesn't exist - create it with all widgets enabled
+    default_content = """# Widget Configuration
+# Set to false to completely disable a widget (won't be loaded, saves memory)
+# The Hub widget is always enabled and cannot be disabled.
+
+[widgets]
+weather = true
+media = true
+general_settings = true
+"""
+    try:
+        config_path.write_text(default_content)
+        print(f"Created enabled_widgets.toml with default configuration")
+    except IOError as e:
+        print(f"Warning: Could not create enabled_widgets.toml: {e}")
+
     return defaults
 
 
