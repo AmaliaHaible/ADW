@@ -9,7 +9,7 @@ from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from widgets import HubBackend, MediaBackend, SettingsBackend, ThemeProvider, WeatherBackend
+from widgets import HotkeyBackend, HubBackend, MediaBackend, SettingsBackend, ThemeProvider, WeatherBackend
 
 
 def main():
@@ -49,11 +49,18 @@ def main():
     media = MediaBackend(settings_backend=settings)
     engine.rootContext().setContextProperty("mediaBackend", media)
 
+    # Set up hotkey backend
+    hotkey = HotkeyBackend(settings_backend=settings, hub_backend=hub)
+    engine.rootContext().setContextProperty("hotkeyBackend", hotkey)
+
     # Set up system tray
     hub.setup_tray(app)
 
     # Connect exit signal
     hub.exitRequested.connect(app.quit)
+
+    # Connect hotkey cleanup
+    app.aboutToQuit.connect(hotkey.cleanup)
 
     # Load QML files
     hub_qml = qml_dir / "Hub.qml"

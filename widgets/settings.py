@@ -42,6 +42,9 @@ DEFAULT_SETTINGS = {
             "height": 450
         }
     },
+    "hotkeys": {
+        "always_on_top": "ctrl+alt+j"
+    },
     "theme": DEFAULT_THEME
 }
 
@@ -77,6 +80,9 @@ class SettingsBackend(QObject):
                     result["widgets"][widget].update(props)
                 else:
                     result["widgets"][widget] = props
+
+        if "hotkeys" in loaded:
+            result["hotkeys"].update(loaded["hotkeys"])
 
         if "theme" in loaded:
             result["theme"].update(loaded["theme"])

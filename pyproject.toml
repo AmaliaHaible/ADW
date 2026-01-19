@@ -8,6 +8,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "pillow>=12.1.0",
     "pyside6>=6.10.1",
+    "pywin32>=311",
     "watchfiles>=1.1.1",
     "winrt-windows-foundation>=3.2.1",
     "winrt-windows-foundation-collections>=3.2.1",
