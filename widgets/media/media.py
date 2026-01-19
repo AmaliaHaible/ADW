@@ -87,7 +87,7 @@ class MediaBackend(QObject):
         # Position update timer (500ms when playing)
         self._position_timer = QTimer()
         self._position_timer.timeout.connect(self._update_local_position)
-        self._position_timer.setInterval(500)
+        self._position_timer.setInterval(300)
 
         # Note: Periodic session refresh is handled by async worker
         # to avoid redundant updates

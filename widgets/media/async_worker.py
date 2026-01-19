@@ -108,7 +108,7 @@ class MediaAsyncWorker(QThread):
                 await self._update_sessions()
                 refresh_counter = 0
 
-            await asyncio.sleep(0.5)  # Poll every 500ms for faster response
+            await asyncio.sleep(0.1)  # Poll every 500ms for faster response
 
     async def _handle_command(self, cmd: Dict[str, Any]):
         """Handle commands from Qt main thread."""
