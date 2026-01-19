@@ -154,9 +154,19 @@ class TodoBackend(QObject):
             return
 
         parent_id = todo.get("parentId")
+        completed = todo.get("completed", False)
 
-        # Get all siblings (including this todo)
-        siblings = [t for t in self._todos if t.get("parentId") == parent_id]
+        # Get all siblings with same parent AND same completion status
+        if parent_id is None:
+            # Root-level todos: filter by completion status
+            siblings = [
+                t for t in self._todos
+                if t.get("parentId") is None and t.get("completed", False) == completed
+            ]
+        else:
+            # Child todos: just filter by parent (children share parent's completion)
+            siblings = [t for t in self._todos if t.get("parentId") == parent_id]
+
         siblings.sort(key=lambda t: t.get("order", 0))
 
         # Find current index

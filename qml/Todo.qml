@@ -39,7 +39,7 @@ WidgetWindow {
             leftButtons: todoWindow.showingFinished ? [
                 {icon: "arrow-left.svg", action: "back", enabled: !hubBackend.editMode}
             ] : [
-                {icon: "trash-2.svg", action: "finished", enabled: !hubBackend.editMode}
+                {icon: "circle-check-big.svg", action: "finished", enabled: !hubBackend.editMode}
             ]
             rightButtons: [
                 {icon: "eye-off.svg", action: "minimize"}
@@ -238,6 +238,7 @@ WidgetWindow {
         property int itemIndex: 0
         property int totalItems: 0
         property bool showAddChild: false
+        property bool childrenCollapsed: false
 
         Layout.fillWidth: true
         Layout.leftMargin: Theme.padding
@@ -302,8 +303,8 @@ WidgetWindow {
                     id: dragHandle
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 4
-                    color: dragArea.containsMouse ? Theme.surfaceColor : "transparent"
+                    radius: Theme.borderRadius
+                    color: dragArea.containsMouse ? Theme.borderColor : "transparent"
                     visible: !isFinishedTab
 
                     Image {
@@ -331,6 +332,28 @@ WidgetWindow {
                             todoItem.y = 0
                             todoWindow.draggedTodoId = ""
                         }
+                    }
+                }
+
+                // Collapse/expand button (only if has children)
+                Rectangle {
+                    Layout.preferredWidth: 24
+                    Layout.preferredHeight: 24
+                    radius: Theme.borderRadius
+                    color: collapseArea.containsMouse ? Theme.borderColor : "transparent"
+                    visible: (todoData.children && todoData.children.length > 0)
+
+                    Image {
+                        anchors.centerIn: parent
+                        source: iconsPath + (todoItemRoot.childrenCollapsed ? "chevron-down.svg" : "chevron-up.svg")
+                        sourceSize: Qt.size(14, 14)
+                    }
+
+                    MouseArea {
+                        id: collapseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: todoItemRoot.childrenCollapsed = !todoItemRoot.childrenCollapsed
                     }
                 }
 
@@ -381,8 +404,8 @@ WidgetWindow {
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 4
-                    color: addChildArea.containsMouse ? Theme.surfaceColor : "transparent"
+                    radius: Theme.borderRadius
+                    color: addChildArea.containsMouse ? Theme.borderColor : Theme.surfaceColor
                     visible: !isFinishedTab && !todoData.completed
 
                     Image {
@@ -397,6 +420,7 @@ WidgetWindow {
                         hoverEnabled: true
                         onClicked: {
                             todoItemRoot.showAddChild = true
+                            todoItemRoot.childrenCollapsed = false
                         }
                     }
                 }
@@ -405,8 +429,8 @@ WidgetWindow {
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
-                    radius: 4
-                    color: deleteArea.containsMouse ? Theme.surfaceColor : "transparent"
+                    radius: Theme.borderRadius
+                    color: deleteArea.containsMouse ? Theme.borderColor : Theme.surfaceColor
 
                     Image {
                         anchors.centerIn: parent
@@ -432,7 +456,7 @@ WidgetWindow {
             Layout.leftMargin: 24
             color: Theme.surfaceColor
             radius: Theme.borderRadius
-            visible: todoItemRoot.showAddChild
+            visible: todoItemRoot.showAddChild && !todoItemRoot.childrenCollapsed
 
             onVisibleChanged: {
                 if (visible) {
@@ -482,7 +506,7 @@ WidgetWindow {
                 Rectangle {
                     Layout.preferredWidth: 28
                     Layout.preferredHeight: 28
-                    radius: 4
+                    radius: Theme.borderRadius
                     color: childAddArea.containsMouse ? Theme.accentColor : Theme.borderColor
 
                     Image {
@@ -507,84 +531,199 @@ WidgetWindow {
             }
         }
 
-        // Children
-        Repeater {
-            model: todoData.children || []
+        // Children container (collapsible)
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 2
+            visible: !todoItemRoot.childrenCollapsed
 
-            delegate: Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: Math.max(36, childText.implicitHeight + Theme.padding)
-                Layout.leftMargin: 24
-                radius: Theme.borderRadius
-                color: childMouseArea.containsMouse ? Theme.surfaceColor : "transparent"
+            Repeater {
+                model: todoData.children || []
 
-                MouseArea {
-                    id: childMouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                }
+                delegate: ColumnLayout {
+                    id: childItemRoot
+                    Layout.fillWidth: true
+                    spacing: 0
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: Theme.padding / 2
-                    anchors.rightMargin: Theme.padding / 2
-                    spacing: Theme.spacing / 2
+                    property int childIndex: index
+                    property int totalChildren: todoData.children ? todoData.children.length : 0
 
-                    // Child checkbox
+                    // Child drop indicator line
                     Rectangle {
-                        Layout.preferredWidth: 18
-                        Layout.preferredHeight: 18
-                        radius: 9
-                        color: "transparent"
-                        border.color: modelData.completed ? Theme.accentColor : Theme.borderColor
-                        border.width: 2
-
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: 10
-                            height: 10
-                            radius: 5
-                            color: Theme.accentColor
-                            visible: modelData.completed
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: todoBackend.toggleTodo(modelData.id)
-                        }
-                    }
-
-                    // Child text
-                    Text {
-                        id: childText
                         Layout.fillWidth: true
-                        text: modelData.text
-                        color: modelData.completed ? Theme.textSecondary : Theme.textPrimary
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.strikeout: modelData.completed
-                        wrapMode: Text.WordWrap
-                        verticalAlignment: Text.AlignVCenter
+                        Layout.preferredHeight: 2
+                        Layout.leftMargin: 24
+                        Layout.bottomMargin: 2
+                        color: Theme.accentColor
+                        visible: childDropAreaTop.containsDrag && todoWindow.draggedTodoId !== modelData.id
+                        radius: 1
                     }
 
-                    // Child delete button (always visible)
-                    Rectangle {
-                        Layout.preferredWidth: 20
-                        Layout.preferredHeight: 20
-                        radius: 4
-                        color: childDeleteArea.containsMouse ? Theme.surfaceColor : "transparent"
+                    // Child top drop area
+                    DropArea {
+                        id: childDropAreaTop
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 16
+                        Layout.leftMargin: 24
+                        Layout.topMargin: -8
+                        Layout.bottomMargin: -8
+                        z: 10
 
-                        Image {
-                            anchors.centerIn: parent
-                            source: iconsPath + "trash-2.svg"
-                            sourceSize: Qt.size(12, 12)
+                        onDropped: function(drop) {
+                            var draggedId = drop.getDataAsString("childTodoId")
+                            if (draggedId && draggedId !== modelData.id) {
+                                todoBackend.reorderTodo(draggedId, childIndex)
+                            }
+                            todoWindow.draggedTodoId = ""
                         }
+                    }
+
+                    Rectangle {
+                        id: childItem
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Math.max(36, childText.implicitHeight + Theme.padding)
+                        Layout.leftMargin: 24
+                        radius: Theme.borderRadius
+                        color: childMouseArea.containsMouse ? Theme.surfaceColor : "transparent"
+                        opacity: todoWindow.draggedTodoId === modelData.id ? 0.5 : 1.0
+
+                        Drag.active: childDragArea.drag.active
+                        Drag.hotSpot: Qt.point(width / 2, height / 2)
+                        Drag.mimeData: {"childTodoId": modelData.id}
 
                         MouseArea {
-                            id: childDeleteArea
+                            id: childMouseArea
                             anchors.fill: parent
                             hoverEnabled: true
-                            onClicked: todoBackend.deleteTodo(modelData.id)
                         }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding / 2
+                            anchors.rightMargin: Theme.padding / 2
+                            spacing: Theme.spacing / 2
+
+                            // Child drag handle
+                            Rectangle {
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                                radius: Theme.borderRadius
+                                color: childDragArea.containsMouse ? Theme.borderColor : "transparent"
+                                visible: !isFinishedTab
+
+                                Image {
+                                    anchors.centerIn: parent
+                                    source: iconsPath + "grip-vertical.svg"
+                                    sourceSize: Qt.size(12, 12)
+                                }
+
+                                MouseArea {
+                                    id: childDragArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    drag.target: childItem
+                                    drag.axis: Drag.YAxis
+
+                                    onPressed: {
+                                        todoWindow.draggedTodoId = modelData.id
+                                        childItem.Drag.active = true
+                                    }
+
+                                    onReleased: {
+                                        childItem.Drag.drop()
+                                        childItem.Drag.active = false
+                                        childItem.x = 0
+                                        childItem.y = 0
+                                        todoWindow.draggedTodoId = ""
+                                    }
+                                }
+                            }
+
+                            // Child checkbox
+                            Rectangle {
+                                Layout.preferredWidth: 18
+                                Layout.preferredHeight: 18
+                                radius: 9
+                                color: "transparent"
+                                border.color: modelData.completed ? Theme.accentColor : Theme.borderColor
+                                border.width: 2
+
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: 10
+                                    height: 10
+                                    radius: 5
+                                    color: Theme.accentColor
+                                    visible: modelData.completed
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: todoBackend.toggleTodo(modelData.id)
+                                }
+                            }
+
+                            // Child text
+                            Text {
+                                id: childText
+                                Layout.fillWidth: true
+                                text: modelData.text
+                                color: modelData.completed ? Theme.textSecondary : Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.strikeout: modelData.completed
+                                wrapMode: Text.WordWrap
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            // Child delete button (always visible)
+                            Rectangle {
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                                radius: Theme.borderRadius
+                                color: childDeleteArea.containsMouse ? Theme.borderColor : Theme.surfaceColor
+
+                                Image {
+                                    anchors.centerIn: parent
+                                    source: iconsPath + "trash-2.svg"
+                                    sourceSize: Qt.size(12, 12)
+                                }
+
+                                MouseArea {
+                                    id: childDeleteArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: todoBackend.deleteTodo(modelData.id)
+                                }
+                            }
+                        }
+                    }
+
+                    // Child bottom drop area (only for last child)
+                    DropArea {
+                        id: childDropAreaBottom
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: childIndex === totalChildren - 1 ? 16 : 0
+                        Layout.leftMargin: 24
+                        visible: childIndex === totalChildren - 1
+
+                        onDropped: function(drop) {
+                            var draggedId = drop.getDataAsString("childTodoId")
+                            if (draggedId && draggedId !== modelData.id) {
+                                todoBackend.reorderTodo(draggedId, totalChildren)
+                            }
+                            todoWindow.draggedTodoId = ""
+                        }
+                    }
+
+                    // Child bottom drop indicator (only for last child)
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 2
+                        Layout.leftMargin: 24
+                        Layout.topMargin: 2
+                        color: Theme.accentColor
+                        visible: childIndex === totalChildren - 1 && childDropAreaBottom.containsDrag && todoWindow.draggedTodoId !== modelData.id
+                        radius: 1
                     }
                 }
             }
