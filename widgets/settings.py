@@ -67,7 +67,7 @@ class SettingsBackend(QObject):
                     return self._merge_defaults(loaded)
             except (json.JSONDecodeError, IOError):
                 pass
-        return DEFAULT_SETTINGS.copy()
+        return copy.deepcopy(DEFAULT_SETTINGS)
 
     def _merge_defaults(self, loaded: dict) -> dict:
         """Merge loaded settings with defaults to ensure all keys exist."""
@@ -144,5 +144,18 @@ class SettingsBackend(QObject):
         if widget_name not in self._settings["widgets"]:
             self._settings["widgets"][widget_name] = {}
         self._settings["widgets"][widget_name][key] = value
+        self._save_settings()
+        self.settingsChanged.emit()
+
+    # Hotkey settings methods
+    def getHotkey(self, name: str) -> str:
+        """Get a hotkey setting value."""
+        return self._settings.get("hotkeys", {}).get(name, "")
+
+    def setHotkey(self, name: str, value: str):
+        """Set a hotkey setting value."""
+        if "hotkeys" not in self._settings:
+            self._settings["hotkeys"] = {}
+        self._settings["hotkeys"][name] = value
         self._save_settings()
         self.settingsChanged.emit()

@@ -85,8 +85,10 @@ def main():
     # Connect exit signal
     hub.exitRequested.connect(app.quit)
 
-    # Connect hotkey cleanup
+    # Connect cleanup handlers
     app.aboutToQuit.connect(hotkey.cleanup)
+    if media:
+        app.aboutToQuit.connect(media.cleanup)
 
     # Load QML files - Hub is always loaded
     engine.load(qml_dir / "Hub.qml")

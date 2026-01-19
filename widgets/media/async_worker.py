@@ -50,6 +50,12 @@ class MediaAsyncWorker(QThread):
         self._last_update_time = 0
         self._update_debounce_ms = 200  # 200ms debounce
 
+        # Event handler tokens for cleanup
+        self._manager_session_changed_token = None
+        self._manager_sessions_changed_token = None
+        self._session_playback_token = None
+        self._session_properties_token = None
+
     def enqueue_command(self, cmd: Dict[str, Any]):
         """Thread-safe command enqueuing from Qt main thread."""
         self._command_queue.put(cmd)
@@ -80,9 +86,13 @@ class MediaAsyncWorker(QThread):
             # Initialize WinRT MediaManager
             self._manager = await MediaManager.request_async()
 
-            # Set up event listeners
-            self._manager.add_current_session_changed(self._on_current_session_changed)
-            self._manager.add_sessions_changed(self._on_sessions_changed)
+            # Set up event listeners (store tokens for cleanup)
+            self._manager_session_changed_token = self._manager.add_current_session_changed(
+                self._on_current_session_changed
+            )
+            self._manager_sessions_changed_token = self._manager.add_sessions_changed(
+                self._on_sessions_changed
+            )
 
             # Initial session discovery
             await self._update_sessions()
@@ -102,13 +112,38 @@ class MediaAsyncWorker(QThread):
             except Empty:
                 pass
 
-            # Periodic session metadata refresh (every 2 seconds)
+            # Periodic session metadata refresh (every 0.5 seconds)
             refresh_counter += 1
-            if refresh_counter >= 4:  # 4 * 0.5s = 2s
+            if refresh_counter >= 5:  # 5 * 0.1s = 0.5s
                 await self._update_sessions()
                 refresh_counter = 0
 
-            await asyncio.sleep(0.1)  # Poll every 500ms for faster response
+            await asyncio.sleep(0.1)  # Poll every 100ms for responsive controls
+
+        # Cleanup: remove event handlers
+        await self._cleanup_event_handlers()
+
+    async def _cleanup_event_handlers(self):
+        """Remove all registered event handlers to prevent memory leaks."""
+        # Remove manager-level event handlers
+        if self._manager:
+            try:
+                if self._manager_session_changed_token is not None:
+                    self._manager.remove_current_session_changed(self._manager_session_changed_token)
+                if self._manager_sessions_changed_token is not None:
+                    self._manager.remove_sessions_changed(self._manager_sessions_changed_token)
+            except Exception:
+                pass
+
+        # Remove current session event handlers
+        if self._current_session:
+            try:
+                if self._session_playback_token is not None:
+                    self._current_session.remove_playback_info_changed(self._session_playback_token)
+                if self._session_properties_token is not None:
+                    self._current_session.remove_media_properties_changed(self._session_properties_token)
+            except Exception:
+                pass
 
     async def _handle_command(self, cmd: Dict[str, Any]):
         """Handle commands from Qt main thread."""
@@ -177,18 +212,26 @@ class MediaAsyncWorker(QThread):
         # Unregister old session listeners
         if self._current_session:
             try:
-                self._current_session.remove_playback_info_changed(self._on_playback_changed)
-                self._current_session.remove_media_properties_changed(self._on_media_properties_changed)
+                if self._session_playback_token is not None:
+                    self._current_session.remove_playback_info_changed(self._session_playback_token)
+                if self._session_properties_token is not None:
+                    self._current_session.remove_media_properties_changed(self._session_properties_token)
             except Exception:
                 pass
+            self._session_playback_token = None
+            self._session_properties_token = None
 
         self._current_session = session
 
         # Register new session listeners
         if self._current_session:
             try:
-                self._current_session.add_playback_info_changed(self._on_playback_changed)
-                self._current_session.add_media_properties_changed(self._on_media_properties_changed)
+                self._session_playback_token = self._current_session.add_playback_info_changed(
+                    self._on_playback_changed
+                )
+                self._session_properties_token = self._current_session.add_media_properties_changed(
+                    self._on_media_properties_changed
+                )
             except Exception as e:
                 self._emit_to_qt("errorOccurred", f"Failed to register listeners: {str(e)}")
 
@@ -415,15 +458,20 @@ class MediaAsyncWorker(QThread):
             from winrt.windows.storage.streams import DataReader
 
             reader = DataReader(stream.get_input_stream_at(0))
-            await reader.load_async(stream.size)
+            try:
+                await reader.load_async(stream.size)
 
-            # Read bytes into Python bytes object
-            data = bytearray(stream.size)
-            reader.read_bytes(data)
+                # Read bytes into Python bytes object
+                data = bytearray(stream.size)
+                reader.read_bytes(data)
 
-            # Save to cache
-            with open(cache_path, 'wb') as f:
-                f.write(data)
+                # Save to cache
+                with open(cache_path, 'wb') as f:
+                    f.write(data)
+            finally:
+                # Close reader and stream to avoid handle leaks
+                reader.close()
+                stream.close()
 
             # Maintain LRU cache
             self._cleanup_cache()

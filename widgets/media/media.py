@@ -87,7 +87,7 @@ class MediaBackend(QObject):
         # Position update timer (500ms when playing)
         self._position_timer = QTimer()
         self._position_timer.timeout.connect(self._update_local_position)
-        self._position_timer.setInterval(300)
+        self._position_timer.setInterval(500)
 
         # Note: Periodic session refresh is handled by async worker
         # to avoid redundant updates
@@ -416,8 +416,14 @@ class MediaBackend(QObject):
         secs = int(seconds % 60)
         return f"{minutes}:{secs:02d}"
 
-    def __del__(self):
-        """Cleanup on deletion."""
+    def cleanup(self):
+        """Explicit cleanup - call from main.py on aboutToQuit."""
+        if hasattr(self, '_position_timer'):
+            self._position_timer.stop()
         if hasattr(self, '_async_thread') and self._async_thread:
             self._async_thread.stop()
-            self._async_thread.wait(1000)
+            self._async_thread.wait(2000)
+
+    def __del__(self):
+        """Cleanup on deletion (fallback, but not reliable under Qt)."""
+        self.cleanup()

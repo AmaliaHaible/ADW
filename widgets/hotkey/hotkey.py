@@ -37,8 +37,7 @@ class HotkeyBackend(QObject):
 
         # Load hotkey from settings
         if self._settings:
-            hotkeys = self._settings._settings.get("hotkeys", {})
-            self._always_on_top_hotkey = hotkeys.get("always_on_top", "ctrl+alt+j")
+            self._always_on_top_hotkey = self._settings.getHotkey("always_on_top") or "ctrl+alt+j"
         else:
             self._always_on_top_hotkey = "ctrl+alt+j"
 
@@ -122,10 +121,7 @@ class HotkeyBackend(QObject):
     def _save_hotkey_setting(self):
         """Save the current hotkey to settings."""
         if self._settings:
-            if "hotkeys" not in self._settings._settings:
-                self._settings._settings["hotkeys"] = {}
-            self._settings._settings["hotkeys"]["always_on_top"] = self._always_on_top_hotkey
-            self._settings._save_settings()
+            self._settings.setHotkey("always_on_top", self._always_on_top_hotkey)
 
     # Slots for QML
 
