@@ -401,7 +401,6 @@ class MediaAsyncWorker(QThread):
 
             cache_key = "|".join(cache_key_parts) if cache_key_parts else "unknown"
             art_hash = hashlib.md5(cache_key.encode()).hexdigest()
-            print(f"    [ALBUM ART] cache_key: {cache_key[:50]}, hash: {art_hash}")
             cache_path = self._temp_dir / f"{art_hash}.png"
 
             # Check cache
