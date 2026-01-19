@@ -297,8 +297,13 @@ WidgetWindow {
                     } else {
                         console.log("DRAG RELEASED")
                         if (todoWindow.draggedTodoId === todoData.id && todoWindow.dragTargetIndex >= 0) {
-                            if (todoWindow.dragTargetIndex !== itemIndex) {
-                                todoBackend.reorderTodo(todoData.id, todoWindow.dragTargetIndex)
+                            var targetIdx = todoWindow.dragTargetIndex
+                            // Adjust index when dragging down: after removal, indices shift
+                            if (targetIdx > itemIndex) {
+                                targetIdx = targetIdx - 1
+                            }
+                            if (targetIdx !== itemIndex) {
+                                todoBackend.reorderTodo(todoData.id, targetIdx)
                             }
                         }
                         todoWindow.draggedTodoId = ""
