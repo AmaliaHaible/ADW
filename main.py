@@ -66,7 +66,7 @@ def main():
     hub_qml = qml_dir / "Hub.qml"
     weather_qml = qml_dir / "Weather.qml"
     media_qml = qml_dir / "Media.qml"
-    theme_qml = qml_dir / "ThemeEditor.qml"
+    theme_qml = qml_dir / "GeneralSettings.qml"
 
     engine.load(hub_qml)
     engine.load(weather_qml)
