@@ -24,6 +24,8 @@ WidgetWindow {
     property bool showingFinished: false
     // Track the currently dragged item ID
     property string draggedTodoId: ""
+    // Track drag position for drop indicator
+    property int dragTargetIndex: -1
 
     Column {
         anchors.fill: parent
@@ -246,63 +248,74 @@ WidgetWindow {
         Layout.rightMargin: Theme.padding
         spacing: 2
 
-        // Drop indicator above this item
+        // Drop indicator (shown when dragging over this item)
         Rectangle {
-            id: dropIndicatorTop
             Layout.fillWidth: true
             Layout.preferredHeight: 3
-            Layout.bottomMargin: -1
             color: Theme.accentColor
             radius: 1
-            visible: false
+            visible: todoWindow.draggedTodoId !== "" && todoWindow.draggedTodoId !== todoData.id && todoWindow.dragTargetIndex === itemIndex
         }
 
-        // Main todo item with integrated drop area
+        // Main todo item
         Rectangle {
             id: todoItem
             Layout.fillWidth: true
             Layout.preferredHeight: Math.max(44, (todoItemRoot.isEditing ? todoEditField.implicitHeight : todoText.implicitHeight) + Theme.padding)
             radius: Theme.borderRadius
-            color: dragArea.containsPress || dragArea.containsMouse ? Theme.surfaceColor : "transparent"
+            color: itemHoverHandler.hovered || dragHandler.active ? Theme.surfaceColor : "transparent"
             opacity: todoWindow.draggedTodoId === todoData.id ? 0.5 : 1.0
 
-            // Properties for drag
-            property string dragTodoId: todoData.id
-            property string dragType: "parent"
-            property bool dropOnTop: false
+            // Hover handler for background color
+            HoverHandler {
+                id: itemHoverHandler
+                enabled: !todoItemRoot.isEditing
+            }
 
-            Drag.source: todoItem
-            Drag.keys: ["todo"]
-            Drag.hotSpot: Qt.point(width / 2, height / 2)
+            // DragHandler for drag operations
+            DragHandler {
+                id: dragHandler
+                target: null
+                enabled: !todoItemRoot.isEditing && !isFinishedTab
 
-            // Drop area covering the entire item
-            DropArea {
-                id: itemDropArea
-                anchors.fill: parent
-                keys: ["todo"]
-
-                onPositionChanged: function(drag) {
-                    if (drag.source && drag.source.dragTodoId !== todoData.id) {
-                        // Top half = insert before, bottom half = insert after
-                        todoItem.dropOnTop = drag.y < parent.height / 2
-                        dropIndicatorTop.visible = todoItem.dropOnTop
-                        dropIndicatorBottom.visible = !todoItem.dropOnTop
+                onActiveChanged: {
+                    if (active) {
+                        console.log("DRAG ACTIVE for:", todoData.text)
+                        todoWindow.draggedTodoId = todoData.id
+                        todoWindow.dragTargetIndex = itemIndex
+                    } else {
+                        console.log("DRAG RELEASED")
+                        if (todoWindow.draggedTodoId === todoData.id && todoWindow.dragTargetIndex >= 0) {
+                            if (todoWindow.dragTargetIndex !== itemIndex) {
+                                todoBackend.reorderTodo(todoData.id, todoWindow.dragTargetIndex)
+                            }
+                        }
+                        todoWindow.draggedTodoId = ""
+                        todoWindow.dragTargetIndex = -1
                     }
                 }
 
-                onExited: {
-                    dropIndicatorTop.visible = false
-                    dropIndicatorBottom.visible = false
-                }
-
-                onDropped: function(drop) {
-                    if (drop.source && drop.source.dragTodoId && drop.source.dragTodoId !== todoData.id) {
-                        var newIndex = todoItem.dropOnTop ? itemIndex : itemIndex + 1
-                        todoBackend.reorderTodo(drop.source.dragTodoId, newIndex)
+                onCentroidChanged: {
+                    if (active) {
+                        var dragOffset = centroid.position.y - centroid.pressPosition.y
+                        var indexChange = Math.round(dragOffset / 50)
+                        var newIndex = itemIndex + indexChange
+                        newIndex = Math.max(0, Math.min(newIndex, totalItems - 1))
+                        todoWindow.dragTargetIndex = newIndex
+                        console.log("Dragging:", todoData.id, "offset:", dragOffset, "target:", newIndex)
                     }
-                    dropIndicatorTop.visible = false
-                    dropIndicatorBottom.visible = false
+                }
+            }
+
+            // TapHandler for double-click to edit
+            TapHandler {
+                enabled: !todoItemRoot.isEditing && !isFinishedTab
+                onDoubleTapped: {
                     todoWindow.draggedTodoId = ""
+                    todoWindow.dragTargetIndex = -1
+                    todoItemRoot.isEditing = true
+                    todoEditField.forceActiveFocus()
+                    todoEditField.selectAll()
                 }
             }
 
@@ -396,40 +409,6 @@ WidgetWindow {
                             todoItemRoot.isEditing = false
                         }
                     }
-
-                    // Mouse area for hover and double-click
-                    MouseArea {
-                        id: dragArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        visible: !todoItemRoot.isEditing
-
-                        property bool held: false
-
-                        onDoubleClicked: {
-                            todoItemRoot.isEditing = true
-                            todoEditField.forceActiveFocus()
-                            todoEditField.selectAll()
-                        }
-                    }
-
-                    // Drag handler for drag-and-drop (only in current tab)
-                    DragHandler {
-                        id: dragHandler
-                        enabled: !isFinishedTab && !todoItemRoot.isEditing
-                        target: null
-
-                        onActiveChanged: {
-                            if (active) {
-                                todoWindow.draggedTodoId = todoData.id
-                                todoItem.Drag.active = true
-                            } else {
-                                todoItem.Drag.drop()
-                                todoItem.Drag.active = false
-                                todoWindow.draggedTodoId = ""
-                            }
-                        }
-                    }
                 }
 
                 // Collapse/expand button (only if has children) - on the right with background
@@ -499,19 +478,6 @@ WidgetWindow {
                         onClicked: todoBackend.deleteTodo(todoData.id)
                     }
                 }
-            }
-
-            // Drop indicator below this item
-            Rectangle {
-                id: dropIndicatorBottom
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottomMargin: -2
-                height: 3
-                color: Theme.accentColor
-                radius: 1
-                visible: false
             }
         }
 
@@ -616,62 +582,45 @@ WidgetWindow {
                     property int totalChildren: todoData.children ? todoData.children.length : 0
                     property bool isChildEditing: false
 
-                    // Child drop indicator top
-                    Rectangle {
-                        id: childDropIndicatorTop
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 3
-                        Layout.leftMargin: 24
-                        Layout.bottomMargin: -1
-                        color: Theme.accentColor
-                        radius: 1
-                        visible: false
-                    }
-
                     Rectangle {
                         id: childItem
                         Layout.fillWidth: true
                         Layout.preferredHeight: Math.max(36, (childItemRoot.isChildEditing ? childEditField.implicitHeight : childText.implicitHeight) + Theme.padding)
                         Layout.leftMargin: 24
                         radius: Theme.borderRadius
-                        color: childDragArea.containsPress || childDragArea.containsMouse ? Theme.surfaceColor : "transparent"
+                        color: childHoverHandler.hovered || childDragHandler.active ? Theme.surfaceColor : "transparent"
                         opacity: todoWindow.draggedTodoId === modelData.id ? 0.5 : 1.0
 
-                        property string dragTodoId: modelData.id
-                        property string dragType: "child"
-                        property bool dropOnTop: false
+                        // Hover handler for background color
+                        HoverHandler {
+                            id: childHoverHandler
+                            enabled: !childItemRoot.isChildEditing
+                        }
 
-                        Drag.source: childItem
-                        Drag.keys: ["childTodo"]
-                        Drag.hotSpot: Qt.point(width / 2, height / 2)
+                        // DragHandler for child reordering
+                        DragHandler {
+                            id: childDragHandler
+                            target: null
+                            enabled: !childItemRoot.isChildEditing && !isFinishedTab
 
-                        // Drop area for child reordering
-                        DropArea {
-                            id: childItemDropArea
-                            anchors.fill: parent
-                            keys: ["childTodo"]
-
-                            onPositionChanged: function(drag) {
-                                if (drag.source && drag.source.dragTodoId !== modelData.id) {
-                                    childItem.dropOnTop = drag.y < parent.height / 2
-                                    childDropIndicatorTop.visible = childItem.dropOnTop
-                                    childDropIndicatorBottom.visible = !childItem.dropOnTop
+                            onActiveChanged: {
+                                if (active) {
+                                    console.log("CHILD DRAG ACTIVE for:", modelData.text)
+                                    todoWindow.draggedTodoId = modelData.id
+                                } else {
+                                    console.log("CHILD DRAG RELEASED")
+                                    todoWindow.draggedTodoId = ""
                                 }
                             }
+                        }
 
-                            onExited: {
-                                childDropIndicatorTop.visible = false
-                                childDropIndicatorBottom.visible = false
-                            }
-
-                            onDropped: function(drop) {
-                                if (drop.source && drop.source.dragTodoId && drop.source.dragTodoId !== modelData.id) {
-                                    var newIndex = childItem.dropOnTop ? childIndex : childIndex + 1
-                                    todoBackend.reorderTodo(drop.source.dragTodoId, newIndex)
-                                }
-                                childDropIndicatorTop.visible = false
-                                childDropIndicatorBottom.visible = false
-                                todoWindow.draggedTodoId = ""
+                        // TapHandler for double-click to edit
+                        TapHandler {
+                            enabled: !childItemRoot.isChildEditing && !isFinishedTab
+                            onDoubleTapped: {
+                                childItemRoot.isChildEditing = true
+                                childEditField.forceActiveFocus()
+                                childEditField.selectAll()
                             }
                         }
 
@@ -758,38 +707,6 @@ WidgetWindow {
                                         childItemRoot.isChildEditing = false
                                     }
                                 }
-
-                                // Mouse area for hover and double-click
-                                MouseArea {
-                                    id: childDragArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    visible: !childItemRoot.isChildEditing
-
-                                    onDoubleClicked: {
-                                        childItemRoot.isChildEditing = true
-                                        childEditField.forceActiveFocus()
-                                        childEditField.selectAll()
-                                    }
-                                }
-
-                                // Drag handler for child drag-and-drop
-                                DragHandler {
-                                    id: childDragHandler
-                                    enabled: !isFinishedTab && !childItemRoot.isChildEditing
-                                    target: null
-
-                                    onActiveChanged: {
-                                        if (active) {
-                                            todoWindow.draggedTodoId = modelData.id
-                                            childItem.Drag.active = true
-                                        } else {
-                                            childItem.Drag.drop()
-                                            childItem.Drag.active = false
-                                            todoWindow.draggedTodoId = ""
-                                        }
-                                    }
-                                }
                             }
 
                             // Child delete button (always visible)
@@ -814,18 +731,6 @@ WidgetWindow {
                             }
                         }
 
-                        // Child drop indicator bottom
-                        Rectangle {
-                            id: childDropIndicatorBottom
-                            anchors.bottom: parent.bottom
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.bottomMargin: -2
-                            height: 3
-                            color: Theme.accentColor
-                            radius: 1
-                            visible: false
-                        }
                     }
                 }
             }
