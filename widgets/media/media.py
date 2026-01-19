@@ -89,10 +89,8 @@ class MediaBackend(QObject):
         self._position_timer.timeout.connect(self._update_local_position)
         self._position_timer.setInterval(500)
 
-        # Session refresh timer (2 seconds)
-        self._session_refresh_timer = QTimer()
-        self._session_refresh_timer.timeout.connect(self.refreshSessions)
-        self._session_refresh_timer.start(2000)
+        # Note: Periodic session refresh is handled by async worker
+        # to avoid redundant updates
 
         # Initial loading state
         QTimer.singleShot(2000, lambda: self._set_loading(False))

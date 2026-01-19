@@ -1,5 +1,6 @@
 import asyncio
 import hashlib
+import time
 from pathlib import Path
 from queue import Queue, Empty
 from typing import Dict, Any
@@ -44,6 +45,10 @@ class MediaAsyncWorker(QThread):
         # Position tracking
         self._last_position = 0
         self._last_position_timestamp = 0
+
+        # Debouncing for session updates
+        self._last_update_time = 0
+        self._update_debounce_ms = 200  # 200ms debounce
 
     def enqueue_command(self, cmd: Dict[str, Any]):
         """Thread-safe command enqueuing from Qt main thread."""
@@ -123,14 +128,13 @@ class MediaAsyncWorker(QThread):
         try:
             if action == "play_pause":
                 await target_session.try_toggle_play_pause_async()
-                # Immediately refresh state after action
-                await self._update_sessions()
+                # Let WinRT events handle the update when state changes
             elif action == "next":
                 await target_session.try_skip_next_async()
-                await self._update_sessions()
+                # Let WinRT events handle the update when state changes
             elif action == "previous":
                 await target_session.try_skip_previous_async()
-                await self._update_sessions()
+                # Let WinRT events handle the update when state changes
             elif action == "set_position":
                 # Position seeking - WinRT API may not support this directly
                 pass
@@ -193,6 +197,12 @@ class MediaAsyncWorker(QThread):
 
     async def _update_sessions(self):
         """Update the list of available media sessions."""
+        # Debounce: skip if called too recently
+        current_time = time.time() * 1000  # Convert to milliseconds
+        if current_time - self._last_update_time < self._update_debounce_ms:
+            return
+        self._last_update_time = current_time
+
         try:
             sessions = self._manager.get_sessions()
             self._sessions = list(sessions) if sessions else []
@@ -379,9 +389,19 @@ class MediaAsyncWorker(QThread):
             return str(self._assets_dir / "default-cover.png")
 
         try:
-            # Create hash from thumbnail reference
-            thumbnail_uri = str(media_props.thumbnail)
-            art_hash = hashlib.md5(thumbnail_uri.encode()).hexdigest()
+            # Create stable hash from media metadata (title + artist + album)
+            # Using metadata instead of object reference for stable caching
+            cache_key_parts = []
+            if media_props.title:
+                cache_key_parts.append(media_props.title)
+            if media_props.artist:
+                cache_key_parts.append(media_props.artist)
+            if hasattr(media_props, 'album_title') and media_props.album_title:
+                cache_key_parts.append(media_props.album_title)
+
+            cache_key = "|".join(cache_key_parts) if cache_key_parts else "unknown"
+            art_hash = hashlib.md5(cache_key.encode()).hexdigest()
+            print(f"    [ALBUM ART] cache_key: {cache_key[:50]}, hash: {art_hash}")
             cache_path = self._temp_dir / f"{art_hash}.png"
 
             # Check cache
