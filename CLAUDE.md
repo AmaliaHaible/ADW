@@ -35,6 +35,22 @@ engine.rootContext().setContextProperty("weatherBackend", weather)
 
 **QML Modules**: Use `qmldir` files to define modules. See `qml/Common/qmldir` for singleton pattern example.
 
+## Widget Configuration
+
+The `enabled_widgets.toml` file controls which widgets are loaded at startup. Disabled widgets are not loaded at all, reducing memory consumption.
+
+```toml
+[widgets]
+weather = true
+media = true
+general_settings = true
+```
+
+The Hub widget is always enabled and cannot be disabled (not listed in config). When adding new widgets, add them to:
+1. `enabled_widgets.toml` with default `true`
+2. `main.py` `load_widget_config()` defaults
+3. Conditional loading logic in `main.py`
+
 ## Environment
 
 Requires `.env` file with `LOCATIONIQ_KEY` for geocoding (see `.env.example`).

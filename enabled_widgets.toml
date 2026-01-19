@@ -1,0 +1,8 @@
+# Widget Configuration
+# Set to false to completely disable a widget (won't be loaded, saves memory)
+# The Hub widget is always enabled and cannot be disabled.
+
+[widgets]
+weather = true
+media = true
+general_settings = false

@@ -1,5 +1,6 @@
 import os
 import sys
+import tomllib
 from pathlib import Path
 
 # Set Qt Quick Controls style before creating QApplication
@@ -12,7 +13,25 @@ from PySide6.QtQml import QQmlApplicationEngine
 from widgets import HotkeyBackend, HubBackend, MediaBackend, SettingsBackend, ThemeProvider, WeatherBackend
 
 
+def load_widget_config() -> dict:
+    """Load enabled_widgets.toml config, returning defaults if not found."""
+    config_path = Path(__file__).parent / "enabled_widgets.toml"
+    defaults = {"widgets": {"weather": True, "media": True, "general_settings": True}}
+
+    if config_path.exists():
+        try:
+            with open(config_path, "rb") as f:
+                return tomllib.load(f)
+        except (tomllib.TOMLDecodeError, IOError) as e:
+            print(f"Error loading enabled_widgets.toml: {e}")
+    return defaults
+
+
 def main():
+    # Load widget configuration
+    config = load_widget_config()
+    enabled = config.get("widgets", {})
+
     # QApplication is required for QSystemTrayIcon
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
@@ -37,17 +56,21 @@ def main():
     theme_provider = ThemeProvider(settings_path)
     engine.rootContext().setContextProperty("themeProvider", theme_provider)
 
-    # Set up hub backend (with settings for persistence)
+    # Set up hub backend (with settings for persistence) - always enabled
     hub = HubBackend(settings_backend=settings)
     engine.rootContext().setContextProperty("hubBackend", hub)
 
-    # Set up weather backend
-    weather = WeatherBackend(settings_backend=settings)
-    engine.rootContext().setContextProperty("weatherBackend", weather)
+    # Set up weather backend (if enabled)
+    weather = None
+    if enabled.get("weather", True):
+        weather = WeatherBackend(settings_backend=settings)
+        engine.rootContext().setContextProperty("weatherBackend", weather)
 
-    # Set up media control backend
-    media = MediaBackend(settings_backend=settings)
-    engine.rootContext().setContextProperty("mediaBackend", media)
+    # Set up media control backend (if enabled)
+    media = None
+    if enabled.get("media", True):
+        media = MediaBackend(settings_backend=settings)
+        engine.rootContext().setContextProperty("mediaBackend", media)
 
     # Set up hotkey backend
     hotkey = HotkeyBackend(settings_backend=settings, hub_backend=hub)
@@ -62,16 +85,17 @@ def main():
     # Connect hotkey cleanup
     app.aboutToQuit.connect(hotkey.cleanup)
 
-    # Load QML files
-    hub_qml = qml_dir / "Hub.qml"
-    weather_qml = qml_dir / "Weather.qml"
-    media_qml = qml_dir / "Media.qml"
-    theme_qml = qml_dir / "GeneralSettings.qml"
+    # Load QML files - Hub is always loaded
+    engine.load(qml_dir / "Hub.qml")
 
-    engine.load(hub_qml)
-    engine.load(weather_qml)
-    engine.load(media_qml)
-    engine.load(theme_qml)
+    if enabled.get("weather", True):
+        engine.load(qml_dir / "Weather.qml")
+
+    if enabled.get("media", True):
+        engine.load(qml_dir / "Media.qml")
+
+    if enabled.get("general_settings", True):
+        engine.load(qml_dir / "GeneralSettings.qml")
 
     if not engine.rootObjects():
         sys.exit(-1)

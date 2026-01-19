@@ -4,6 +4,8 @@ import sys
 import subprocess
 from watchfiles import watch
 
+# This File is meant to auto restart the app on change
+
 def run_once():
     return subprocess.Popen([sys.executable, "main.py"], env=os.environ.copy())
 
