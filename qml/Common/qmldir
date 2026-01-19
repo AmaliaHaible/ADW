@@ -3,3 +3,4 @@ singleton Theme 1.0 Theme.qml
 TitleBar 1.0 TitleBar.qml
 WidgetWindow 1.0 WidgetWindow.qml
 ColorPicker 1.0 ColorPicker.qml
+ScrollingText 1.0 ScrollingText.qml

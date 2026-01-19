@@ -354,23 +354,23 @@ WidgetWindow {
                                 spacing: Theme.spacing / 2
 
                                 // Title
-                                Text {
+                                ScrollingText {
                                     Layout.fillWidth: true
+                                    Layout.preferredHeight: Theme.fontSizeNormal + 4
                                     text: isDummy ? "Empty Slot " + (index + 1) :
                                           (session ? session.title : "Unknown")
                                     font.pixelSize: Theme.fontSizeNormal
                                     font.bold: !isDummy
                                     color: isDummy ? Theme.textMuted : Theme.textPrimary
-                                    elide: Text.ElideRight
                                 }
 
                                 // Artist
-                                Text {
+                                ScrollingText {
                                     Layout.fillWidth: true
+                                    Layout.preferredHeight: Theme.fontSizeSmall + 4
                                     text: hasSession && session.artist ? session.artist : ""
                                     font.pixelSize: Theme.fontSizeSmall
                                     color: Theme.textSecondary
-                                    elide: Text.ElideRight
                                     visible: text !== "" && !isDummy
                                 }
 

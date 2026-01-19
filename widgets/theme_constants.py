@@ -27,5 +27,6 @@ DEFAULT_THEME = {
     "borderRadius": 8,
     "windowRadius": 12,
     "spacing": 8,
-    "padding": 12
+    "padding": 12,
+    "textScrollSpeed": 50
 }

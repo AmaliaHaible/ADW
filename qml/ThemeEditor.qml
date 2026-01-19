@@ -19,7 +19,7 @@ WidgetWindow {
     x: 100
     y: 370
     visible: hubBackend.themeVisible
-    title: "Theme Editor"
+    title: "General Settings"
 
     Column {
         anchors.fill: parent
@@ -28,7 +28,7 @@ WidgetWindow {
         TitleBar {
             id: titleBar
             width: parent.width
-            title: "Theme Editor"
+            title: "General Settings"
             dragEnabled: themeWindow.editMode
             leftButtons: [
                 {icon: "save.svg", action: "save", enabled: !hubBackend.editMode},
@@ -174,7 +174,8 @@ WidgetWindow {
                             {name: "borderRadius", label: "Border Radius", min: 0, max: 20},
                             {name: "windowRadius", label: "Window Radius", min: 0, max: 24},
                             {name: "spacing", label: "Spacing", min: 4, max: 20},
-                            {name: "padding", label: "Padding", min: 4, max: 24}
+                            {name: "padding", label: "Padding", min: 4, max: 24},
+                            {name: "textScrollSpeed", label: "Text Scroll Speed", min: 10, max: 150}
                         ]
 
                         Rectangle {

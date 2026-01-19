@@ -313,7 +313,7 @@ WidgetWindow {
                             }
 
                             Text {
-                                text: "Theme Editor"
+                                text: "General Settings"
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
                                 Layout.fillWidth: true

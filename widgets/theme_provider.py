@@ -40,6 +40,7 @@ class ThemeProvider(QObject):
     windowRadiusChanged = Signal()
     spacingChanged = Signal()
     paddingChanged = Signal()
+    textScrollSpeedChanged = Signal()
 
     def __init__(self, settings_path: Path, parent=None):
         super().__init__(parent)
@@ -108,6 +109,7 @@ class ThemeProvider(QObject):
         self.windowRadiusChanged.emit()
         self.spacingChanged.emit()
         self.paddingChanged.emit()
+        self.textScrollSpeedChanged.emit()
         self.themeChanged.emit()
 
     # Color properties
@@ -219,6 +221,10 @@ class ThemeProvider(QObject):
     @Property(int, notify=paddingChanged)
     def padding(self):
         return self._theme["padding"]
+
+    @Property(int, notify=textScrollSpeedChanged)
+    def textScrollSpeed(self):
+        return self._theme["textScrollSpeed"]
 
     # Setters
     @Slot(str, str)
