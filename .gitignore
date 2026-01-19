@@ -8,6 +8,7 @@ wheels/
 
 
 settings.json
+enabled_widgets.toml
 .env
 themes/
 widgets/media/assets/temp/
