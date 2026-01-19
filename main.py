@@ -10,13 +10,13 @@ from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from widgets import HotkeyBackend, HubBackend, MediaBackend, SettingsBackend, ThemeProvider, WeatherBackend
+from widgets import HotkeyBackend, HubBackend, MediaBackend, SettingsBackend, ThemeProvider, TodoBackend, WeatherBackend
 
 
 def load_widget_config() -> dict:
     """Load enabled_widgets.toml config, creating it with defaults if not found."""
     config_path = Path(__file__).parent / "enabled_widgets.toml"
-    defaults = {"widgets": {"weather": True, "media": True, "general_settings": True}}
+    defaults = {"widgets": {"weather": True, "media": True, "general_settings": True, "todo": True}}
 
     if config_path.exists():
         try:
@@ -35,6 +35,7 @@ def load_widget_config() -> dict:
 weather = true
 media = true
 general_settings = true
+todo = true
 """
     try:
         config_path.write_text(default_content)
@@ -93,6 +94,12 @@ def main():
         media = MediaBackend(settings_backend=settings)
         engine.rootContext().setContextProperty("mediaBackend", media)
 
+    # Set up todo backend (if enabled)
+    todo = None
+    if enabled.get("todo", True):
+        todo = TodoBackend(settings_backend=settings)
+        engine.rootContext().setContextProperty("todoBackend", todo)
+
     # Set up hotkey backend
     hotkey = HotkeyBackend(settings_backend=settings, hub_backend=hub)
     engine.rootContext().setContextProperty("hotkeyBackend", hotkey)
@@ -119,6 +126,9 @@ def main():
 
     if enabled.get("general_settings", True):
         engine.load(qml_dir / "GeneralSettings.qml")
+
+    if enabled.get("todo", True):
+        engine.load(qml_dir / "Todo.qml")
 
     if not engine.rootObjects():
         sys.exit(-1)

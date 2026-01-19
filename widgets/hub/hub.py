@@ -9,6 +9,7 @@ class HubBackend(QObject):
     weatherVisibleChanged = Signal(bool)
     mediaVisibleChanged = Signal(bool)
     themeVisibleChanged = Signal(bool)
+    todoVisibleChanged = Signal(bool)
     editModeChanged = Signal(bool)
     alwaysOnTopChanged = Signal(bool)
     hubVisibleChanged = Signal(bool)
@@ -28,12 +29,14 @@ class HubBackend(QObject):
             self._weather_visible = self._settings.getWidgetVisible("weather")
             self._media_visible = self._settings.getWidgetVisible("media")
             self._theme_visible = self._settings.getWidgetVisible("theme")
+            self._todo_visible = self._settings.getWidgetVisible("todo")
             # Load always on top setting
             self._always_on_top = self._settings.getWidgetSetting("hub", "always_on_top") or False
         else:
             self._weather_visible = False
             self._media_visible = False
             self._theme_visible = False
+            self._todo_visible = False
             self._always_on_top = False
 
     def setup_tray(self, app):
@@ -126,6 +129,24 @@ class HubBackend(QObject):
     def setThemeVisible(self, visible):
         """Set theme widget visibility."""
         self.themeVisible = visible
+
+    # Todo visibility
+    @Property(bool, notify=todoVisibleChanged)
+    def todoVisible(self):
+        return self._todo_visible
+
+    @todoVisible.setter
+    def todoVisible(self, value):
+        if self._todo_visible != value:
+            self._todo_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("todo", value)
+            self.todoVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setTodoVisible(self, visible):
+        """Set todo widget visibility."""
+        self.todoVisible = visible
 
     # Edit mode
     @Property(bool, notify=editModeChanged)

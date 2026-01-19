@@ -362,6 +362,65 @@ WidgetWindow {
                             }
                         }
                     }
+
+                    // Todo widget toggle
+                    Rectangle {
+                        id: todoToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.todo === true
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
+
+                            Image {
+                                source: iconsPath + "list-todo.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                            }
+
+                            Text {
+                                text: "Todo"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !todoToggle.widgetEnabled
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.todoVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.todoVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.todoVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: todoToggle.widgetEnabled
+                                    onClicked: hubBackend.setTodoVisible(!hubBackend.todoVisible)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
