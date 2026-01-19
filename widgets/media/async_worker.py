@@ -182,20 +182,55 @@ class MediaAsyncWorker(QThread):
             sessions = self._manager.get_sessions()
             self._sessions = list(sessions) if sessions else []
 
-            # Build session list for Qt
+            # Build session list for Qt with full metadata for each session
             session_list = []
             for i, session in enumerate(self._sessions):
+                title = ""
+                artist = ""
+                album_art_path = str(self._assets_dir / "default-cover.png")
+
                 try:
-                    # Get session info
+                    # Get media properties for this session
                     info = await session.try_get_media_properties_async()
-                    name = info.title if info and info.title else f"Session {i+1}"
+                    if info:
+                        title = info.title if info.title else f"Session {i+1}"
+                        artist = info.artist if info.artist else ""
+
+                        # Get album art for this session
+                        if info.thumbnail:
+                            album_art_path = await self._get_album_art(info)
                 except Exception:
-                    name = f"Session {i+1}"
+                    title = f"Session {i+1}"
+
+                # Get playback info for this session
+                try:
+                    playback_info = session.get_playback_info()
+                    controls = playback_info.controls if hasattr(playback_info, 'controls') else None
+
+                    can_go_next = getattr(controls, 'is_next_enabled', False) if controls else False
+                    can_go_previous = getattr(controls, 'is_previous_enabled', False) if controls else False
+                    can_play_pause = getattr(controls, 'is_play_pause_toggle_enabled', False) if controls else False
+
+                    # Get playback state
+                    status = playback_info.playback_status
+                    is_playing = (status == 4)  # 4 = Playing
+                except Exception:
+                    can_go_next = False
+                    can_go_previous = False
+                    can_play_pause = False
+                    is_playing = False
 
                 session_list.append({
                     "id": i,
-                    "name": name,
-                    "iconPath": ""  # Could add app icon path if available
+                    "name": title,
+                    "title": title,
+                    "artist": artist,
+                    "albumArtPath": album_art_path,
+                    "canGoNext": can_go_next,
+                    "canGoPrevious": can_go_previous,
+                    "canPlayPause": can_play_pause,
+                    "isPlaying": is_playing,
+                    "iconPath": ""
                 })
 
             self._emit_to_qt("sessionListChanged", session_list)

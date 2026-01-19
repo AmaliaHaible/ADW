@@ -284,6 +284,9 @@ WidgetWindow {
                         width: parent.width
                         height: sessionHeight
                         color: "transparent"
+                        border.color: Theme.borderColor
+                        border.width: mediaWindow.editMode ? 1 : 0
+                        radius: mediaWindow.editMode ? 4 : 0
 
                         readonly property int sessionIndex: getSessionIndex(index)
                         readonly property var session: getSessionForSlot(index)
@@ -323,8 +326,8 @@ WidgetWindow {
                                     anchors.fill: parent
                                     visible: hasSession
                                     source: {
-                                        if (isCurrentSession && mediaBackend.albumArtPath) {
-                                            return "file:///" + mediaBackend.albumArtPath
+                                        if (hasSession && session.albumArtPath) {
+                                            return "file:///" + session.albumArtPath
                                         }
                                         return ""
                                     }
@@ -354,8 +357,7 @@ WidgetWindow {
                                 Text {
                                     Layout.fillWidth: true
                                     text: isDummy ? "Empty Slot " + (index + 1) :
-                                          (isCurrentSession && mediaBackend.title ? mediaBackend.title :
-                                           (session ? session.name : "Unknown"))
+                                          (session ? session.title : "Unknown")
                                     font.pixelSize: Theme.fontSizeNormal
                                     font.bold: !isDummy
                                     color: isDummy ? Theme.textMuted : Theme.textPrimary
@@ -365,7 +367,7 @@ WidgetWindow {
                                 // Artist
                                 Text {
                                     Layout.fillWidth: true
-                                    text: isCurrentSession && mediaBackend.artist ? mediaBackend.artist : ""
+                                    text: hasSession && session.artist ? session.artist : ""
                                     font.pixelSize: Theme.fontSizeSmall
                                     color: Theme.textSecondary
                                     elide: Text.ElideRight
@@ -390,7 +392,7 @@ WidgetWindow {
                                         color: prevMouse.pressed ? Theme.titleBarButtonPressed :
                                                prevMouse.containsMouse ? Theme.titleBarButtonHover :
                                                Theme.surfaceColor
-                                        opacity: isCurrentSession && mediaBackend.canGoPrevious && !mediaWindow.editMode ? 1.0 : 0.4
+                                        opacity: hasSession && session.canGoPrevious && !mediaWindow.editMode ? 1.0 : 0.4
 
                                         Image {
                                             anchors.centerIn: parent
@@ -404,8 +406,13 @@ WidgetWindow {
                                             id: prevMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            enabled: isCurrentSession && mediaBackend.canGoPrevious && !mediaWindow.editMode
-                                            onClicked: mediaBackend.previous()
+                                            enabled: hasSession && session.canGoPrevious && !mediaWindow.editMode
+                                            onClicked: {
+                                                if (!isCurrentSession) {
+                                                    mediaBackend.switchSession(sessionIndex)
+                                                }
+                                                mediaBackend.previous()
+                                            }
                                         }
                                     }
 
@@ -417,13 +424,13 @@ WidgetWindow {
                                         color: playMouse.pressed ? Theme.titleBarButtonPressed :
                                                playMouse.containsMouse ? Theme.titleBarButtonHover :
                                                Theme.surfaceColor
-                                        opacity: isCurrentSession && mediaBackend.canPlayPause && !mediaWindow.editMode ? 1.0 : 0.4
+                                        opacity: hasSession && session.canPlayPause && !mediaWindow.editMode ? 1.0 : 0.4
 
                                         Image {
                                             anchors.centerIn: parent
                                             width: 20
                                             height: 20
-                                            source: iconsPath + (isCurrentSession && mediaBackend.isPlaying ? "pause.svg" : "play.svg")
+                                            source: iconsPath + (hasSession && session.isPlaying ? "pause.svg" : "play.svg")
                                             sourceSize: Qt.size(20, 20)
                                         }
 
@@ -431,8 +438,13 @@ WidgetWindow {
                                             id: playMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            enabled: isCurrentSession && mediaBackend.canPlayPause && !mediaWindow.editMode
-                                            onClicked: mediaBackend.playPause()
+                                            enabled: hasSession && session.canPlayPause && !mediaWindow.editMode
+                                            onClicked: {
+                                                if (!isCurrentSession) {
+                                                    mediaBackend.switchSession(sessionIndex)
+                                                }
+                                                mediaBackend.playPause()
+                                            }
                                         }
                                     }
 
@@ -444,7 +456,7 @@ WidgetWindow {
                                         color: nextMouse.pressed ? Theme.titleBarButtonPressed :
                                                nextMouse.containsMouse ? Theme.titleBarButtonHover :
                                                Theme.surfaceColor
-                                        opacity: isCurrentSession && mediaBackend.canGoNext && !mediaWindow.editMode ? 1.0 : 0.4
+                                        opacity: hasSession && session.canGoNext && !mediaWindow.editMode ? 1.0 : 0.4
 
                                         Image {
                                             anchors.centerIn: parent
@@ -458,8 +470,13 @@ WidgetWindow {
                                             id: nextMouse
                                             anchors.fill: parent
                                             hoverEnabled: true
-                                            enabled: isCurrentSession && mediaBackend.canGoNext && !mediaWindow.editMode
-                                            onClicked: mediaBackend.next()
+                                            enabled: hasSession && session.canGoNext && !mediaWindow.editMode
+                                            onClicked: {
+                                                if (!isCurrentSession) {
+                                                    mediaBackend.switchSession(sessionIndex)
+                                                }
+                                                mediaBackend.next()
+                                            }
                                         }
                                     }
 
