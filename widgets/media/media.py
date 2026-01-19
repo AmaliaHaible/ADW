@@ -117,7 +117,8 @@ class MediaBackend(QObject):
 
     @Property(str, notify=positionTextChanged)
     def positionText(self):
-        return self._format_time(self.position)
+        pos = self._local_position if self._is_playing else self._position
+        return self._format_time(pos)
 
     @Property(str, notify=durationTextChanged)
     def durationText(self):
