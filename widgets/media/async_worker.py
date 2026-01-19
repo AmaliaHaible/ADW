@@ -4,7 +4,7 @@ from pathlib import Path
 from queue import Queue, Empty
 from typing import Dict, Any
 
-from PySide6.QtCore import QThread, Signal, Qt, QMetaObject, Q_ARG
+from PySide6.QtCore import QThread, Signal
 
 try:
     from winrt.windows.media.control import (
@@ -264,8 +264,10 @@ class MediaAsyncWorker(QThread):
         try:
             # Get playback info
             playback_info = self._current_session.get_playback_info()
-            controls = playback_info.controls
             print(f"[MediaWorker] Playback info: {playback_info}")
+
+            controls = playback_info.controls if hasattr(playback_info, 'controls') else None
+            print(f"[MediaWorker] Controls: {controls}")
 
             # Get media properties
             media_props = await self._current_session.try_get_media_properties_async()
@@ -294,22 +296,44 @@ class MediaAsyncWorker(QThread):
             print(f"[MediaWorker] State: {playback_state}, playing={is_playing}")
 
             # Get timeline info if available
-            timeline = playback_info.timeline_properties
+            # Debug: Check what attributes playback_info has
+            print(f"[MediaWorker] playback_info attributes: {dir(playback_info)}")
+
             position = 0
             duration = 0
 
+            # Try different possible attribute names for timeline
+            timeline = None
+            for attr_name in ['timeline_properties', 'timeline', 'position_info']:
+                if hasattr(playback_info, attr_name):
+                    timeline = getattr(playback_info, attr_name)
+                    print(f"[MediaWorker] Found timeline at: {attr_name}")
+                    break
+
             if timeline:
+                print(f"[MediaWorker] Timeline attributes: {dir(timeline)}")
                 try:
                     # Convert TimeSpan to seconds
-                    position = timeline.position.total_seconds() if timeline.position else 0
-                    duration = timeline.end_time.total_seconds() if timeline.end_time else 0
-                except Exception:
-                    pass
+                    position = timeline.position.total_seconds() if hasattr(timeline, 'position') and timeline.position else 0
+                    duration = timeline.end_time.total_seconds() if hasattr(timeline, 'end_time') and timeline.end_time else 0
+                    print(f"[MediaWorker] Position: {position}s, Duration: {duration}s")
+                except Exception as e:
+                    print(f"[MediaWorker] Error getting timeline values: {e}")
 
             # Get album art
             album_art_path = await self._get_album_art(media_props)
 
-            # Build state dict
+            # Build state dict with safe attribute access
+            can_go_next = False
+            can_go_previous = False
+            can_play_pause = False
+
+            if controls:
+                can_go_next = getattr(controls, 'is_next_enabled', False)
+                can_go_previous = getattr(controls, 'is_previous_enabled', False)
+                can_play_pause = getattr(controls, 'is_play_pause_toggle_enabled', False)
+                print(f"[MediaWorker] Controls: next={can_go_next}, prev={can_go_previous}, play_pause={can_play_pause}")
+
             state = {
                 "has_session": True,
                 "title": media_props.title if media_props and media_props.title else "",
@@ -319,16 +343,21 @@ class MediaAsyncWorker(QThread):
                 "is_playing": is_playing,
                 "position": int(position),
                 "duration": int(duration),
-                "can_go_next": controls.is_next_enabled if controls else False,
-                "can_go_previous": controls.is_previous_enabled if controls else False,
-                "can_play_pause": controls.is_play_pause_toggle_enabled if controls else False,
+                "can_go_next": can_go_next,
+                "can_go_previous": can_go_previous,
+                "can_play_pause": can_play_pause,
                 "shuffle_state": "Unknown",  # WinRT API may not expose this
                 "repeat_state": "Unknown",  # WinRT API may not expose this
             }
 
+            print(f"[MediaWorker] Emitting state: {state['title']} - {state['playback_state']}")
+
             self._emit_to_qt("mediaStateChanged", state)
 
         except Exception as e:
+            print(f"[MediaWorker] ERROR refreshing state: {e}")
+            import traceback
+            traceback.print_exc()
             self._emit_to_qt("errorOccurred", f"Failed to refresh state: {str(e)}")
 
     async def _get_album_art(self, media_props) -> str:
@@ -395,24 +424,14 @@ class MediaAsyncWorker(QThread):
 
     def _emit_to_qt(self, signal_name: str, *args):
         """Thread-safe signal emission to Qt main thread."""
+        # Qt signals are inherently thread-safe, so we can emit directly
+        # Qt will automatically use QueuedConnection for cross-thread emission
         if signal_name == "mediaStateChanged":
-            QMetaObject.invokeMethod(
-                self,
-                signal_name,
-                Qt.QueuedConnection,
-                Q_ARG(dict, args[0])
-            )
+            print("[MediaWorker] Emitting mediaStateChanged signal")
+            self.mediaStateChanged.emit(args[0])
         elif signal_name == "sessionListChanged":
-            QMetaObject.invokeMethod(
-                self,
-                signal_name,
-                Qt.QueuedConnection,
-                Q_ARG(list, args[0])
-            )
+            print("[MediaWorker] Emitting sessionListChanged signal")
+            self.sessionListChanged.emit(args[0])
         elif signal_name == "errorOccurred":
-            QMetaObject.invokeMethod(
-                self,
-                signal_name,
-                Qt.QueuedConnection,
-                Q_ARG(str, args[0])
-            )
+            print(f"[MediaWorker] Emitting errorOccurred signal: {args[0]}")
+            self.errorOccurred.emit(args[0])
