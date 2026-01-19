@@ -108,6 +108,17 @@ WidgetWindow {
                                     }
                                 }
 
+                                // Bottom drop indicator (for dragging to last position)
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 3
+                                    Layout.leftMargin: Theme.padding
+                                    Layout.rightMargin: Theme.padding
+                                    color: Theme.accentColor
+                                    radius: 1
+                                    visible: todoWindow.draggedTodoId !== "" && todoWindow.dragTargetIndex === todoBackend.currentTodos.length
+                                }
+
                                 Item { height: Theme.padding / 2 }
                             }
                         }
@@ -300,7 +311,8 @@ WidgetWindow {
                         var dragOffset = centroid.position.y - centroid.pressPosition.y
                         var indexChange = Math.round(dragOffset / 50)
                         var newIndex = itemIndex + indexChange
-                        newIndex = Math.max(0, Math.min(newIndex, totalItems - 1))
+                        // Allow targeting up to totalItems (for "after last item" position)
+                        newIndex = Math.max(0, Math.min(newIndex, totalItems))
                         todoWindow.dragTargetIndex = newIndex
                         console.log("Dragging:", todoData.id, "offset:", dragOffset, "target:", newIndex)
                     }
