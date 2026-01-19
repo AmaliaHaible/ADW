@@ -12,356 +12,437 @@ WidgetWindow {
     hubVisible: hubBackend.hubVisible
 
     width: 350
-    height: 450
     minResizeWidth: 300
-    minResizeHeight: 400
+    minResizeHeight: 132
+
+    // Dynamic height based on number of sessions shown
+    readonly property int sessionHeight: 100
+    readonly property int visibleSessionCount: Math.min(mediaBackend.sessionList.length, mediaBackend.maxSessions)
+    readonly property int maxSessionCount: 3
+    readonly property int calculatedHeight: Theme.titleBarHeight + (visibleSessionCount * sessionHeight)
+    readonly property int maxHeight: Theme.titleBarHeight + (maxSessionCount * sessionHeight)
+
+    height: calculatedHeight
 
     title: "Media Control"
 
+    // Handle dynamic resizing with anchor support
+    onCalculatedHeightChanged: {
+        if (mediaBackend.anchorTop) {
+            // Anchor top - height grows downward
+            height = calculatedHeight
+        } else {
+            // Anchor bottom - adjust y to keep bottom fixed
+            var oldHeight = height
+            var newHeight = calculatedHeight
+            y = y + (oldHeight - newHeight)
+            height = newHeight
+        }
+    }
+
     Column {
         anchors.fill: parent
+        spacing: 0
 
         TitleBar {
             title: "Media Control"
             dragEnabled: mediaWindow.editMode
-            leftButtons: [{
-                icon: "refresh-cw.svg",
-                action: "refresh",
-                enabled: true
-            }]
+            leftButtons: stackView.depth > 1 ? [
+                {icon: "arrow-left.svg", action: "back", enabled: !hubBackend.editMode}
+            ] : [
+                {icon: "settings.svg", action: "settings", enabled: !hubBackend.editMode}
+            ]
+
             onButtonClicked: function(action) {
-                if (action === "refresh") mediaBackend.refreshSessions()
+                if (action === "settings") {
+                    stackView.push(settingsViewComponent)
+                } else if (action === "back") {
+                    stackView.pop()
+                }
             }
         }
 
-        // Content area
-        Item {
+        // StackView for main/settings views
+        StackView {
+            id: stackView
             width: parent.width
-            height: parent.height - 32
+            height: parent.height - Theme.titleBarHeight
+            initialItem: mainViewComponent
+        }
+    }
 
-            // Main content or placeholder
-            Loader {
+    // Settings View Component
+    Component {
+        id: settingsViewComponent
+
+        Item {
+            ScrollView {
                 anchors.fill: parent
-                sourceComponent: mediaBackend.hasSession ? mainContent : placeholderContent
+                contentWidth: availableWidth
+                clip: true
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: Theme.spacing
+
+                    // Max Sessions Setting
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.margins: Theme.padding
+                        Layout.preferredHeight: 80
+                        color: Theme.surfaceColor
+                        radius: Theme.borderRadius
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: Theme.padding
+                            spacing: Theme.spacing / 2
+
+                            Text {
+                                text: "Maximum Sessions"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                            }
+
+                            Text {
+                                text: "Show up to " + maxSessionsSlider.value + " media session(s)"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                            }
+
+                            Slider {
+                                id: maxSessionsSlider
+                                Layout.fillWidth: true
+                                from: 1
+                                to: 5
+                                stepSize: 1
+                                value: mediaBackend.maxSessions
+
+                                onMoved: {
+                                    mediaBackend.setMaxSessions(Math.floor(value))
+                                }
+
+                                background: Rectangle {
+                                    x: maxSessionsSlider.leftPadding
+                                    y: maxSessionsSlider.topPadding + maxSessionsSlider.availableHeight / 2 - height / 2
+                                    width: maxSessionsSlider.availableWidth
+                                    height: 4
+                                    radius: 2
+                                    color: Theme.borderColor
+
+                                    Rectangle {
+                                        width: maxSessionsSlider.visualPosition * parent.width
+                                        height: parent.height
+                                        radius: 2
+                                        color: Theme.accentColor
+                                    }
+                                }
+
+                                handle: Rectangle {
+                                    x: maxSessionsSlider.leftPadding + maxSessionsSlider.visualPosition * (maxSessionsSlider.availableWidth - width)
+                                    y: maxSessionsSlider.topPadding + maxSessionsSlider.availableHeight / 2 - height / 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.accentColor
+                                }
+                            }
+                        }
+                    }
+
+                    // Anchor Position Setting
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.margins: Theme.padding
+                        Layout.preferredHeight: 80
+                        color: Theme.surfaceColor
+                        radius: Theme.borderRadius
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: Theme.padding
+                            spacing: Theme.spacing
+
+                            Text {
+                                text: "Resize Anchor"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: Theme.spacing
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 32
+                                    radius: 4
+                                    color: mediaBackend.anchorTop ? Theme.accentColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+                                    border.width: 1
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "Anchor Top"
+                                        color: mediaBackend.anchorTop ? Theme.windowBackground : Theme.textSecondary
+                                        font.pixelSize: Theme.fontSizeSmall
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: mediaBackend.setAnchorTop(true)
+                                    }
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 32
+                                    radius: 4
+                                    color: !mediaBackend.anchorTop ? Theme.accentColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+                                    border.width: 1
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "Anchor Bottom"
+                                        color: !mediaBackend.anchorTop ? Theme.windowBackground : Theme.textSecondary
+                                        font.pixelSize: Theme.fontSizeSmall
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: mediaBackend.setAnchorTop(false)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    // Placeholder Component (no media playing)
+    // Main View Component
     Component {
-        id: placeholderContent
+        id: mainViewComponent
 
         Item {
+            // No media placeholder
             Column {
                 anchors.centerIn: parent
                 spacing: Theme.spacing * 2
+                visible: mediaBackend.sessionList.length === 0
 
                 Image {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: 64
-                    height: 64
+                    width: 48
+                    height: 48
                     source: iconsPath + "music.svg"
-                    sourceSize: Qt.size(64, 64)
+                    sourceSize: Qt.size(48, 48)
                     opacity: 0.4
                 }
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: mediaBackend.isLoading ?
-                          "Connecting to media..." : "No media playing"
+                    text: mediaBackend.isLoading ? "Connecting..." : "No media playing"
                     font.pixelSize: Theme.fontSizeNormal
                     color: Theme.textMuted
                 }
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: mediaBackend.errorMessage
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.error
-                    visible: mediaBackend.errorMessage !== ""
-                }
             }
-        }
-    }
 
-    // Main Content Component
-    Component {
-        id: mainContent
-
-        Item {
-            ColumnLayout {
+            // Session list
+            Column {
                 anchors.fill: parent
-                anchors.margins: Theme.padding
-                spacing: Theme.spacing * 1.5
+                visible: mediaBackend.sessionList.length > 0
 
-                // Session tabs (if multiple sessions)
-                ListView {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 40
-                    orientation: ListView.Horizontal
-                    spacing: 6
-                    visible: mediaBackend.sessionList.length > 1
-                    clip: true
+                Repeater {
+                    model: Math.min(mediaBackend.sessionList.length, mediaBackend.maxSessions)
 
-                    model: mediaBackend.sessionList
-
-                    delegate: Rectangle {
-                        width: 120
-                        height: 36
-                        radius: 6
-                        color: index === mediaBackend.currentSessionIndex ?
-                               Theme.accentColor : Theme.surfaceColor
-
-                        Text {
-                            anchors.centerIn: parent
-                            anchors.leftMargin: 8
-                            anchors.rightMargin: 8
-                            width: parent.width - 16
-                            text: modelData.name
-                            color: index === mediaBackend.currentSessionIndex ?
-                                   Theme.windowBackground : Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeSmall
-                            elide: Text.ElideRight
-                            horizontalAlignment: Text.AlignHCenter
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: mediaBackend.switchSession(index)
-                            enabled: !mediaWindow.editMode
-                        }
-                    }
-                }
-
-                // Album art
-                Item {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 140
-
+                    // Single session item
                     Rectangle {
-                        anchors.centerIn: parent
-                        width: 120
-                        height: 120
-                        color: Theme.surfaceColor
-                        radius: Theme.borderRadius
+                        width: parent.width
+                        height: sessionHeight
+                        color: "transparent"
 
-                        Image {
+                        RowLayout {
                             anchors.fill: parent
-                            anchors.margins: 2
-                            source: mediaBackend.albumArtPath ?
-                                    "file:///" + mediaBackend.albumArtPath : ""
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
+                            anchors.margins: Theme.padding / 2
+                            spacing: Theme.padding
 
-                            // Fallback icon if no album art
-                            Image {
-                                anchors.centerIn: parent
-                                width: 48
-                                height: 48
-                                source: iconsPath + "music.svg"
-                                sourceSize: Qt.size(48, 48)
-                                opacity: 0.3
-                                visible: parent.status !== Image.Ready
+                            // Album Art
+                            Item {
+                                Layout.preferredWidth: sessionHeight - Theme.padding
+                                Layout.fillHeight: true
+
+                                Image {
+                                    anchors.fill: parent
+                                    source: {
+                                        var session = mediaBackend.sessionList[index]
+                                        // Get album art path - would need to be provided by backend per session
+                                        // For now, using the current session's album art
+                                        if (index === 0 && mediaBackend.albumArtPath) {
+                                            return "file:///" + mediaBackend.albumArtPath
+                                        }
+                                        return ""
+                                    }
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
+
+                                    // Fallback icon
+                                    Image {
+                                        anchors.centerIn: parent
+                                        width: 32
+                                        height: 32
+                                        source: iconsPath + "music.svg"
+                                        sourceSize: Qt.size(32, 32)
+                                        opacity: 0.3
+                                        visible: parent.status !== Image.Ready
+                                    }
+                                }
+                            }
+
+                            // Track info and controls
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                spacing: Theme.spacing / 2
+
+                                // Title
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: {
+                                        if (index === 0 && mediaBackend.title) {
+                                            return mediaBackend.title
+                                        }
+                                        var session = mediaBackend.sessionList[index]
+                                        return session ? session.name : "Unknown"
+                                    }
+                                    font.pixelSize: Theme.fontSizeNormal
+                                    font.bold: true
+                                    color: Theme.textPrimary
+                                    elide: Text.ElideRight
+                                }
+
+                                // Artist
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: index === 0 && mediaBackend.artist ? mediaBackend.artist : ""
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    color: Theme.textSecondary
+                                    elide: Text.ElideRight
+                                    visible: text !== ""
+                                }
+
+                                Item { Layout.fillHeight: true }
+
+                                // Controls
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: Theme.spacing
+
+                                    Item { Layout.fillWidth: true }
+
+                                    // Previous button
+                                    Rectangle {
+                                        width: 32
+                                        height: 32
+                                        radius: 16
+                                        color: prevMouse.pressed ? Theme.titleBarButtonPressed :
+                                               prevMouse.containsMouse ? Theme.titleBarButtonHover :
+                                               Theme.surfaceColor
+                                        opacity: index === 0 && mediaBackend.canGoPrevious && !mediaWindow.editMode ? 1.0 : 0.4
+
+                                        Image {
+                                            anchors.centerIn: parent
+                                            width: 16
+                                            height: 16
+                                            source: iconsPath + "skip-back.svg"
+                                            sourceSize: Qt.size(16, 16)
+                                        }
+
+                                        MouseArea {
+                                            id: prevMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            enabled: index === 0 && mediaBackend.canGoPrevious && !mediaWindow.editMode
+                                            onClicked: if (index === 0) mediaBackend.previous()
+                                        }
+                                    }
+
+                                    // Play/Pause button
+                                    Rectangle {
+                                        width: 40
+                                        height: 40
+                                        radius: 20
+                                        color: playMouse.pressed ? Theme.titleBarButtonPressed :
+                                               playMouse.containsMouse ? Theme.titleBarButtonHover :
+                                               Theme.surfaceColor
+                                        opacity: index === 0 && mediaBackend.canPlayPause && !mediaWindow.editMode ? 1.0 : 0.4
+
+                                        Image {
+                                            anchors.centerIn: parent
+                                            width: 20
+                                            height: 20
+                                            source: iconsPath + (index === 0 && mediaBackend.isPlaying ? "pause.svg" : "play.svg")
+                                            sourceSize: Qt.size(20, 20)
+                                        }
+
+                                        MouseArea {
+                                            id: playMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            enabled: index === 0 && mediaBackend.canPlayPause && !mediaWindow.editMode
+                                            onClicked: if (index === 0) mediaBackend.playPause()
+                                        }
+                                    }
+
+                                    // Next button
+                                    Rectangle {
+                                        width: 32
+                                        height: 32
+                                        radius: 16
+                                        color: nextMouse.pressed ? Theme.titleBarButtonPressed :
+                                               nextMouse.containsMouse ? Theme.titleBarButtonHover :
+                                               Theme.surfaceColor
+                                        opacity: index === 0 && mediaBackend.canGoNext && !mediaWindow.editMode ? 1.0 : 0.4
+
+                                        Image {
+                                            anchors.centerIn: parent
+                                            width: 16
+                                            height: 16
+                                            source: iconsPath + "skip-forward.svg"
+                                            sourceSize: Qt.size(16, 16)
+                                        }
+
+                                        MouseArea {
+                                            id: nextMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            enabled: index === 0 && mediaBackend.canGoNext && !mediaWindow.editMode
+                                            onClicked: if (index === 0) mediaBackend.next()
+                                        }
+                                    }
+
+                                    Item { Layout.fillWidth: true }
+                                }
                             }
                         }
-                    }
-                }
 
-                // Track info
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 4
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: mediaBackend.title || "No title"
-                        font.pixelSize: Theme.fontSizeLarge
-                        font.bold: true
-                        color: Theme.textPrimary
-                        elide: Text.ElideRight
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: mediaBackend.artist || "Unknown artist"
-                        font.pixelSize: Theme.fontSizeNormal
-                        color: Theme.textSecondary
-                        elide: Text.ElideRight
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-                }
-
-                // Control buttons
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 50
-                    spacing: 8
-
-                    Item { Layout.fillWidth: true } // Spacer
-
-                    // Shuffle button
-                    IconButton {
-                        icon: "shuffle.svg"
-                        size: 32
-                        enabled: mediaBackend.shuffleState !== "Unknown" && !mediaWindow.editMode
-                        highlighted: mediaBackend.shuffleState === "On"
-                        onClicked: mediaBackend.toggleShuffle()
-                    }
-
-                    // Previous button
-                    IconButton {
-                        icon: "skip-back.svg"
-                        size: 36
-                        enabled: mediaBackend.canGoPrevious && !mediaWindow.editMode
-                        onClicked: mediaBackend.previous()
-                    }
-
-                    // Play/Pause button
-                    IconButton {
-                        icon: mediaBackend.isPlaying ? "pause.svg" : "play.svg"
-                        size: 44
-                        enabled: mediaBackend.canPlayPause && !mediaWindow.editMode
-                        onClicked: mediaBackend.playPause()
-                        highlighted: true
-                    }
-
-                    // Next button
-                    IconButton {
-                        icon: "skip-forward.svg"
-                        size: 36
-                        enabled: mediaBackend.canGoNext && !mediaWindow.editMode
-                        onClicked: mediaBackend.next()
-                    }
-
-                    // Repeat button
-                    IconButton {
-                        icon: mediaBackend.repeatState === "Track" ? "repeat-1.svg" : "repeat.svg"
-                        size: 32
-                        enabled: mediaBackend.repeatState !== "Unknown" && !mediaWindow.editMode
-                        highlighted: mediaBackend.repeatState !== "Off"
-                        onClicked: mediaBackend.cycleRepeat()
-                    }
-
-                    Item { Layout.fillWidth: true } // Spacer
-                }
-
-                // Progress slider
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    Text {
-                        text: mediaBackend.positionText
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.textSecondary
-                        Layout.preferredWidth: 40
-                    }
-
-                    Slider {
-                        id: progressSlider
-                        Layout.fillWidth: true
-                        from: 0
-                        to: mediaBackend.duration > 0 ? mediaBackend.duration : 100
-                        value: mediaBackend.position
-                        enabled: mediaBackend.duration > 0 && !mediaWindow.editMode
-
-                        onMoved: {
-                            mediaBackend.setPosition(Math.floor(value))
-                        }
-
-                        background: Rectangle {
-                            x: progressSlider.leftPadding
-                            y: progressSlider.topPadding + progressSlider.availableHeight / 2 - height / 2
-                            width: progressSlider.availableWidth
-                            height: 4
-                            radius: 2
-                            color: Theme.surfaceColor
-
-                            Rectangle {
-                                width: progressSlider.visualPosition * parent.width
-                                height: parent.height
-                                radius: 2
-                                color: Theme.accentColor
-                            }
-                        }
-
-                        handle: Rectangle {
-                            x: progressSlider.leftPadding +
-                               progressSlider.visualPosition *
-                               (progressSlider.availableWidth - width)
-                            y: progressSlider.topPadding +
-                               progressSlider.availableHeight / 2 - height / 2
-                            width: 12
-                            height: 12
-                            radius: 6
-                            color: progressSlider.pressed ? Theme.accentHover : Theme.accentColor
+                        // Separator line
+                        Rectangle {
+                            anchors.bottom: parent.bottom
+                            width: parent.width
+                            height: 1
+                            color: Theme.borderColor
+                            opacity: 0.3
+                            visible: index < Math.min(mediaBackend.sessionList.length, mediaBackend.maxSessions) - 1
                         }
                     }
-
-                    Text {
-                        text: mediaBackend.durationText
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.textSecondary
-                        Layout.preferredWidth: 40
-                        horizontalAlignment: Text.AlignRight
-                    }
-                }
-
-                Item { Layout.fillHeight: true } // Spacer
-
-                // Error message (if any)
-                Text {
-                    Layout.fillWidth: true
-                    text: mediaBackend.errorMessage
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.error
-                    visible: mediaBackend.errorMessage !== ""
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
                 }
             }
         }
     }
 
-    // Reusable IconButton Component
-    component IconButton: Rectangle {
-        id: iconButton
-        property string icon: ""
-        property int size: 36
-        property bool highlighted: false
-
-        signal clicked()
-
-        width: size
-        height: size
-        radius: size / 2
-        color: mouseArea.pressed ? Theme.titleBarButtonPressed :
-               mouseArea.containsMouse ? Theme.titleBarButtonHover :
-               "transparent"
-        opacity: enabled ? 1.0 : 0.4
-
-        Image {
-            anchors.centerIn: parent
-            width: parent.size * 0.5
-            height: parent.size * 0.5
-            source: iconsPath + icon
-            sourceSize: Qt.size(width, height)
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            radius: parent.radius
-            color: Theme.accentColor
-            opacity: highlighted ? 0.2 : 0
-            z: -1
-        }
-
-        MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: if (enabled) parent.clicked()
-        }
-    }
+    // Override edit overlay to show max height
+    editOverlayHeight: maxHeight
 }

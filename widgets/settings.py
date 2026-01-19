@@ -30,7 +30,9 @@ DEFAULT_SETTINGS = {
             "x": 780,
             "y": 100,
             "width": 350,
-            "height": 450
+            "height": 140,
+            "max_sessions": 3,
+            "anchor_top": True
         },
         "theme": {
             "visible": False,

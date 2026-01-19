@@ -28,6 +28,8 @@ class MediaBackend(QObject):
     hasSessionChanged = Signal()
     errorMessageChanged = Signal()
     isLoadingChanged = Signal()
+    maxSessionsChanged = Signal()
+    anchorTopChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
@@ -57,6 +59,16 @@ class MediaBackend(QObject):
         self._error_message = ""
         self._is_loading = True
 
+        # Settings
+        if self._settings:
+            self._max_sessions = self._settings.getWidgetSetting("media", "max_sessions") or 3
+            self._anchor_top = self._settings.getWidgetSetting("media", "anchor_top")
+            if self._anchor_top is None:
+                self._anchor_top = True
+        else:
+            self._max_sessions = 3
+            self._anchor_top = True
+
         # Position tracking
         self._local_position = 0
         self._position_sync_counter = 0
@@ -66,12 +78,10 @@ class MediaBackend(QObject):
         self._default_cover = str((self._assets_dir / "default-cover.png").absolute())
 
         # Initialize async worker
-        print("[MediaBackend] Initializing async worker...")
         self._async_thread = MediaAsyncWorker(self._assets_dir)
         self._async_thread.mediaStateChanged.connect(self._on_media_state_changed)
         self._async_thread.sessionListChanged.connect(self._on_session_list_changed)
         self._async_thread.errorOccurred.connect(self._on_error_occurred)
-        print("[MediaBackend] Starting async worker thread...")
         self._async_thread.start()
 
         # Position update timer (500ms when playing)
@@ -165,6 +175,14 @@ class MediaBackend(QObject):
     def isLoading(self):
         return self._is_loading
 
+    @Property(int, notify=maxSessionsChanged)
+    def maxSessions(self):
+        return self._max_sessions
+
+    @Property(bool, notify=anchorTopChanged)
+    def anchorTop(self):
+        return self._anchor_top
+
     # Slots
     @Slot()
     def playPause(self):
@@ -228,18 +246,32 @@ class MediaBackend(QObject):
         if self._async_thread:
             self._async_thread.enqueue_command({"action": "refresh_sessions"})
 
+    @Slot(int)
+    def setMaxSessions(self, count):
+        """Set maximum number of sessions to display."""
+        if self._max_sessions != count:
+            self._max_sessions = count
+            if self._settings:
+                self._settings.setWidgetSetting("media", "max_sessions", count)
+            self.maxSessionsChanged.emit()
+
+    @Slot(bool)
+    def setAnchorTop(self, anchor_top):
+        """Set whether to anchor top or bottom when resizing."""
+        if self._anchor_top != anchor_top:
+            self._anchor_top = anchor_top
+            if self._settings:
+                self._settings.setWidgetSetting("media", "anchor_top", anchor_top)
+            self.anchorTopChanged.emit()
+
     # Internal slots
     @Slot(dict)
     def _on_media_state_changed(self, state):
         """Handle media state updates from async thread."""
-        print(f"[MediaBackend] State update received: has_session={state.get('has_session')}, "
-              f"title={state.get('title')}, state={state.get('playback_state')}")
-
         # Update has_session
         has_session = state.get("has_session", False)
         if self._has_session != has_session:
             self._has_session = has_session
-            print(f"[MediaBackend] hasSession changed to {has_session}")
             self.hasSessionChanged.emit()
 
         # Update title
@@ -335,7 +367,6 @@ class MediaBackend(QObject):
     @Slot(list)
     def _on_session_list_changed(self, session_list):
         """Handle session list updates from async thread."""
-        print(f"[MediaBackend] Session list updated: {len(session_list)} sessions")
         self._session_list = session_list
         self.sessionListChanged.emit()
 
