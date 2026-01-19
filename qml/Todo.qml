@@ -20,6 +20,11 @@ WidgetWindow {
     visible: hubBackend.todoVisible
     title: "Todo"
 
+    // Track which view is shown (false = current, true = finished)
+    property bool showingFinished: false
+    // Track the currently dragged item ID
+    property string draggedTodoId: ""
+
     Column {
         anchors.fill: parent
         spacing: 0
@@ -27,10 +32,15 @@ WidgetWindow {
         TitleBar {
             id: titleBar
             width: parent.width
-            title: "Todo"
+            title: todoWindow.showingFinished ? "Finished" : "Todo"
             dragEnabled: todoWindow.editMode
             minimized: todoWindow.minimized
             effectiveRadius: todoWindow.effectiveWindowRadius
+            leftButtons: todoWindow.showingFinished ? [
+                {icon: "arrow-left.svg", action: "back", enabled: !hubBackend.editMode}
+            ] : [
+                {icon: "trash-2.svg", action: "finished", enabled: !hubBackend.editMode}
+            ]
             rightButtons: [
                 {icon: "eye-off.svg", action: "minimize"}
             ]
@@ -38,184 +48,141 @@ WidgetWindow {
             onButtonClicked: function(action) {
                 if (action === "minimize") {
                     todoWindow.toggleMinimize()
+                } else if (action === "finished") {
+                    todoWindow.showingFinished = true
+                } else if (action === "back") {
+                    todoWindow.showingFinished = false
                 }
             }
         }
 
         // Content area (hidden when minimized)
-        Item {
+        Rectangle {
             width: parent.width
             height: parent.height - titleBar.height
             visible: !todoWindow.minimized
+            color: "transparent"
+            bottomLeftRadius: todoWindow.effectiveWindowRadius
+            bottomRightRadius: todoWindow.effectiveWindowRadius
 
-            Column {
+            StackLayout {
+                id: stackLayout
                 anchors.fill: parent
-                spacing: 0
+                currentIndex: todoWindow.showingFinished ? 1 : 0
 
-                // Tab bar
-                TabBar {
-                    id: tabBar
-                    width: parent.width
-                    height: 36
+                // Current todos view
+                Item {
+                    id: currentTab
 
-                    background: Rectangle {
-                        color: Theme.surfaceColor
-                    }
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 0
 
-                    TabButton {
-                        text: "Current"
-                        width: implicitWidth
-                        height: parent.height
+                        // Todo list
+                        ScrollView {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            clip: true
+                            contentWidth: availableWidth
 
-                        background: Rectangle {
-                            color: tabBar.currentIndex === 0 ? Theme.accentColor : "transparent"
-                            radius: Theme.borderRadius
-                            anchors.margins: 4
-                            anchors.fill: parent
+                            ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+                            ScrollBar.vertical.visible: contentHeight > height
+
+                            ColumnLayout {
+                                id: currentTodosList
+                                width: parent.width
+                                spacing: 0
+
+                                Item { height: Theme.padding / 2 }
+
+                                Repeater {
+                                    model: todoBackend.currentTodos
+
+                                    delegate: TodoItemDelegate {
+                                        todoData: modelData
+                                        isFinishedTab: false
+                                        itemIndex: index
+                                        totalItems: todoBackend.currentTodos.length
+                                    }
+                                }
+
+                                Item { height: Theme.padding / 2 }
+                            }
                         }
 
-                        contentItem: Text {
-                            text: parent.text
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeNormal
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                    }
+                        // Add todo input
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 48
+                            color: Theme.surfaceColor
+                            bottomLeftRadius: todoWindow.effectiveWindowRadius
+                            bottomRightRadius: todoWindow.effectiveWindowRadius
 
-                    TabButton {
-                        text: "Finished"
-                        width: implicitWidth
-                        height: parent.height
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: Theme.padding / 2
+                                spacing: Theme.spacing / 2
 
-                        background: Rectangle {
-                            color: tabBar.currentIndex === 1 ? Theme.accentColor : "transparent"
-                            radius: Theme.borderRadius
-                            anchors.margins: 4
-                            anchors.fill: parent
-                        }
+                                TextField {
+                                    id: newTodoField
+                                    Layout.fillWidth: true
+                                    placeholderText: "Add a todo..."
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeNormal
 
-                        contentItem: Text {
-                            text: parent.text
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeNormal
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                    }
-                }
-
-                // Content stack
-                StackLayout {
-                    id: stackLayout
-                    width: parent.width
-                    height: parent.height - tabBar.height
-                    currentIndex: tabBar.currentIndex
-
-                    // Current todos tab
-                    Item {
-                        id: currentTab
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            spacing: 0
-
-                            // Todo list
-                            ScrollView {
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                clip: true
-                                contentWidth: availableWidth
-
-                                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
-                                ScrollBar.vertical.visible: contentHeight > height
-
-                                ColumnLayout {
-                                    width: parent.width
-                                    spacing: 4
-
-                                    Item { height: Theme.padding / 2 }
-
-                                    Repeater {
-                                        model: todoBackend.currentTodos
-
-                                        delegate: TodoItemDelegate {
-                                            todoData: modelData
-                                            isFinishedTab: false
-                                            itemIndex: index
-                                            totalItems: todoBackend.currentTodos.length
-                                        }
+                                    background: Rectangle {
+                                        color: Theme.windowBackground
+                                        border.color: newTodoField.activeFocus ? Theme.accentColor : Theme.borderColor
+                                        border.width: 1
+                                        radius: Theme.borderRadius
                                     }
 
-                                    Item { height: Theme.padding / 2 }
-                                }
-                            }
-
-                            // Add todo input
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 48
-                                color: Theme.surfaceColor
-
-                                RowLayout {
-                                    anchors.fill: parent
-                                    anchors.margins: Theme.padding / 2
-                                    spacing: Theme.spacing / 2
-
-                                    TextField {
-                                        id: newTodoField
-                                        Layout.fillWidth: true
-                                        placeholderText: "Add a todo..."
-                                        color: Theme.textPrimary
-                                        font.pixelSize: Theme.fontSizeNormal
-
-                                        background: Rectangle {
-                                            color: Theme.windowBackground
-                                            border.color: newTodoField.activeFocus ? Theme.accentColor : Theme.borderColor
-                                            border.width: 1
-                                            radius: Theme.borderRadius
+                                    Keys.onReturnPressed: {
+                                        if (newTodoField.text.trim() !== "") {
+                                            todoBackend.addTodo(newTodoField.text)
+                                            newTodoField.text = ""
                                         }
+                                    }
+                                }
 
-                                        Keys.onReturnPressed: {
+                                Rectangle {
+                                    Layout.preferredWidth: 32
+                                    Layout.preferredHeight: 32
+                                    radius: Theme.borderRadius
+                                    color: addButtonArea.containsMouse ? Theme.accentColor : Theme.borderColor
+
+                                    Image {
+                                        anchors.centerIn: parent
+                                        source: iconsPath + "plus.svg"
+                                        sourceSize: Qt.size(16, 16)
+                                    }
+
+                                    MouseArea {
+                                        id: addButtonArea
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: {
                                             if (newTodoField.text.trim() !== "") {
                                                 todoBackend.addTodo(newTodoField.text)
                                                 newTodoField.text = ""
                                             }
                                         }
                                     }
-
-                                    Rectangle {
-                                        Layout.preferredWidth: 32
-                                        Layout.preferredHeight: 32
-                                        radius: Theme.borderRadius
-                                        color: addButtonArea.containsMouse ? Theme.accentColor : Theme.borderColor
-
-                                        Image {
-                                            anchors.centerIn: parent
-                                            source: iconsPath + "plus.svg"
-                                            sourceSize: Qt.size(16, 16)
-                                        }
-
-                                        MouseArea {
-                                            id: addButtonArea
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            onClicked: {
-                                                if (newTodoField.text.trim() !== "") {
-                                                    todoBackend.addTodo(newTodoField.text)
-                                                    newTodoField.text = ""
-                                                }
-                                            }
-                                        }
-                                    }
                                 }
                             }
                         }
                     }
+                }
 
-                    // Finished todos tab
-                    Item {
-                        id: finishedTab
+                // Finished todos view
+                Item {
+                    id: finishedTab
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                        bottomLeftRadius: todoWindow.effectiveWindowRadius
+                        bottomRightRadius: todoWindow.effectiveWindowRadius
 
                         ScrollView {
                             anchors.fill: parent
@@ -227,7 +194,7 @@ WidgetWindow {
 
                             ColumnLayout {
                                 width: parent.width
-                                spacing: 4
+                                spacing: 0
 
                                 Item { height: Theme.padding / 2 }
 
@@ -277,28 +244,46 @@ WidgetWindow {
         Layout.rightMargin: Theme.padding
         spacing: 2
 
+        // Drop indicator line (shown above this item when dragging)
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            Layout.bottomMargin: 2
+            color: Theme.accentColor
+            visible: dropAreaTop.containsDrag && todoWindow.draggedTodoId !== todoData.id
+            radius: 1
+        }
+
+        // Top drop area (for inserting above this item)
+        DropArea {
+            id: dropAreaTop
+            Layout.fillWidth: true
+            Layout.preferredHeight: 20
+            Layout.topMargin: -10
+            Layout.bottomMargin: -10
+            z: 10
+
+            onDropped: function(drop) {
+                var draggedId = drop.getDataAsString("todoId")
+                if (draggedId && draggedId !== todoData.id) {
+                    todoBackend.reorderTodo(draggedId, itemIndex)
+                }
+                todoWindow.draggedTodoId = ""
+            }
+        }
+
         // Main todo item
         Rectangle {
             id: todoItem
             Layout.fillWidth: true
             Layout.preferredHeight: Math.max(44, todoText.implicitHeight + Theme.padding)
             radius: Theme.borderRadius
-            color: dragArea.drag.active ? Theme.accentColor : (itemMouseArea.containsMouse ? Theme.surfaceColor : "transparent")
-            border.color: dropArea.containsDrag ? Theme.accentColor : "transparent"
-            border.width: dropArea.containsDrag ? 2 : 0
+            color: itemMouseArea.containsMouse ? Theme.surfaceColor : "transparent"
+            opacity: todoWindow.draggedTodoId === todoData.id ? 0.5 : 1.0
 
-            // Drop area for reordering
-            DropArea {
-                id: dropArea
-                anchors.fill: parent
-
-                onDropped: function(drop) {
-                    var draggedId = drop.getDataAsString("todoId")
-                    if (draggedId && draggedId !== todoData.id) {
-                        todoBackend.reorderTodo(draggedId, itemIndex)
-                    }
-                }
-            }
+            Drag.active: dragArea.drag.active
+            Drag.hotSpot: Qt.point(width / 2, height / 2)
+            Drag.mimeData: {"todoId": todoData.id}
 
             MouseArea {
                 id: itemMouseArea
@@ -311,6 +296,43 @@ WidgetWindow {
                 anchors.leftMargin: Theme.padding / 2
                 anchors.rightMargin: Theme.padding / 2
                 spacing: Theme.spacing / 2
+
+                // Drag handle (at the start)
+                Rectangle {
+                    id: dragHandle
+                    Layout.preferredWidth: 24
+                    Layout.preferredHeight: 24
+                    radius: 4
+                    color: dragArea.containsMouse ? Theme.surfaceColor : "transparent"
+                    visible: !isFinishedTab
+
+                    Image {
+                        anchors.centerIn: parent
+                        source: iconsPath + "grip-vertical.svg"
+                        sourceSize: Qt.size(14, 14)
+                    }
+
+                    MouseArea {
+                        id: dragArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        drag.target: todoItem
+                        drag.axis: Drag.YAxis
+
+                        onPressed: {
+                            todoWindow.draggedTodoId = todoData.id
+                            todoItem.Drag.active = true
+                        }
+
+                        onReleased: {
+                            todoItem.Drag.drop()
+                            todoItem.Drag.active = false
+                            todoItem.x = 0
+                            todoItem.y = 0
+                            todoWindow.draggedTodoId = ""
+                        }
+                    }
+                }
 
                 // Checkbox
                 Rectangle {
@@ -373,17 +395,18 @@ WidgetWindow {
                         id: addChildArea
                         anchors.fill: parent
                         hoverEnabled: true
-                        onClicked: todoItemRoot.showAddChild = !todoItemRoot.showAddChild
+                        onClicked: {
+                            todoItemRoot.showAddChild = true
+                        }
                     }
                 }
 
-                // Delete button
+                // Delete button (always visible)
                 Rectangle {
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
                     radius: 4
                     color: deleteArea.containsMouse ? Theme.surfaceColor : "transparent"
-                    visible: itemMouseArea.containsMouse || deleteArea.containsMouse
 
                     Image {
                         anchors.centerIn: parent
@@ -398,56 +421,24 @@ WidgetWindow {
                         onClicked: todoBackend.deleteTodo(todoData.id)
                     }
                 }
-
-                // Drag handle
-                Rectangle {
-                    id: dragHandle
-                    Layout.preferredWidth: 24
-                    Layout.preferredHeight: 24
-                    radius: 4
-                    color: dragArea.containsMouse ? Theme.surfaceColor : "transparent"
-                    visible: !isFinishedTab
-
-                    Image {
-                        anchors.centerIn: parent
-                        source: iconsPath + "grip-vertical.svg"
-                        sourceSize: Qt.size(14, 14)
-                    }
-
-                    MouseArea {
-                        id: dragArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        drag.target: todoItem
-                        drag.axis: Drag.YAxis
-
-                        onPressed: {
-                            todoItem.Drag.active = true
-                            todoItem.Drag.hotSpot = Qt.point(todoItem.width / 2, todoItem.height / 2)
-                        }
-
-                        onReleased: {
-                            todoItem.Drag.active = false
-                            todoItem.x = 0
-                            todoItem.y = 0
-                        }
-                    }
-
-                    Drag.active: dragArea.drag.active
-                    Drag.source: todoItem
-                    Drag.mimeData: {"todoId": todoData.id}
-                }
             }
         }
 
         // Add child input (shown when + is clicked)
         Rectangle {
+            id: addChildContainer
             Layout.fillWidth: true
             Layout.preferredHeight: 36
             Layout.leftMargin: 24
             color: Theme.surfaceColor
             radius: Theme.borderRadius
             visible: todoItemRoot.showAddChild
+
+            onVisibleChanged: {
+                if (visible) {
+                    childTodoField.forceActiveFocus()
+                }
+            }
 
             RowLayout {
                 anchors.fill: parent
@@ -466,6 +457,12 @@ WidgetWindow {
                         border.color: childTodoField.activeFocus ? Theme.accentColor : Theme.borderColor
                         border.width: 1
                         radius: Theme.borderRadius
+                    }
+
+                    onActiveFocusChanged: {
+                        if (!activeFocus && childTodoField.text.trim() === "") {
+                            todoItemRoot.showAddChild = false
+                        }
                     }
 
                     Keys.onReturnPressed: {
@@ -569,13 +566,12 @@ WidgetWindow {
                         verticalAlignment: Text.AlignVCenter
                     }
 
-                    // Child delete button
+                    // Child delete button (always visible)
                     Rectangle {
                         Layout.preferredWidth: 20
                         Layout.preferredHeight: 20
                         radius: 4
                         color: childDeleteArea.containsMouse ? Theme.surfaceColor : "transparent"
-                        visible: childMouseArea.containsMouse || childDeleteArea.containsMouse
 
                         Image {
                             anchors.centerIn: parent
@@ -592,6 +588,32 @@ WidgetWindow {
                     }
                 }
             }
+        }
+
+        // Bottom drop area (for inserting at the end when this is the last item)
+        DropArea {
+            id: dropAreaBottom
+            Layout.fillWidth: true
+            Layout.preferredHeight: itemIndex === totalItems - 1 ? 20 : 0
+            visible: itemIndex === totalItems - 1
+
+            onDropped: function(drop) {
+                var draggedId = drop.getDataAsString("todoId")
+                if (draggedId && draggedId !== todoData.id) {
+                    todoBackend.reorderTodo(draggedId, totalItems)
+                }
+                todoWindow.draggedTodoId = ""
+            }
+        }
+
+        // Drop indicator line at bottom (only for last item)
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            Layout.topMargin: 2
+            color: Theme.accentColor
+            visible: itemIndex === totalItems - 1 && dropAreaBottom.containsDrag && todoWindow.draggedTodoId !== todoData.id
+            radius: 1
         }
     }
 }
