@@ -48,6 +48,9 @@ def main():
     # Pass icons directory as a context property
     engine.rootContext().setContextProperty("iconsPath", QUrl.fromLocalFile(str(icons_dir) + "/"))
 
+    # Pass enabled widgets config to QML
+    engine.rootContext().setContextProperty("enabledWidgets", enabled)
+
     # Set up settings backend
     settings = SettingsBackend()
     engine.rootContext().setContextProperty("settingsBackend", settings)

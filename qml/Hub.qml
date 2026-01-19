@@ -188,10 +188,14 @@ WidgetWindow {
 
                     // Weather widget toggle
                     Rectangle {
+                        id: weatherToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.weather === true
+
                         Layout.fillWidth: true
                         Layout.preferredHeight: 48
                         radius: Theme.borderRadius
                         color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
 
                         RowLayout {
                             anchors.fill: parent
@@ -210,6 +214,7 @@ WidgetWindow {
                                 text: "Weather"
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !weatherToggle.widgetEnabled
                                 Layout.fillWidth: true
                             }
 
@@ -233,6 +238,7 @@ WidgetWindow {
 
                                 MouseArea {
                                     anchors.fill: parent
+                                    enabled: weatherToggle.widgetEnabled
                                     onClicked: hubBackend.setWeatherVisible(!hubBackend.weatherVisible)
                                 }
                             }
@@ -241,10 +247,14 @@ WidgetWindow {
 
                     // Media control widget toggle
                     Rectangle {
+                        id: mediaToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.media === true
+
                         Layout.fillWidth: true
                         Layout.preferredHeight: 48
                         radius: Theme.borderRadius
                         color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
 
                         RowLayout {
                             anchors.fill: parent
@@ -263,6 +273,7 @@ WidgetWindow {
                                 text: "Media Control"
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !mediaToggle.widgetEnabled
                                 Layout.fillWidth: true
                             }
 
@@ -286,6 +297,7 @@ WidgetWindow {
 
                                 MouseArea {
                                     anchors.fill: parent
+                                    enabled: mediaToggle.widgetEnabled
                                     onClicked: hubBackend.setMediaVisible(!hubBackend.mediaVisible)
                                 }
                             }
@@ -294,10 +306,14 @@ WidgetWindow {
 
                     // Theme widget toggle
                     Rectangle {
+                        id: settingsToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.general_settings === true
+
                         Layout.fillWidth: true
                         Layout.preferredHeight: 48
                         radius: Theme.borderRadius
                         color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
 
                         RowLayout {
                             anchors.fill: parent
@@ -316,6 +332,7 @@ WidgetWindow {
                                 text: "General Settings"
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !settingsToggle.widgetEnabled
                                 Layout.fillWidth: true
                             }
 
@@ -339,6 +356,7 @@ WidgetWindow {
 
                                 MouseArea {
                                     anchors.fill: parent
+                                    enabled: settingsToggle.widgetEnabled
                                     onClicked: hubBackend.setThemeVisible(!hubBackend.themeVisible)
                                 }
                             }
