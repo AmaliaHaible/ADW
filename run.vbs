@@ -1,0 +1,1 @@
+CreateObject("WScript.Shell").Run "uv run pythonw main.py", 0, False
