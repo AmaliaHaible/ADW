@@ -25,37 +25,56 @@ WidgetWindow {
     property int draggedItemIndex: -1
     property int dragTargetIndex: -1
 
-    function isLightColor(hexColor) {
-        if (!hexColor || hexColor.length < 7) return false
-        // Handle colors with alpha prefix (e.g., #e61e1e2e)
+    function getLuminance(hexColor) {
+        if (!hexColor || hexColor.length < 7) return 0.5
         var colorStr = hexColor.length > 7 ? "#" + hexColor.substring(hexColor.length - 6) : hexColor
         var r = parseInt(colorStr.substring(1, 3), 16)
         var g = parseInt(colorStr.substring(3, 5), 16)
         var b = parseInt(colorStr.substring(5, 7), 16)
-        var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-        return luminance > 0.5
+        return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    }
+
+    function isLightColor(hexColor) {
+        return getLuminance(hexColor) > 0.5
+    }
+
+    function getContrastRatio(lum1, lum2) {
+        var lighter = Math.max(lum1, lum2)
+        var darker = Math.min(lum1, lum2)
+        return (lighter + 0.05) / (darker + 0.05)
     }
 
     function getTextColor(bgColor) {
-        // Check if background and primary text have similar luminance (both light or both dark)
-        // If similar, they won't have good contrast - use inverted text color
-        var bgIsLight = isLightColor(bgColor)
-        var primaryIsLight = isLightColor(Theme.textPrimary.toString())
-        
-        if (bgIsLight === primaryIsLight) {
-            return Theme.textPrimaryInverted
-        }
-        return Theme.textPrimary
+        var bgLum = getLuminance(bgColor)
+        var primaryLum = getLuminance(Theme.textPrimary.toString())
+        var invertedLum = getLuminance(Theme.textPrimaryInverted.toString())
+
+        var contrastPrimary = getContrastRatio(bgLum, primaryLum)
+        var contrastInverted = getContrastRatio(bgLum, invertedLum)
+
+        return contrastPrimary >= contrastInverted ? Theme.textPrimary : Theme.textPrimaryInverted
     }
 
     function getSecondaryTextColor(bgColor) {
-        var bgIsLight = isLightColor(bgColor)
-        var secondaryIsLight = isLightColor(Theme.textSecondary.toString())
-        
-        if (bgIsLight === secondaryIsLight) {
-            return Theme.textSecondaryInverted
+        var bgLum = getLuminance(bgColor)
+        var secondaryLum = getLuminance(Theme.textSecondary.toString())
+        var invertedLum = getLuminance(Theme.textSecondaryInverted.toString())
+
+        var contrastSecondary = getContrastRatio(bgLum, secondaryLum)
+        var contrastInverted = getContrastRatio(bgLum, invertedLum)
+
+        return contrastSecondary >= contrastInverted ? Theme.textSecondary : Theme.textSecondaryInverted
+    }
+
+    function getPlaceholderColor(bgColor) {
+        var bgLum = getLuminance(bgColor)
+        var mutedLum = getLuminance(Theme.textMuted.toString())
+        var contrastMuted = getContrastRatio(bgLum, mutedLum)
+
+        if (contrastMuted >= 2.0) {
+            return Theme.textMuted
         }
-        return Theme.textSecondary
+        return getSecondaryTextColor(bgColor)
     }
 
     Column {
@@ -292,13 +311,14 @@ WidgetWindow {
                             Layout.fillWidth: true
                             text: notesBackend.currentNote ? notesBackend.currentNote.title : ""
                             placeholderText: "Note title..."
-                            color: Theme.textPrimary
+                            placeholderTextColor: getPlaceholderColor(editorView.currentNoteColor.toString())
+                            color: getTextColor(editorView.currentNoteColor.toString())
                             font.pixelSize: Theme.fontSizeLarge
                             font.weight: Font.Medium
 
                             background: Rectangle {
-                                color: "transparent"
-                                border.color: titleField.activeFocus ? Theme.accentColor : "transparent"
+                                color: editorView.currentNoteColor
+                                border.color: titleField.activeFocus ? Theme.accentColor : Theme.borderColor
                                 border.width: 1
                                 radius: Theme.borderRadius
                             }
@@ -325,7 +345,7 @@ WidgetWindow {
                                 id: contentArea
                                 text: notesBackend.currentNote ? notesBackend.currentNote.content : ""
                                 placeholderText: "Write your note..."
-                                placeholderTextColor: getSecondaryTextColor(editorView.currentNoteColor.toString())
+                                placeholderTextColor: getPlaceholderColor(editorView.currentNoteColor.toString())
                                 color: getTextColor(editorView.currentNoteColor.toString())
                                 font.pixelSize: Theme.fontSizeNormal
                                 wrapMode: TextArea.Wrap
