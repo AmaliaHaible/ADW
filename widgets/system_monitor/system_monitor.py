@@ -38,7 +38,8 @@ class SystemMonitorBackend(QObject):
     @Property(int, notify=colorSettingsChanged)
     def cpuColorIndex(self):
         if self._settings:
-            return self._settings.getWidgetSetting("system_monitor", "cpuColorIndex", 4)
+            val = self._settings.getWidgetSetting("system_monitor", "cpuColorIndex")
+            return val if val is not None else 4
         return 4
 
     @Slot(int)
@@ -50,7 +51,8 @@ class SystemMonitorBackend(QObject):
     @Property(int, notify=colorSettingsChanged)
     def ramColorIndex(self):
         if self._settings:
-            return self._settings.getWidgetSetting("system_monitor", "ramColorIndex", 3)
+            val = self._settings.getWidgetSetting("system_monitor", "ramColorIndex")
+            return val if val is not None else 3
         return 3
 
     @Slot(int)
@@ -62,9 +64,8 @@ class SystemMonitorBackend(QObject):
     @Property(int, notify=colorSettingsChanged)
     def coresColorIndex(self):
         if self._settings:
-            return self._settings.getWidgetSetting(
-                "system_monitor", "coresColorIndex", 4
-            )
+            val = self._settings.getWidgetSetting("system_monitor", "coresColorIndex")
+            return val if val is not None else 4
         return 4
 
     @Slot(int)

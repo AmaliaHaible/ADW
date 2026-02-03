@@ -149,9 +149,8 @@ class NetworkMonitorBackend(QObject):
     @Property(int, notify=colorSettingsChanged)
     def uploadColorIndex(self):
         if self._settings:
-            return self._settings.getWidgetSetting(
-                "network_monitor", "uploadColorIndex", 1
-            )
+            val = self._settings.getWidgetSetting("network_monitor", "uploadColorIndex")
+            return val if val is not None else 1
         return 1
 
     @Slot(int)
@@ -165,9 +164,10 @@ class NetworkMonitorBackend(QObject):
     @Property(int, notify=colorSettingsChanged)
     def downloadColorIndex(self):
         if self._settings:
-            return self._settings.getWidgetSetting(
-                "network_monitor", "downloadColorIndex", 4
+            val = self._settings.getWidgetSetting(
+                "network_monitor", "downloadColorIndex"
             )
+            return val if val is not None else 4
         return 4
 
     @Slot(int)
