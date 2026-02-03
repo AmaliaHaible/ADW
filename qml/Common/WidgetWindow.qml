@@ -112,6 +112,9 @@ Window {
             
             var savedMinimized = settingsStore.getWidgetSetting(geometryKey, "minimized")
             if (savedMinimized === true) {
+                if (!anchorTop) {
+                    y = y + (_expandedHeight - Theme.titleBarHeight)
+                }
                 height = Theme.titleBarHeight
                 minimized = true
             }
