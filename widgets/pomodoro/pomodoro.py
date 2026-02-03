@@ -3,8 +3,7 @@ from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer
 
 # Try to import Windows toast notifications
 try:
-    import winrt.windows.ui.notifications as wun
-    from winrt.windows.data.xml.dom import XmlDocument
+    from winotify import Notification, audio
 
     HAS_TOAST = True
 except ImportError:
@@ -115,23 +114,14 @@ class PomodoroBackend(QObject):
             return
 
         try:
-            xml = XmlDocument()
-            xml.load_xml(f"""
-                <toast duration="short">
-                    <visual>
-                        <binding template="ToastGeneric">
-                            <text>{title}</text>
-                            <text>{message}</text>
-                        </binding>
-                    </visual>
-                    <audio src="ms-winsoundevent:Notification.Default"/>
-                </toast>
-            """)
-            manager = wun.ToastNotificationManager.get_default()
-            notifier = manager.create_toast_notifier_with_id(
-                "Microsoft.Windows.PowerShell"
+            toast = Notification(
+                app_id="QML Shell",
+                title=title,
+                msg=message,
+                duration="short",
             )
-            notifier.show(wun.ToastNotification(xml))
+            toast.set_audio(audio.Default, loop=False)
+            toast.show()
             print(f"[Pomodoro] Toast sent: {title}")
         except Exception as e:
             print(f"[Pomodoro] Toast error: {e}")

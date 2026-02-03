@@ -117,10 +117,13 @@ WidgetWindow {
                                     model: notesBackend.notes
 
                                     delegate: Rectangle {
+                                        property color noteColor: modelData.color || Theme.surfaceColor
+                                        property color hoverColor: isLightColor(noteColor.toString()) ? Qt.darker(noteColor, 1.1) : Qt.lighter(noteColor, 1.2)
+
                                         Layout.fillWidth: true
                                         Layout.preferredHeight: 56
                                         radius: Theme.borderRadius
-                                        color: noteMouseArea.containsMouse ? Theme.surfaceColor : modelData.color || Theme.surfaceColor
+                                        color: noteMouseArea.containsMouse ? hoverColor : noteColor
                                         border.color: Theme.borderColor
                                         border.width: 1
                                         clip: true

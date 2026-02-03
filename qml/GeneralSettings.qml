@@ -90,6 +90,8 @@ WidgetWindow {
                                 {name: "textPrimary", label: "Text Primary"},
                                 {name: "textSecondary", label: "Text Secondary"},
                                 {name: "textMuted", label: "Text Muted"},
+                                {name: "textPrimaryDark", label: "Text Primary (Dark)"},
+                                {name: "textSecondaryDark", label: "Text Secondary (Dark)"},
                                 {name: "borderColor", label: "Border"}
                             ]
 
@@ -315,14 +317,14 @@ WidgetWindow {
                                 width: Math.max(80, hotkeyText.implicitWidth + 16)
                                 height: 24
                                 radius: 4
-                                color: hotkeyBackend && hotkeyBackend.recording ? Theme.accentColor : Theme.surfaceColor
+                                color: hotkeyBackend && hotkeyBackend.recording && hotkeyBackend.recordingTarget === "always_on_top" ? Theme.accentColor : Theme.surfaceColor
                                 border.color: Theme.borderColor
                                 border.width: 1
 
                                 Text {
                                     id: hotkeyText
                                     anchors.centerIn: parent
-                                    text: hotkeyBackend ? (hotkeyBackend.recording ?
+                                    text: hotkeyBackend ? (hotkeyBackend.recording && hotkeyBackend.recordingTarget === "always_on_top" ?
                                         (hotkeyBackend.recordedHotkey || "Press keys...") :
                                         hotkeyBackend.getDisplayHotkey()) : "N/A"
                                     color: Theme.textPrimary
@@ -333,14 +335,14 @@ WidgetWindow {
                                     anchors.fill: parent
                                     onClicked: {
                                         if (hotkeyBackend && !hotkeyBackend.recording) {
-                                            hotkeyBackend.startRecording()
+                                            hotkeyBackend.startRecording("always_on_top")
                                             hotkeyButton.forceActiveFocus()
                                         }
                                     }
                                 }
 
                                 Keys.onPressed: function(event) {
-                                    if (hotkeyBackend && hotkeyBackend.recording) {
+                                    if (hotkeyBackend && hotkeyBackend.recording && hotkeyBackend.recordingTarget === "always_on_top") {
                                         if (event.key === Qt.Key_Escape) {
                                             hotkeyBackend.cancelRecording()
                                         } else {
@@ -350,7 +352,7 @@ WidgetWindow {
                                     }
                                 }
 
-                                focus: hotkeyBackend ? hotkeyBackend.recording : false
+                                focus: hotkeyBackend ? (hotkeyBackend.recording && hotkeyBackend.recordingTarget === "always_on_top") : false
                             }
 
                             Rectangle {
@@ -360,7 +362,98 @@ WidgetWindow {
                                 color: Theme.surfaceColor
                                 border.color: Theme.borderColor
                                 border.width: 1
-                                visible: hotkeyBackend ? hotkeyBackend.recording : false
+                                visible: hotkeyBackend ? (hotkeyBackend.recording && hotkeyBackend.recordingTarget === "always_on_top") : false
+
+                                Image {
+                                    anchors.centerIn: parent
+                                    width: 12
+                                    height: 12
+                                    source: iconsPath + "x.svg"
+                                    sourceSize: Qt.size(12, 12)
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        if (hotkeyBackend) {
+                                            hotkeyBackend.cancelRecording()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 36
+                        radius: Theme.borderRadius / 2
+                        color: Theme.surfaceColor
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.spacing
+                            anchors.rightMargin: Theme.spacing
+                            spacing: Theme.spacing
+
+                            Text {
+                                text: "Show Hub"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                id: showHubHotkeyButton
+                                width: Math.max(80, showHubHotkeyText.implicitWidth + 16)
+                                height: 24
+                                radius: 4
+                                color: hotkeyBackend && hotkeyBackend.recording && hotkeyBackend.recordingTarget === "show_hub" ? Theme.accentColor : Theme.surfaceColor
+                                border.color: Theme.borderColor
+                                border.width: 1
+
+                                Text {
+                                    id: showHubHotkeyText
+                                    anchors.centerIn: parent
+                                    text: hotkeyBackend ? (hotkeyBackend.recording && hotkeyBackend.recordingTarget === "show_hub" ?
+                                        (hotkeyBackend.recordedHotkey || "Press keys...") :
+                                        hotkeyBackend.getDisplayShowHubHotkey()) : "N/A"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeSmall
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        if (hotkeyBackend && !hotkeyBackend.recording) {
+                                            hotkeyBackend.startRecording("show_hub")
+                                            showHubHotkeyButton.forceActiveFocus()
+                                        }
+                                    }
+                                }
+
+                                Keys.onPressed: function(event) {
+                                    if (hotkeyBackend && hotkeyBackend.recording && hotkeyBackend.recordingTarget === "show_hub") {
+                                        if (event.key === Qt.Key_Escape) {
+                                            hotkeyBackend.cancelRecording()
+                                        } else {
+                                            hotkeyBackend.recordKeyPress(event.key, event.modifiers)
+                                        }
+                                        event.accepted = true
+                                    }
+                                }
+
+                                focus: hotkeyBackend ? (hotkeyBackend.recording && hotkeyBackend.recordingTarget === "show_hub") : false
+                            }
+
+                            Rectangle {
+                                width: 24
+                                height: 24
+                                radius: 4
+                                color: Theme.surfaceColor
+                                border.color: Theme.borderColor
+                                border.width: 1
+                                visible: hotkeyBackend ? (hotkeyBackend.recording && hotkeyBackend.recordingTarget === "show_hub") : false
 
                                 Image {
                                     anchors.centerIn: parent

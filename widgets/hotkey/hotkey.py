@@ -21,6 +21,7 @@ class HotkeyBackend(QObject):
     showHubHotkeyChanged = Signal(str)
     recordingChanged = Signal(bool)
     recordedHotkeyChanged = Signal(str)
+    recordingTargetChanged = Signal(str)
 
     def __init__(self, settings_backend=None, hub_backend=None, parent=None):
         super().__init__(parent)
@@ -30,6 +31,7 @@ class HotkeyBackend(QObject):
         self._always_on_top_hotkey_id = None
         self._show_hub_hotkey_id = None
         self._recording = False
+        self._recording_target = ""
         self._recorded_modifiers = 0
         self._recorded_vk = 0
         self._recorded_hotkey = ""
@@ -98,16 +100,27 @@ class HotkeyBackend(QObject):
 
     @Property(str, notify=alwaysOnTopHotkeyChanged)
     def alwaysOnTopHotkey(self) -> str:
-        """The current always-on-top hotkey string."""
         return self._always_on_top_hotkey
 
     @alwaysOnTopHotkey.setter
     def alwaysOnTopHotkey(self, value: str):
         if self._always_on_top_hotkey != value:
             self._always_on_top_hotkey = value
-            self._save_hotkey_setting()
+            self._save_always_on_top_setting()
             self._register_always_on_top_hotkey()
             self.alwaysOnTopHotkeyChanged.emit(value)
+
+    @Property(str, notify=showHubHotkeyChanged)
+    def showHubHotkey(self) -> str:
+        return self._show_hub_hotkey
+
+    @showHubHotkey.setter
+    def showHubHotkey(self, value: str):
+        if self._show_hub_hotkey != value:
+            self._show_hub_hotkey = value
+            self._save_show_hub_setting()
+            self._register_show_hub_hotkey()
+            self.showHubHotkeyChanged.emit(value)
 
     @Property(bool, notify=recordingChanged)
     def recording(self) -> bool:
@@ -122,46 +135,57 @@ class HotkeyBackend(QObject):
 
     @Property(str, notify=recordedHotkeyChanged)
     def recordedHotkey(self) -> str:
-        """The hotkey being recorded."""
         return self._recorded_hotkey
 
-    def _save_hotkey_setting(self):
-        """Save the current hotkey to settings."""
+    @Property(str, notify=recordingTargetChanged)
+    def recordingTarget(self) -> str:
+        return self._recording_target
+
+    def _save_always_on_top_setting(self):
         if self._settings:
             self._settings.setHotkey("always_on_top", self._always_on_top_hotkey)
 
-    # Slots for QML
+    def _save_show_hub_setting(self):
+        if self._settings:
+            self._settings.setHotkey("show_hub", self._show_hub_hotkey)
 
     @Slot(str)
     def setAlwaysOnTopHotkey(self, hotkey: str):
-        """Set a new always-on-top hotkey."""
-        # Validate the hotkey first
         if parse_hotkey_string(hotkey):
             self.alwaysOnTopHotkey = hotkey.lower()
 
-    @Slot()
-    def startRecording(self):
-        """Start recording a new hotkey combination."""
+    @Slot(str)
+    def setShowHubHotkey(self, hotkey: str):
+        if parse_hotkey_string(hotkey):
+            self.showHubHotkey = hotkey.lower()
+
+    @Slot(str)
+    def startRecording(self, target: str = "always_on_top"):
+        self._recording_target = target
         self._recorded_modifiers = 0
         self._recorded_vk = 0
         self._recorded_hotkey = ""
         self.recordedHotkeyChanged.emit("")
+        self.recordingTargetChanged.emit(target)
         self.recording = True
 
     @Slot()
     def cancelRecording(self):
-        """Cancel hotkey recording."""
         self._recorded_modifiers = 0
         self._recorded_vk = 0
         self._recorded_hotkey = ""
+        self._recording_target = ""
         self.recordedHotkeyChanged.emit("")
         self.recording = False
 
     @Slot()
     def confirmRecording(self):
-        """Confirm the recorded hotkey and apply it."""
         if self._recorded_hotkey:
-            self.alwaysOnTopHotkey = self._recorded_hotkey.lower()
+            if self._recording_target == "show_hub":
+                self.showHubHotkey = self._recorded_hotkey.lower()
+            else:
+                self.alwaysOnTopHotkey = self._recorded_hotkey.lower()
+        self._recording_target = ""
         self.recording = False
 
     @Slot(int, int)
@@ -279,8 +303,14 @@ class HotkeyBackend(QObject):
 
     @Slot(result=str)
     def getDisplayHotkey(self) -> str:
-        """Get a display-friendly version of the hotkey."""
         parsed = parse_hotkey_string(self._always_on_top_hotkey)
         if parsed:
             return hotkey_to_string(parsed[0], parsed[1])
         return self._always_on_top_hotkey
+
+    @Slot(result=str)
+    def getDisplayShowHubHotkey(self) -> str:
+        parsed = parse_hotkey_string(self._show_hub_hotkey)
+        if parsed:
+            return hotkey_to_string(parsed[0], parsed[1])
+        return self._show_hub_hotkey

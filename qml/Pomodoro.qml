@@ -242,13 +242,13 @@ WidgetWindow {
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: Theme.padding
-                        spacing: Theme.spacing / 2
+                        spacing: Theme.spacing
 
                         GridLayout {
                             Layout.fillWidth: true
                             columns: 2
                             columnSpacing: Theme.spacing
-                            rowSpacing: Theme.spacing / 2
+                            rowSpacing: Theme.spacing
 
                             Text {
                                 text: "Work"
@@ -256,62 +256,74 @@ WidgetWindow {
                                 font.pixelSize: Theme.fontSizeSmall
                             }
 
-                            SpinBox {
-                                id: workSpinBox
+                            RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 32
-                                from: 1
-                                to: 60
-                                value: pomodoroBackend.workDuration
-                                editable: true
-                                onValueModified: pomodoroBackend.setWorkDuration(value)
+                                spacing: 4
 
-                                contentItem: TextInput {
-                                    z: 2
-                                    text: workSpinBox.textFromValue(workSpinBox.value, workSpinBox.locale)
+                                Rectangle {
+                                    width: 28
+                                    height: 28
+                                    radius: Theme.borderRadius
+                                    color: workDown.pressed ? Theme.accentColor : (workDown.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "-"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 14
+                                    }
+
+                                    MouseArea {
+                                        id: workDown
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: if (pomodoroBackend.workDuration > 1) pomodoroBackend.setWorkDuration(pomodoroBackend.workDuration - 1)
+                                    }
+                                }
+
+                                TextField {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 28
+                                    text: pomodoroBackend.workDuration
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeNormal
                                     horizontalAlignment: Qt.AlignHCenter
-                                    verticalAlignment: Qt.AlignVCenter
                                     inputMethodHints: Qt.ImhDigitsOnly
-                                    validator: workSpinBox.validator
-                                    selectByMouse: true
-                                }
+                                    validator: IntValidator { bottom: 1; top: 60 }
 
-                                up.indicator: Rectangle {
-                                    x: workSpinBox.width - width
-                                    height: workSpinBox.height / 2
-                                    implicitWidth: 20
-                                    color: workSpinBox.up.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    background: Rectangle {
+                                        color: Theme.surfaceColor
+                                        border.color: parent.activeFocus ? Theme.accentColor : Theme.borderColor
+                                        border.width: 1
+                                        radius: Theme.borderRadius
+                                    }
 
-                                    Text {
-                                        text: "+"
-                                        font.pixelSize: 12
-                                        color: Theme.textPrimary
-                                        anchors.centerIn: parent
+                                    onEditingFinished: {
+                                        var val = parseInt(text)
+                                        if (val >= 1 && val <= 60) pomodoroBackend.setWorkDuration(val)
+                                        else text = pomodoroBackend.workDuration
                                     }
                                 }
 
-                                down.indicator: Rectangle {
-                                    x: workSpinBox.width - width
-                                    y: workSpinBox.height / 2
-                                    height: workSpinBox.height / 2
-                                    implicitWidth: 20
-                                    color: workSpinBox.down.pressed ? Theme.borderColor : Theme.surfaceColor
-
-                                    Text {
-                                        text: "-"
-                                        font.pixelSize: 12
-                                        color: Theme.textPrimary
-                                        anchors.centerIn: parent
-                                    }
-                                }
-
-                                background: Rectangle {
-                                    color: Theme.surfaceColor
-                                    border.color: Theme.borderColor
-                                    border.width: 1
+                                Rectangle {
+                                    width: 28
+                                    height: 28
                                     radius: Theme.borderRadius
+                                    color: workUp.pressed ? Theme.accentColor : (workUp.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "+"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 14
+                                    }
+
+                                    MouseArea {
+                                        id: workUp
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: if (pomodoroBackend.workDuration < 60) pomodoroBackend.setWorkDuration(pomodoroBackend.workDuration + 1)
+                                    }
                                 }
                             }
 
@@ -321,62 +333,74 @@ WidgetWindow {
                                 font.pixelSize: Theme.fontSizeSmall
                             }
 
-                            SpinBox {
-                                id: breakSpinBox
+                            RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 32
-                                from: 1
-                                to: 30
-                                value: pomodoroBackend.breakDuration
-                                editable: true
-                                onValueModified: pomodoroBackend.setBreakDuration(value)
+                                spacing: 4
 
-                                contentItem: TextInput {
-                                    z: 2
-                                    text: breakSpinBox.textFromValue(breakSpinBox.value, breakSpinBox.locale)
+                                Rectangle {
+                                    width: 28
+                                    height: 28
+                                    radius: Theme.borderRadius
+                                    color: breakDown.pressed ? Theme.accentColor : (breakDown.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "-"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 14
+                                    }
+
+                                    MouseArea {
+                                        id: breakDown
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: if (pomodoroBackend.breakDuration > 1) pomodoroBackend.setBreakDuration(pomodoroBackend.breakDuration - 1)
+                                    }
+                                }
+
+                                TextField {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 28
+                                    text: pomodoroBackend.breakDuration
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeNormal
                                     horizontalAlignment: Qt.AlignHCenter
-                                    verticalAlignment: Qt.AlignVCenter
                                     inputMethodHints: Qt.ImhDigitsOnly
-                                    validator: breakSpinBox.validator
-                                    selectByMouse: true
-                                }
+                                    validator: IntValidator { bottom: 1; top: 30 }
 
-                                up.indicator: Rectangle {
-                                    x: breakSpinBox.width - width
-                                    height: breakSpinBox.height / 2
-                                    implicitWidth: 20
-                                    color: breakSpinBox.up.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    background: Rectangle {
+                                        color: Theme.surfaceColor
+                                        border.color: parent.activeFocus ? Theme.accentColor : Theme.borderColor
+                                        border.width: 1
+                                        radius: Theme.borderRadius
+                                    }
 
-                                    Text {
-                                        text: "+"
-                                        font.pixelSize: 12
-                                        color: Theme.textPrimary
-                                        anchors.centerIn: parent
+                                    onEditingFinished: {
+                                        var val = parseInt(text)
+                                        if (val >= 1 && val <= 30) pomodoroBackend.setBreakDuration(val)
+                                        else text = pomodoroBackend.breakDuration
                                     }
                                 }
 
-                                down.indicator: Rectangle {
-                                    x: breakSpinBox.width - width
-                                    y: breakSpinBox.height / 2
-                                    height: breakSpinBox.height / 2
-                                    implicitWidth: 20
-                                    color: breakSpinBox.down.pressed ? Theme.borderColor : Theme.surfaceColor
-
-                                    Text {
-                                        text: "-"
-                                        font.pixelSize: 12
-                                        color: Theme.textPrimary
-                                        anchors.centerIn: parent
-                                    }
-                                }
-
-                                background: Rectangle {
-                                    color: Theme.surfaceColor
-                                    border.color: Theme.borderColor
-                                    border.width: 1
+                                Rectangle {
+                                    width: 28
+                                    height: 28
                                     radius: Theme.borderRadius
+                                    color: breakUp.pressed ? Theme.accentColor : (breakUp.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "+"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 14
+                                    }
+
+                                    MouseArea {
+                                        id: breakUp
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: if (pomodoroBackend.breakDuration < 30) pomodoroBackend.setBreakDuration(pomodoroBackend.breakDuration + 1)
+                                    }
                                 }
                             }
 
@@ -386,62 +410,74 @@ WidgetWindow {
                                 font.pixelSize: Theme.fontSizeSmall
                             }
 
-                            SpinBox {
-                                id: longBreakSpinBox
+                            RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 32
-                                from: 1
-                                to: 60
-                                value: pomodoroBackend.longBreakDuration
-                                editable: true
-                                onValueModified: pomodoroBackend.setLongBreakDuration(value)
+                                spacing: 4
 
-                                contentItem: TextInput {
-                                    z: 2
-                                    text: longBreakSpinBox.textFromValue(longBreakSpinBox.value, longBreakSpinBox.locale)
+                                Rectangle {
+                                    width: 28
+                                    height: 28
+                                    radius: Theme.borderRadius
+                                    color: longDown.pressed ? Theme.accentColor : (longDown.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "-"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 14
+                                    }
+
+                                    MouseArea {
+                                        id: longDown
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: if (pomodoroBackend.longBreakDuration > 1) pomodoroBackend.setLongBreakDuration(pomodoroBackend.longBreakDuration - 1)
+                                    }
+                                }
+
+                                TextField {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 28
+                                    text: pomodoroBackend.longBreakDuration
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeNormal
                                     horizontalAlignment: Qt.AlignHCenter
-                                    verticalAlignment: Qt.AlignVCenter
                                     inputMethodHints: Qt.ImhDigitsOnly
-                                    validator: longBreakSpinBox.validator
-                                    selectByMouse: true
-                                }
+                                    validator: IntValidator { bottom: 1; top: 60 }
 
-                                up.indicator: Rectangle {
-                                    x: longBreakSpinBox.width - width
-                                    height: longBreakSpinBox.height / 2
-                                    implicitWidth: 20
-                                    color: longBreakSpinBox.up.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    background: Rectangle {
+                                        color: Theme.surfaceColor
+                                        border.color: parent.activeFocus ? Theme.accentColor : Theme.borderColor
+                                        border.width: 1
+                                        radius: Theme.borderRadius
+                                    }
 
-                                    Text {
-                                        text: "+"
-                                        font.pixelSize: 12
-                                        color: Theme.textPrimary
-                                        anchors.centerIn: parent
+                                    onEditingFinished: {
+                                        var val = parseInt(text)
+                                        if (val >= 1 && val <= 60) pomodoroBackend.setLongBreakDuration(val)
+                                        else text = pomodoroBackend.longBreakDuration
                                     }
                                 }
 
-                                down.indicator: Rectangle {
-                                    x: longBreakSpinBox.width - width
-                                    y: longBreakSpinBox.height / 2
-                                    height: longBreakSpinBox.height / 2
-                                    implicitWidth: 20
-                                    color: longBreakSpinBox.down.pressed ? Theme.borderColor : Theme.surfaceColor
-
-                                    Text {
-                                        text: "-"
-                                        font.pixelSize: 12
-                                        color: Theme.textPrimary
-                                        anchors.centerIn: parent
-                                    }
-                                }
-
-                                background: Rectangle {
-                                    color: Theme.surfaceColor
-                                    border.color: Theme.borderColor
-                                    border.width: 1
+                                Rectangle {
+                                    width: 28
+                                    height: 28
                                     radius: Theme.borderRadius
+                                    color: longUp.pressed ? Theme.accentColor : (longUp.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "+"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 14
+                                    }
+
+                                    MouseArea {
+                                        id: longUp
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: if (pomodoroBackend.longBreakDuration < 60) pomodoroBackend.setLongBreakDuration(pomodoroBackend.longBreakDuration + 1)
+                                    }
                                 }
                             }
 
@@ -451,62 +487,74 @@ WidgetWindow {
                                 font.pixelSize: Theme.fontSizeSmall
                             }
 
-                            SpinBox {
-                                id: sessionsSpinBox
+                            RowLayout {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 32
-                                from: 1
-                                to: 10
-                                value: pomodoroBackend.sessionsBeforeLongBreak
-                                editable: true
-                                onValueModified: pomodoroBackend.setSessionsBeforeLongBreak(value)
+                                spacing: 4
 
-                                contentItem: TextInput {
-                                    z: 2
-                                    text: sessionsSpinBox.textFromValue(sessionsSpinBox.value, sessionsSpinBox.locale)
+                                Rectangle {
+                                    width: 28
+                                    height: 28
+                                    radius: Theme.borderRadius
+                                    color: sessDown.pressed ? Theme.accentColor : (sessDown.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "-"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 14
+                                    }
+
+                                    MouseArea {
+                                        id: sessDown
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: if (pomodoroBackend.sessionsBeforeLongBreak > 1) pomodoroBackend.setSessionsBeforeLongBreak(pomodoroBackend.sessionsBeforeLongBreak - 1)
+                                    }
+                                }
+
+                                TextField {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 28
+                                    text: pomodoroBackend.sessionsBeforeLongBreak
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeNormal
                                     horizontalAlignment: Qt.AlignHCenter
-                                    verticalAlignment: Qt.AlignVCenter
                                     inputMethodHints: Qt.ImhDigitsOnly
-                                    validator: sessionsSpinBox.validator
-                                    selectByMouse: true
-                                }
+                                    validator: IntValidator { bottom: 1; top: 10 }
 
-                                up.indicator: Rectangle {
-                                    x: sessionsSpinBox.width - width
-                                    height: sessionsSpinBox.height / 2
-                                    implicitWidth: 20
-                                    color: sessionsSpinBox.up.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    background: Rectangle {
+                                        color: Theme.surfaceColor
+                                        border.color: parent.activeFocus ? Theme.accentColor : Theme.borderColor
+                                        border.width: 1
+                                        radius: Theme.borderRadius
+                                    }
 
-                                    Text {
-                                        text: "+"
-                                        font.pixelSize: 12
-                                        color: Theme.textPrimary
-                                        anchors.centerIn: parent
+                                    onEditingFinished: {
+                                        var val = parseInt(text)
+                                        if (val >= 1 && val <= 10) pomodoroBackend.setSessionsBeforeLongBreak(val)
+                                        else text = pomodoroBackend.sessionsBeforeLongBreak
                                     }
                                 }
 
-                                down.indicator: Rectangle {
-                                    x: sessionsSpinBox.width - width
-                                    y: sessionsSpinBox.height / 2
-                                    height: sessionsSpinBox.height / 2
-                                    implicitWidth: 20
-                                    color: sessionsSpinBox.down.pressed ? Theme.borderColor : Theme.surfaceColor
-
-                                    Text {
-                                        text: "-"
-                                        font.pixelSize: 12
-                                        color: Theme.textPrimary
-                                        anchors.centerIn: parent
-                                    }
-                                }
-
-                                background: Rectangle {
-                                    color: Theme.surfaceColor
-                                    border.color: Theme.borderColor
-                                    border.width: 1
+                                Rectangle {
+                                    width: 28
+                                    height: 28
                                     radius: Theme.borderRadius
+                                    color: sessUp.pressed ? Theme.accentColor : (sessUp.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "+"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 14
+                                    }
+
+                                    MouseArea {
+                                        id: sessUp
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: if (pomodoroBackend.sessionsBeforeLongBreak < 10) pomodoroBackend.setSessionsBeforeLongBreak(pomodoroBackend.sessionsBeforeLongBreak + 1)
+                                    }
                                 }
                             }
                         }
