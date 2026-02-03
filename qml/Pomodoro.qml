@@ -254,6 +254,7 @@ WidgetWindow {
                                 text: "Work"
                                 color: Theme.textSecondary
                                 font.pixelSize: Theme.fontSizeSmall
+                                Layout.alignment: Qt.AlignVCenter
                             }
 
                             RowLayout {
@@ -288,6 +289,9 @@ WidgetWindow {
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeNormal
                                     horizontalAlignment: Qt.AlignHCenter
+                                    verticalAlignment: Qt.AlignVCenter
+                                    topPadding: 0
+                                    bottomPadding: 0
                                     inputMethodHints: Qt.ImhDigitsOnly
                                     validator: IntValidator { bottom: 1; top: 60 }
 
@@ -331,6 +335,7 @@ WidgetWindow {
                                 text: "Break"
                                 color: Theme.textSecondary
                                 font.pixelSize: Theme.fontSizeSmall
+                                Layout.alignment: Qt.AlignVCenter
                             }
 
                             RowLayout {
@@ -365,6 +370,9 @@ WidgetWindow {
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeNormal
                                     horizontalAlignment: Qt.AlignHCenter
+                                    verticalAlignment: Qt.AlignVCenter
+                                    topPadding: 0
+                                    bottomPadding: 0
                                     inputMethodHints: Qt.ImhDigitsOnly
                                     validator: IntValidator { bottom: 1; top: 30 }
 
@@ -408,6 +416,7 @@ WidgetWindow {
                                 text: "Long Break"
                                 color: Theme.textSecondary
                                 font.pixelSize: Theme.fontSizeSmall
+                                Layout.alignment: Qt.AlignVCenter
                             }
 
                             RowLayout {
@@ -442,6 +451,9 @@ WidgetWindow {
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeNormal
                                     horizontalAlignment: Qt.AlignHCenter
+                                    verticalAlignment: Qt.AlignVCenter
+                                    topPadding: 0
+                                    bottomPadding: 0
                                     inputMethodHints: Qt.ImhDigitsOnly
                                     validator: IntValidator { bottom: 1; top: 60 }
 
@@ -485,6 +497,7 @@ WidgetWindow {
                                 text: "Sessions"
                                 color: Theme.textSecondary
                                 font.pixelSize: Theme.fontSizeSmall
+                                Layout.alignment: Qt.AlignVCenter
                             }
 
                             RowLayout {
@@ -519,6 +532,9 @@ WidgetWindow {
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeNormal
                                     horizontalAlignment: Qt.AlignHCenter
+                                    verticalAlignment: Qt.AlignVCenter
+                                    topPadding: 0
+                                    bottomPadding: 0
                                     inputMethodHints: Qt.ImhDigitsOnly
                                     validator: IntValidator { bottom: 1; top: 10 }
 

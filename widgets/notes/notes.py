@@ -2,12 +2,16 @@ import uuid
 from PySide6.QtCore import QObject, Property, Signal, Slot
 
 
+DEFAULT_COLORS = ["#313244", "#f38ba8", "#fab387", "#a6e3a1", "#89b4fa", "#cba6f7"]
+
+
 class NotesBackend(QObject):
     """Backend for quick notes widget."""
 
     notesChanged = Signal()
     currentNoteChanged = Signal()
     searchQueryChanged = Signal()
+    colorsChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
@@ -15,6 +19,7 @@ class NotesBackend(QObject):
         self._notes = []
         self._current_note_id = None
         self._search_query = ""
+        self._newly_created_note_id = None
         self._load_notes()
 
     def _load_notes(self):
@@ -72,6 +77,23 @@ class NotesBackend(QObject):
     def searchQuery(self):
         return self._search_query
 
+    @Property("QVariantList", notify=colorsChanged)
+    def availableColors(self):
+        if self._settings:
+            colors = self._settings.getWidgetSetting("notes", "colors")
+            if colors:
+                return colors
+        return DEFAULT_COLORS
+
+    @Slot(int, str)
+    def setColor(self, index, color):
+        if self._settings:
+            colors = list(self.availableColors)
+            if 0 <= index < len(colors):
+                colors[index] = color
+                self._settings.setWidgetSetting("notes", "colors", colors)
+                self.colorsChanged.emit()
+
     @Slot(str)
     def setSearchQuery(self, query):
         """Set search filter."""
@@ -97,6 +119,7 @@ class NotesBackend(QObject):
         }
         self._notes.append(note)
         self._current_note_id = note_id
+        self._newly_created_note_id = note_id
         self._save_notes()
         self.currentNoteChanged.emit()
         return note_id
@@ -105,10 +128,27 @@ class NotesBackend(QObject):
     def selectNote(self, note_id):
         """Select a note by ID."""
         if self._current_note_id != note_id:
+            self._cleanup_empty_note()
             self._current_note_id = note_id
             if self._settings:
                 self._settings.setWidgetSetting("notes", "current_note_id", note_id)
             self.currentNoteChanged.emit()
+
+    def _cleanup_empty_note(self):
+        if not self._newly_created_note_id:
+            return
+        if self._current_note_id != self._newly_created_note_id:
+            self._newly_created_note_id = None
+            return
+        note = next(
+            (n for n in self._notes if n.get("id") == self._newly_created_note_id), None
+        )
+        if note and note.get("title") == "New Note" and not note.get("content"):
+            self._notes = [
+                n for n in self._notes if n.get("id") != self._newly_created_note_id
+            ]
+            self.notesChanged.emit()
+        self._newly_created_note_id = None
 
     @Slot(str, str)
     def updateNoteTitle(self, note_id, title):
@@ -119,6 +159,8 @@ class NotesBackend(QObject):
         if note:
             note["title"] = title
             note["updated"] = int(time.time())
+            if note_id == self._newly_created_note_id and title != "New Note":
+                self._newly_created_note_id = None
             self._save_notes()
             if note_id == self._current_note_id:
                 self.currentNoteChanged.emit()
@@ -132,6 +174,8 @@ class NotesBackend(QObject):
         if note:
             note["content"] = content
             note["updated"] = int(time.time())
+            if note_id == self._newly_created_note_id and content:
+                self._newly_created_note_id = None
             self._save_notes()
             if note_id == self._current_note_id:
                 self.currentNoteChanged.emit()
@@ -154,6 +198,6 @@ class NotesBackend(QObject):
         """Delete a note."""
         self._notes = [n for n in self._notes if n.get("id") != note_id]
         if self._current_note_id == note_id:
-            self._current_note_id = self._notes[0].get("id") if self._notes else None
+            self._current_note_id = None
             self.currentNoteChanged.emit()
         self._save_notes()

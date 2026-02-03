@@ -83,6 +83,16 @@ class LauncherBackend(QObject):
                 break
         self._save_shortcuts()
 
+    @Slot(str, str, str)
+    def updateShortcut(self, shortcut_id, name, icon):
+        """Update shortcut name and icon."""
+        for s in self._shortcuts:
+            if s.get("id") == shortcut_id:
+                s["name"] = name
+                s["icon"] = icon
+                break
+        self._save_shortcuts()
+
     @Slot(str, int)
     def moveShortcut(self, shortcut_id, new_index):
         """Reorder shortcut to new index."""
@@ -154,6 +164,11 @@ class LauncherBackend(QObject):
         """Extract a name from a file path."""
         path_obj = Path(path)
         return path_obj.stem
+
+    @Slot(str, result=str)
+    def getIconForPath(self, path):
+        """Get appropriate icon for a file path."""
+        return self._get_default_icon(path)
 
     @Slot(result=str)
     def getDesktopPath(self):

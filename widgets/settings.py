@@ -11,20 +11,8 @@ from .theme_constants import DEFAULT_THEME
 
 DEFAULT_SETTINGS = {
     "widgets": {
-        "hub": {
-            "visible": True,
-            "x": 100,
-            "y": 100,
-            "width": 300,
-            "height": 250
-        },
-        "weather": {
-            "visible": False,
-            "x": 420,
-            "y": 100,
-            "width": 320,
-            "height": 280
-        },
+        "hub": {"visible": True, "x": 100, "y": 100, "width": 300, "height": 250},
+        "weather": {"visible": False, "x": 420, "y": 100, "width": 320, "height": 280},
         "media": {
             "visible": False,
             "x": 780,
@@ -32,20 +20,15 @@ DEFAULT_SETTINGS = {
             "width": 350,
             "height": 140,
             "max_sessions": 3,
-            "anchor_top": True
+            "anchor_top": True,
         },
-        "theme": {
-            "visible": False,
-            "x": 100,
-            "y": 370,
-            "width": 320,
-            "height": 450
-        }
+        "theme": {"visible": False, "x": 100, "y": 370, "width": 320, "height": 450},
+        "notes": {
+            "colors": ["#313244", "#f38ba8", "#fab387", "#a6e3a1", "#89b4fa", "#cba6f7"]
+        },
     },
-    "hotkeys": {
-        "always_on_top": "ctrl+alt+j"
-    },
-    "theme": DEFAULT_THEME
+    "hotkeys": {"always_on_top": "ctrl+alt+j"},
+    "theme": DEFAULT_THEME,
 }
 
 
@@ -103,17 +86,24 @@ class SettingsBackend(QObject):
         """Get widget geometry (x, y, width, height)."""
         if widget_name in self._settings["widgets"]:
             w = self._settings["widgets"][widget_name]
-            return {"x": w["x"], "y": w["y"], "width": w["width"], "height": w["height"]}
+            return {
+                "x": w["x"],
+                "y": w["y"],
+                "width": w["width"],
+                "height": w["height"],
+            }
         return {"x": 100, "y": 100, "width": 300, "height": 200}
 
     @Slot(str, int, int, int, int)
-    def setWidgetGeometry(self, widget_name: str, x: int, y: int, width: int, height: int):
+    def setWidgetGeometry(
+        self, widget_name: str, x: int, y: int, width: int, height: int
+    ):
         """Set widget geometry."""
         if widget_name not in self._settings["widgets"]:
             self._settings["widgets"][widget_name] = {"visible": False}
-        self._settings["widgets"][widget_name].update({
-            "x": x, "y": y, "width": width, "height": height
-        })
+        self._settings["widgets"][widget_name].update(
+            {"x": x, "y": y, "width": width, "height": height}
+        )
         self._save_settings()
         self.settingsChanged.emit()
 
@@ -128,7 +118,12 @@ class SettingsBackend(QObject):
     def setWidgetVisible(self, widget_name: str, visible: bool):
         """Set widget visibility."""
         if widget_name not in self._settings["widgets"]:
-            self._settings["widgets"][widget_name] = {"x": 100, "y": 100, "width": 300, "height": 200}
+            self._settings["widgets"][widget_name] = {
+                "x": 100,
+                "y": 100,
+                "width": 300,
+                "height": 200,
+            }
         self._settings["widgets"][widget_name]["visible"] = visible
         self._save_settings()
         self.settingsChanged.emit()

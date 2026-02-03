@@ -10,8 +10,8 @@ WidgetWindow {
     settingsStore: settingsBackend
     editMode: hubBackend.editMode
     hubVisible: hubBackend.hubVisible
-    minResizeWidth: 200
-    minResizeHeight: 200
+    minResizeWidth: 150
+    minResizeHeight: 150
 
     width: 250
     height: 300
@@ -21,7 +21,17 @@ WidgetWindow {
     title: "Launcher"
 
     property string editingShortcutId: ""
+    property string editingIcon: ""
     property int currentView: 0
+
+    property var availableIcons: [
+        "file.svg", "folder.svg", "globe.svg", "terminal.svg", "link.svg",
+        "app-window.svg", "chrome.svg", "code.svg", "database.svg", "file-text.svg",
+        "film.svg", "gamepad-2.svg", "git-branch.svg", "hard-drive.svg", "image.svg",
+        "mail.svg", "message-circle.svg", "music.svg", "package.svg", "pen-tool.svg",
+        "settings.svg", "shopping-cart.svg", "slack.svg", "spotify.svg", "twitch.svg",
+        "video.svg", "youtube.svg", "zap.svg", "coffee.svg", "camera.svg"
+    ]
 
     Column {
         anchors.fill: parent
@@ -48,6 +58,7 @@ WidgetWindow {
                     launcherWindow.toggleMinimize()
                 } else if (action === "add") {
                     launcherWindow.editingShortcutId = ""
+                    launcherWindow.editingIcon = "file.svg"
                     nameField.text = ""
                     pathField.text = ""
                     launcherWindow.currentView = 1
@@ -68,10 +79,24 @@ WidgetWindow {
                 currentIndex: launcherWindow.currentView
 
                 Item {
+                    id: mainView
+
+                    Text {
+                        anchors.centerIn: parent
+                        width: parent.width - Theme.padding * 4
+                        text: "No shortcuts yet.\n\nUse the + button in the\ntitle bar to add one,\nor drag files here.\n\nRight-click items to edit."
+                        color: Theme.textSecondary
+                        font.pixelSize: Theme.fontSizeNormal
+                        horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
+                        visible: launcherBackend.shortcuts.length === 0
+                    }
+
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: Theme.padding
                         spacing: Theme.spacing
+                        visible: launcherBackend.shortcuts.length > 0
 
                         TextField {
                             id: searchField
@@ -91,23 +116,29 @@ WidgetWindow {
                         }
 
                         ScrollView {
+                            id: shortcutsScrollView
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             clip: true
                             contentWidth: availableWidth
 
-                            GridLayout {
+                            property int availWidth: availableWidth - Theme.spacing
+                            property int minCellSize: 64
+                            property int maxCellSize: 80
+                            property int numColumns: Math.max(1, Math.floor(availWidth / (minCellSize + Theme.spacing)))
+                            property int cellSize: Math.min(maxCellSize, Math.max(minCellSize, Math.floor((availWidth - (numColumns - 1) * Theme.spacing) / numColumns)))
+
+                            Flow {
+                                id: shortcutsFlow
                                 width: parent.width
-                                columns: 3
-                                columnSpacing: Theme.spacing
-                                rowSpacing: Theme.spacing
+                                spacing: Theme.spacing
 
                                 Repeater {
                                     model: launcherBackend.shortcuts
 
                                     delegate: Rectangle {
-                                        Layout.preferredWidth: 64
-                                        Layout.preferredHeight: 64
+                                        width: shortcutsScrollView.cellSize
+                                        height: shortcutsScrollView.cellSize
                                         radius: Theme.borderRadius
                                         color: shortcutArea.containsMouse ? Theme.surfaceColor : "transparent"
 
@@ -145,50 +176,12 @@ WidgetWindow {
                                                     launcherBackend.launchShortcut(modelData.id)
                                                 } else if (mouse.button === Qt.RightButton) {
                                                     launcherWindow.editingShortcutId = modelData.id
+                                                    launcherWindow.editingIcon = modelData.icon || "file.svg"
                                                     nameField.text = modelData.name
                                                     pathField.text = modelData.path
                                                     launcherWindow.currentView = 1
                                                 }
                                             }
-                                        }
-                                    }
-                                }
-
-                                Rectangle {
-                                    Layout.preferredWidth: 64
-                                    Layout.preferredHeight: 64
-                                    radius: Theme.borderRadius
-                                    color: addArea.containsMouse ? Theme.surfaceColor : "transparent"
-                                    border.color: Theme.borderColor
-                                    border.width: 1
-
-                                    ColumnLayout {
-                                        anchors.centerIn: parent
-                                        spacing: 4
-
-                                        Image {
-                                            Layout.alignment: Qt.AlignHCenter
-                                            source: iconsPath + "plus.svg"
-                                            sourceSize: Qt.size(24, 24)
-                                        }
-
-                                        Text {
-                                            Layout.alignment: Qt.AlignHCenter
-                                            text: "Add"
-                                            color: Theme.textSecondary
-                                            font.pixelSize: Theme.fontSizeSmall
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        id: addArea
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        onClicked: {
-                                            launcherWindow.editingShortcutId = ""
-                                            nameField.text = ""
-                                            pathField.text = ""
-                                            launcherWindow.currentView = 1
                                         }
                                     }
                                 }
@@ -207,7 +200,8 @@ WidgetWindow {
                                     if (url.startsWith("file:///")) {
                                         var path = url.substring(8)
                                         var name = launcherBackend.getNameFromPath(path)
-                                        launcherBackend.addShortcut(name, path, "")
+                                        var icon = launcherBackend.getIconForPath(path)
+                                        launcherBackend.addShortcut(name, path, icon)
                                     }
                                 }
                             }
@@ -263,6 +257,50 @@ WidgetWindow {
                             }
                         }
 
+                        Text {
+                            text: "Icon"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        ScrollView {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 72
+                            clip: true
+                            contentWidth: availableWidth
+
+                            Flow {
+                                width: parent.width
+                                spacing: 4
+
+                                Repeater {
+                                    model: launcherWindow.availableIcons
+
+                                    delegate: Rectangle {
+                                        width: 32
+                                        height: 32
+                                        radius: 4
+                                        color: launcherWindow.editingIcon === modelData ? Theme.accentColor : (iconArea.containsMouse ? Theme.surfaceColor : "transparent")
+                                        border.color: launcherWindow.editingIcon === modelData ? Theme.accentColor : "transparent"
+                                        border.width: 2
+
+                                        Image {
+                                            anchors.centerIn: parent
+                                            source: iconsPath + modelData
+                                            sourceSize: Qt.size(20, 20)
+                                        }
+
+                                        MouseArea {
+                                            id: iconArea
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            onClicked: launcherWindow.editingIcon = modelData
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         Item { Layout.fillHeight: true }
 
                         RowLayout {
@@ -314,9 +352,9 @@ WidgetWindow {
                                     onClicked: {
                                         if (nameField.text && pathField.text) {
                                             if (launcherWindow.editingShortcutId) {
-                                                launcherBackend.updateShortcutName(launcherWindow.editingShortcutId, nameField.text)
+                                                launcherBackend.updateShortcut(launcherWindow.editingShortcutId, nameField.text, launcherWindow.editingIcon)
                                             } else {
-                                                launcherBackend.addShortcut(nameField.text, pathField.text, "")
+                                                launcherBackend.addShortcut(nameField.text, pathField.text, launcherWindow.editingIcon)
                                             }
                                             launcherWindow.currentView = 0
                                         }

@@ -167,7 +167,7 @@ WidgetWindow {
                                 Text {
                                     Layout.fillWidth: true
                                     Layout.topMargin: Theme.padding * 2
-                                    text: "No notes yet.\nClick + to create one."
+                                    text: "No notes yet.\n\nUse the + button in the\ntitle bar to create one."
                                     color: Theme.textSecondary
                                     font.pixelSize: Theme.fontSizeNormal
                                     horizontalAlignment: Text.AlignHCenter
@@ -252,7 +252,7 @@ WidgetWindow {
                             spacing: Theme.spacing
 
                             Repeater {
-                                model: ["#313244", "#f38ba8", "#fab387", "#a6e3a1", "#89b4fa", "#cba6f7"]
+                                model: notesBackend.availableColors
 
                                 delegate: Rectangle {
                                     width: 24
