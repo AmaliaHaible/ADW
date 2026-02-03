@@ -11,8 +11,6 @@
   "textPrimary": "#4c4f69",
   "textSecondary": "#5c5f77",
   "textMuted": "#9ca0b0",
-  "textPrimaryDark": "#eff1f5",
-  "textSecondaryDark": "#e6e9ef",
   "borderColor": "#9ca0b0",
   "colorRed": "#d20f39",
   "colorOrange": "#fe640b",
@@ -29,5 +27,7 @@
   "windowRadius": 16,
   "spacing": 6,
   "padding": 12,
-  "textScrollSpeed": 30
+  "textScrollSpeed": 30,
+  "textPrimaryInverted": "#eff1f5",
+  "textSecondaryInverted": "#e6e9ef"
 }

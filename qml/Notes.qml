@@ -27,19 +27,35 @@ WidgetWindow {
 
     function isLightColor(hexColor) {
         if (!hexColor || hexColor.length < 7) return false
-        var r = parseInt(hexColor.substring(1, 3), 16)
-        var g = parseInt(hexColor.substring(3, 5), 16)
-        var b = parseInt(hexColor.substring(5, 7), 16)
+        // Handle colors with alpha prefix (e.g., #e61e1e2e)
+        var colorStr = hexColor.length > 7 ? "#" + hexColor.substring(hexColor.length - 6) : hexColor
+        var r = parseInt(colorStr.substring(1, 3), 16)
+        var g = parseInt(colorStr.substring(3, 5), 16)
+        var b = parseInt(colorStr.substring(5, 7), 16)
         var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
         return luminance > 0.5
     }
 
     function getTextColor(bgColor) {
-        return isLightColor(bgColor) ? Theme.textPrimaryDark : Theme.textPrimary
+        // Check if background and primary text have similar luminance (both light or both dark)
+        // If similar, they won't have good contrast - use inverted text color
+        var bgIsLight = isLightColor(bgColor)
+        var primaryIsLight = isLightColor(Theme.textPrimary.toString())
+        
+        if (bgIsLight === primaryIsLight) {
+            return Theme.textPrimaryInverted
+        }
+        return Theme.textPrimary
     }
 
     function getSecondaryTextColor(bgColor) {
-        return isLightColor(bgColor) ? Theme.textSecondaryDark : Theme.textSecondary
+        var bgIsLight = isLightColor(bgColor)
+        var secondaryIsLight = isLightColor(Theme.textSecondary.toString())
+        
+        if (bgIsLight === secondaryIsLight) {
+            return Theme.textSecondaryInverted
+        }
+        return Theme.textSecondary
     }
 
     Column {

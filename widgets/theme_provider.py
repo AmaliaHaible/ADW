@@ -23,8 +23,8 @@ class ThemeProvider(QObject):
     textPrimaryChanged = Signal()
     textSecondaryChanged = Signal()
     textMutedChanged = Signal()
-    textPrimaryDarkChanged = Signal()
-    textSecondaryDarkChanged = Signal()
+    textPrimaryInvertedChanged = Signal()
+    textSecondaryInvertedChanged = Signal()
     borderColorChanged = Signal()
     colorRedChanged = Signal()
     colorOrangeChanged = Signal()
@@ -97,8 +97,8 @@ class ThemeProvider(QObject):
         self.textPrimaryChanged.emit()
         self.textSecondaryChanged.emit()
         self.textMutedChanged.emit()
-        self.textPrimaryDarkChanged.emit()
-        self.textSecondaryDarkChanged.emit()
+        self.textPrimaryInvertedChanged.emit()
+        self.textSecondaryInvertedChanged.emit()
         self.borderColorChanged.emit()
         self.colorRedChanged.emit()
         self.colorOrangeChanged.emit()
@@ -167,13 +167,21 @@ class ThemeProvider(QObject):
     def textMuted(self):
         return QColor(self._theme["textMuted"])
 
-    @Property(QColor, notify=textPrimaryDarkChanged)
-    def textPrimaryDark(self):
-        return QColor(self._theme.get("textPrimaryDark", "#1e1e2e"))
+    @Property(QColor, notify=textPrimaryInvertedChanged)
+    def textPrimaryInverted(self):
+        # Support legacy key name for backward compatibility
+        value = self._theme.get("textPrimaryInverted") or self._theme.get(
+            "textPrimaryDark", "#1e1e2e"
+        )
+        return QColor(value)
 
-    @Property(QColor, notify=textSecondaryDarkChanged)
-    def textSecondaryDark(self):
-        return QColor(self._theme.get("textSecondaryDark", "#313244"))
+    @Property(QColor, notify=textSecondaryInvertedChanged)
+    def textSecondaryInverted(self):
+        # Support legacy key name for backward compatibility
+        value = self._theme.get("textSecondaryInverted") or self._theme.get(
+            "textSecondaryDark", "#313244"
+        )
+        return QColor(value)
 
     @Property(QColor, notify=borderColorChanged)
     def borderColor(self):
