@@ -78,8 +78,8 @@ WidgetWindow {
                             radius: 70
                             color: "transparent"
                             border.color: {
-                                if (pomodoroBackend.state === "work") return Theme.error
-                                if (pomodoroBackend.state === "break" || pomodoroBackend.state === "long_break") return Theme.success
+                                if (pomodoroBackend.state === "work") return Theme.colorRed
+                                if (pomodoroBackend.state === "break" || pomodoroBackend.state === "long_break") return Theme.colorGreen
                                 return Theme.borderColor
                             }
                             border.width: 4
@@ -103,7 +103,7 @@ WidgetWindow {
                                         if (pomodoroBackend.progress > 0) {
                                             ctx.beginPath()
                                             ctx.arc(width/2, height/2, 60, 0, Math.PI * 2 * pomodoroBackend.progress)
-                                            ctx.strokeStyle = pomodoroBackend.state === "work" ? Theme.error : Theme.success
+                                            ctx.strokeStyle = pomodoroBackend.state === "work" ? Theme.colorRed : Theme.colorGreen
                                             ctx.lineWidth = 6
                                             ctx.lineCap = "round"
                                             ctx.stroke()
