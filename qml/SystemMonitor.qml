@@ -370,6 +370,81 @@ WidgetWindow {
                             }
                         }
 
+                        Text {
+                            text: "History Duration"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            Rectangle {
+                                width: 28
+                                height: 28
+                                radius: Theme.borderRadius
+                                color: histDown.pressed ? Theme.accentColor : (histDown.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "-"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: 14
+                                }
+
+                                MouseArea {
+                                    id: histDown
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        var newVal = systemMonitorBackend.historyDuration - 10
+                                        if (newVal >= 10) systemMonitorBackend.setHistoryDuration(newVal)
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 28
+                                color: Theme.surfaceColor
+                                border.color: Theme.borderColor
+                                border.width: 1
+                                radius: Theme.borderRadius
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: systemMonitorBackend.historyDuration + "s"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeNormal
+                                }
+                            }
+
+                            Rectangle {
+                                width: 28
+                                height: 28
+                                radius: Theme.borderRadius
+                                color: histUp.pressed ? Theme.accentColor : (histUp.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "+"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: 14
+                                }
+
+                                MouseArea {
+                                    id: histUp
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        var newVal = systemMonitorBackend.historyDuration + 10
+                                        if (newVal <= 300) systemMonitorBackend.setHistoryDuration(newVal)
+                                    }
+                                }
+                            }
+                        }
+
                         Item { Layout.fillHeight: true }
                     }
                 }

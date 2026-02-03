@@ -8,37 +8,62 @@ class NetworkMonitorBackend(QObject):
     statsChanged = Signal()
     historyChanged = Signal()
     colorSettingsChanged = Signal()
+    historyDurationChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
         self._settings = settings_backend
 
-        # Current values
         self._bytes_sent = 0
         self._bytes_recv = 0
-        self._upload_speed = 0.0  # bytes/sec
-        self._download_speed = 0.0  # bytes/sec
+        self._upload_speed = 0.0
+        self._download_speed = 0.0
 
-        # Previous values for speed calculation
         self._prev_bytes_sent = 0
         self._prev_bytes_recv = 0
 
-        # History for graphs (last 60 data points)
         self._upload_history = []
         self._download_history = []
-        self._max_history = 60
+        self._max_history = self._load_history_duration()
 
-        # Update timer
         self._timer = QTimer(self)
-        self._timer.setInterval(1000)  # 1 second
+        self._timer.setInterval(1000)
         self._timer.timeout.connect(self._update)
 
-        # Get initial values
         counters = psutil.net_io_counters()
         self._prev_bytes_sent = counters.bytes_sent
         self._prev_bytes_recv = counters.bytes_recv
 
         self._timer.start()
+
+    def _load_history_duration(self):
+        """Load history duration from settings."""
+        if self._settings:
+            val = self._settings.getWidgetSetting("network_monitor", "historyDuration")
+            if val is not None:
+                return max(10, min(300, int(val)))
+        return 60
+
+    @Property(int, notify=historyDurationChanged)
+    def historyDuration(self):
+        return self._max_history
+
+    @Slot(int)
+    def setHistoryDuration(self, seconds):
+        """Set history duration in seconds (10-300)."""
+        seconds = max(10, min(300, seconds))
+        if self._max_history != seconds:
+            self._max_history = seconds
+            if self._settings:
+                self._settings.setWidgetSetting(
+                    "network_monitor", "historyDuration", seconds
+                )
+            if len(self._upload_history) > self._max_history:
+                self._upload_history = self._upload_history[-self._max_history :]
+            if len(self._download_history) > self._max_history:
+                self._download_history = self._download_history[-self._max_history :]
+            self.historyDurationChanged.emit()
+            self.historyChanged.emit()
 
     def _update(self):
         """Update network stats."""

@@ -21,6 +21,9 @@ WidgetWindow {
     title: "Notes"
 
     property bool showingEditor: notesBackend.currentNoteId !== ""
+    property string draggedNoteId: ""
+    property int draggedItemIndex: -1
+    property int dragTargetIndex: -1
 
     function isLightColor(hexColor) {
         if (!hexColor || hexColor.length < 7) return false
@@ -111,58 +114,137 @@ WidgetWindow {
 
                             ColumnLayout {
                                 width: parent.width
-                                spacing: Theme.spacing / 2
+                                spacing: 0
 
                                 Repeater {
                                     model: notesBackend.notes
 
-                                    delegate: Rectangle {
+                                    delegate: ColumnLayout {
+                                        id: noteItemRoot
+                                        property int itemIndex: index
+                                        property int totalItems: notesBackend.notes.length
                                         property int colorIdx: modelData.colorIndex !== undefined ? modelData.colorIndex : 0
                                         property color noteColor: notesBackend.availableColors[colorIdx] || Theme.surfaceColor
                                         property color hoverColor: isLightColor(noteColor.toString()) ? Qt.darker(noteColor, 1.1) : Qt.lighter(noteColor, 1.2)
 
                                         Layout.fillWidth: true
-                                        Layout.preferredHeight: 56
-                                        radius: Theme.borderRadius
-                                        color: noteMouseArea.containsMouse ? hoverColor : noteColor
-                                        border.color: Theme.borderColor
-                                        border.width: 1
-                                        clip: true
+                                        spacing: 0
 
-                                        Column {
-                                            anchors.fill: parent
-                                            anchors.margins: Theme.padding / 2
-                                            spacing: 2
-
-                                            Text {
-                                                width: parent.width
-                                                text: modelData.title || "Untitled"
-                                                color: getTextColor(noteColor.toString())
-                                                font.pixelSize: Theme.fontSizeNormal
-                                                font.weight: Font.Medium
-                                                elide: Text.ElideRight
-                                            }
-
-                                            Text {
-                                                width: parent.width
-                                                height: 28
-                                                text: modelData.content || ""
-                                                color: getSecondaryTextColor(noteColor.toString())
-                                                font.pixelSize: Theme.fontSizeSmall
-                                                elide: Text.ElideRight
-                                                maximumLineCount: 2
-                                                wrapMode: Text.WordWrap
-                                                clip: true
-                                            }
+                                        Rectangle {
+                                            Layout.fillWidth: true
+                                            Layout.preferredHeight: 3
+                                            color: Theme.accentColor
+                                            radius: 1
+                                            visible: notesWindow.draggedNoteId !== "" &&
+                                                     notesWindow.draggedNoteId !== modelData.id &&
+                                                     notesWindow.dragTargetIndex === itemIndex &&
+                                                     notesWindow.draggedItemIndex !== itemIndex - 1
                                         }
 
-                                        MouseArea {
-                                            id: noteMouseArea
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            onClicked: notesBackend.selectNote(modelData.id)
+                                        Rectangle {
+                                            id: noteItem
+                                            Layout.fillWidth: true
+                                            Layout.preferredHeight: 56
+                                            Layout.topMargin: Theme.spacing / 4
+                                            Layout.bottomMargin: Theme.spacing / 4
+                                            radius: Theme.borderRadius
+                                            color: noteHoverHandler.hovered || noteDragHandler.active ? hoverColor : noteColor
+                                            border.color: Theme.borderColor
+                                            border.width: 1
+                                            clip: true
+                                            opacity: notesWindow.draggedNoteId === modelData.id ? 0.5 : 1.0
+
+                                            HoverHandler {
+                                                id: noteHoverHandler
+                                            }
+
+                                            DragHandler {
+                                                id: noteDragHandler
+                                                target: null
+
+                                                onActiveChanged: {
+                                                    if (active) {
+                                                        notesWindow.draggedNoteId = modelData.id
+                                                        notesWindow.draggedItemIndex = itemIndex
+                                                        notesWindow.dragTargetIndex = itemIndex
+                                                    } else {
+                                                        var targetIdx = notesWindow.dragTargetIndex
+                                                        var draggedId = modelData.id
+                                                        var originalIdx = notesWindow.draggedItemIndex
+                                                        var shouldReorder = false
+
+                                                        if (notesWindow.draggedNoteId === draggedId && targetIdx >= 0) {
+                                                            if (targetIdx > originalIdx) {
+                                                                targetIdx = targetIdx - 1
+                                                            }
+                                                            if (targetIdx !== originalIdx) {
+                                                                shouldReorder = true
+                                                            }
+                                                        }
+
+                                                        notesWindow.draggedNoteId = ""
+                                                        notesWindow.draggedItemIndex = -1
+                                                        notesWindow.dragTargetIndex = -1
+
+                                                        if (shouldReorder) {
+                                                            notesBackend.reorderNote(draggedId, targetIdx)
+                                                        }
+                                                    }
+                                                }
+
+                                                onCentroidChanged: {
+                                                    if (active) {
+                                                        var dragOffset = centroid.position.y - centroid.pressPosition.y
+                                                        var indexChange = Math.round(dragOffset / 60)
+                                                        var newIndex = itemIndex + indexChange
+                                                        newIndex = Math.max(0, Math.min(newIndex, totalItems))
+                                                        notesWindow.dragTargetIndex = newIndex
+                                                    }
+                                                }
+                                            }
+
+                                            TapHandler {
+                                                onTapped: notesBackend.selectNote(modelData.id)
+                                            }
+
+                                            Column {
+                                                anchors.fill: parent
+                                                anchors.margins: Theme.padding / 2
+                                                spacing: 2
+
+                                                Text {
+                                                    width: parent.width
+                                                    text: modelData.title || "Untitled"
+                                                    color: getTextColor(noteItemRoot.noteColor.toString())
+                                                    font.pixelSize: Theme.fontSizeNormal
+                                                    font.weight: Font.Medium
+                                                    elide: Text.ElideRight
+                                                }
+
+                                                Text {
+                                                    width: parent.width
+                                                    height: 28
+                                                    text: modelData.content || ""
+                                                    color: getSecondaryTextColor(noteItemRoot.noteColor.toString())
+                                                    font.pixelSize: Theme.fontSizeSmall
+                                                    elide: Text.ElideRight
+                                                    maximumLineCount: 2
+                                                    wrapMode: Text.WordWrap
+                                                    clip: true
+                                                }
+                                            }
                                         }
                                     }
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 3
+                                    color: Theme.accentColor
+                                    radius: 1
+                                    visible: notesWindow.draggedNoteId !== "" &&
+                                             notesWindow.dragTargetIndex === notesBackend.notes.length &&
+                                             notesWindow.draggedItemIndex !== notesBackend.notes.length - 1
                                 }
 
                                 Text {

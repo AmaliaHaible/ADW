@@ -9,6 +9,7 @@ class SystemMonitorBackend(QObject):
     memoryChanged = Signal()
     historyChanged = Signal()
     colorSettingsChanged = Signal()
+    historyDurationChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
@@ -21,10 +22,9 @@ class SystemMonitorBackend(QObject):
         self._memory_used = 0
         self._memory_total = 0
 
-        # History for graphs (last 60 data points = 60 seconds)
         self._cpu_history = []
         self._memory_history = []
-        self._max_history = 60
+        self._max_history = self._load_history_duration()
 
         # Update timer
         self._timer = QTimer(self)
@@ -34,6 +34,35 @@ class SystemMonitorBackend(QObject):
 
         # Initial update
         self._update()
+
+    def _load_history_duration(self):
+        """Load history duration from settings."""
+        if self._settings:
+            val = self._settings.getWidgetSetting("system_monitor", "historyDuration")
+            if val is not None:
+                return max(10, min(300, int(val)))
+        return 60
+
+    @Property(int, notify=historyDurationChanged)
+    def historyDuration(self):
+        return self._max_history
+
+    @Slot(int)
+    def setHistoryDuration(self, seconds):
+        """Set history duration in seconds (10-300)."""
+        seconds = max(10, min(300, seconds))
+        if self._max_history != seconds:
+            self._max_history = seconds
+            if self._settings:
+                self._settings.setWidgetSetting(
+                    "system_monitor", "historyDuration", seconds
+                )
+            if len(self._cpu_history) > self._max_history:
+                self._cpu_history = self._cpu_history[-self._max_history :]
+            if len(self._memory_history) > self._max_history:
+                self._memory_history = self._memory_history[-self._max_history :]
+            self.historyDurationChanged.emit()
+            self.historyChanged.emit()
 
     @Property(int, notify=colorSettingsChanged)
     def cpuColorIndex(self):

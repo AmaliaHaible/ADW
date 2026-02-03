@@ -307,6 +307,81 @@ WidgetWindow {
                             }
                         }
 
+                        Text {
+                            text: "History Duration"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            Rectangle {
+                                width: 28
+                                height: 28
+                                radius: Theme.borderRadius
+                                color: netHistDown.pressed ? Theme.accentColor : (netHistDown.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "-"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: 14
+                                }
+
+                                MouseArea {
+                                    id: netHistDown
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        var newVal = networkMonitorBackend.historyDuration - 10
+                                        if (newVal >= 10) networkMonitorBackend.setHistoryDuration(newVal)
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 28
+                                color: Theme.surfaceColor
+                                border.color: Theme.borderColor
+                                border.width: 1
+                                radius: Theme.borderRadius
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: networkMonitorBackend.historyDuration + "s"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeNormal
+                                }
+                            }
+
+                            Rectangle {
+                                width: 28
+                                height: 28
+                                radius: Theme.borderRadius
+                                color: netHistUp.pressed ? Theme.accentColor : (netHistUp.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "+"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: 14
+                                }
+
+                                MouseArea {
+                                    id: netHistUp
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        var newVal = networkMonitorBackend.historyDuration + 10
+                                        if (newVal <= 300) networkMonitorBackend.setHistoryDuration(newVal)
+                                    }
+                                }
+                            }
+                        }
+
                         Item { Layout.fillHeight: true }
                     }
                 }

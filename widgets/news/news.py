@@ -68,6 +68,22 @@ class NewsBackend(QObject):
             self._error = f"Failed to load categories: {e}"
             self.errorChanged.emit()
 
+    def _build_kagi_link(self, category, timestamp, title):
+        """Build Kagi news link from cluster data."""
+        import urllib.parse
+        import re
+
+        if not category or not timestamp or not title:
+            return ""
+
+        slug = title.lower()
+        slug = re.sub(r"[^\w\s-]", "", slug)
+        slug = re.sub(r"[\s_]+", "-", slug)
+        slug = slug.strip("-")
+        slug = urllib.parse.quote(slug, safe="-")
+
+        return f"https://news.kagi.com/{category}/{timestamp}/{slug}"
+
     def _fetch_articles(self):
         """Fetch articles for selected category."""
         if not self._selected_category:
@@ -94,21 +110,24 @@ class NewsBackend(QObject):
             with urllib.request.urlopen(url, timeout=15) as response:
                 data = json.loads(response.read().decode())
 
-            # Extract articles from clusters
             articles = []
-            for cluster in data.get("clusters", [])[:10]:  # Limit to 10 clusters
+            for cluster in data.get("clusters", [])[:10]:
+                title = cluster.get("title", "")
+                category = cluster.get("category", "")
+                timestamp = cluster.get("timestamp", "")
+                kagi_link = self._build_kagi_link(category, timestamp, title)
+
                 articles.append(
                     {
-                        "title": cluster.get("title", ""),
+                        "title": title,
                         "summary": cluster.get("short_summary", "")[:200] + "..."
                         if len(cluster.get("short_summary", "")) > 200
                         else cluster.get("short_summary", ""),
                         "emoji": cluster.get("emoji", ""),
-                        "category": cluster.get("category", ""),
+                        "category": category,
                         "sources": len(cluster.get("articles", [])),
-                        "articles": cluster.get("articles", [])[
-                            :5
-                        ],  # First 5 source articles
+                        "articles": cluster.get("articles", [])[:5],
+                        "kagiLink": kagi_link,
                     }
                 )
 

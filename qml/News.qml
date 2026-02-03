@@ -181,9 +181,13 @@ WidgetWindow {
                                             acceptedButtons: Qt.LeftButton
 
                                             onClicked: {
-                                                var articles = modelData.articles
-                                                if (articles && articles.length > 0) {
-                                                    newsBackend.openArticle(articles[0].link)
+                                                if (modelData.kagiLink) {
+                                                    newsBackend.openArticle(modelData.kagiLink)
+                                                } else {
+                                                    var articles = modelData.articles
+                                                    if (articles && articles.length > 0) {
+                                                        newsBackend.openArticle(articles[0].link)
+                                                    }
                                                 }
                                             }
                                         }

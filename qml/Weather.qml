@@ -130,22 +130,11 @@ WidgetWindow {
                                 font.weight: Font.Light
                             }
 
-                            // Location name
-                            Text {
-                                Layout.alignment: Qt.AlignHCenter
-                                Layout.maximumWidth: weatherWindow.width - Theme.padding * 2
-                                text: weatherBackend.locationName
-                                color: Theme.textSecondary
-                                font.pixelSize: Theme.fontSizeNormal
-                                wrapMode: Text.WordWrap
-                                horizontalAlignment: Text.AlignHCenter
-                            }
-
                             // Precipitation
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
-                                text: "Precipitation: " + weatherBackend.currentPrecip + "%"
-                                color: Theme.textSecondary
+                                text: weatherBackend.currentPrecip + "%"
+                                color: Theme.accentColor
                                 font.pixelSize: Theme.fontSizeSmall
                                 visible: weatherBackend.currentPrecip > 0
                             }

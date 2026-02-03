@@ -33,10 +33,10 @@ class NotesBackend(QObject):
                 self._notes = data
             else:
                 self._notes = []
-            # Load last selected note
             last_id = self._settings.getWidgetSetting("notes", "current_note_id")
             if last_id and any(n.get("id") == last_id for n in self._notes):
                 self._current_note_id = last_id
+            self._ensure_order_values()
         else:
             self._notes = []
 
@@ -53,7 +53,7 @@ class NotesBackend(QObject):
     def notes(self):
         """Return all notes, optionally filtered by search query."""
         if not self._search_query:
-            return sorted(self._notes, key=lambda n: n.get("updated", 0), reverse=True)
+            return sorted(self._notes, key=lambda n: n.get("order", 0))
         query = self._search_query.lower()
         filtered = [
             n
@@ -61,7 +61,7 @@ class NotesBackend(QObject):
             if query in n.get("title", "").lower()
             or query in n.get("content", "").lower()
         ]
-        return sorted(filtered, key=lambda n: n.get("updated", 0), reverse=True)
+        return sorted(filtered, key=lambda n: n.get("order", 0))
 
     @Property(str, notify=currentNoteChanged)
     def currentNoteId(self):
@@ -110,6 +110,22 @@ class NotesBackend(QObject):
             self.searchQueryChanged.emit()
             self.notesChanged.emit()
 
+    def _get_next_order(self):
+        """Get the next order value for new notes."""
+        if not self._notes:
+            return 0
+        return max(n.get("order", 0) for n in self._notes) + 1
+
+    def _ensure_order_values(self):
+        """Ensure all notes have an order value."""
+        needs_save = False
+        for i, note in enumerate(self._notes):
+            if "order" not in note:
+                note["order"] = i
+                needs_save = True
+        if needs_save:
+            self._save_notes()
+
     @Slot(result=str)
     def createNote(self):
         """Create a new note and return its ID."""
@@ -124,6 +140,7 @@ class NotesBackend(QObject):
             "colorIndex": 0,
             "created": now,
             "updated": now,
+            "order": self._get_next_order(),
         }
         self._notes.append(note)
         self._current_note_id = note_id
@@ -131,6 +148,32 @@ class NotesBackend(QObject):
         self._save_notes()
         self.currentNoteChanged.emit()
         return note_id
+
+    @Slot(str, int)
+    def reorderNote(self, note_id, new_index):
+        """Reorder a note to a new position."""
+        note = next((n for n in self._notes if n.get("id") == note_id), None)
+        if not note:
+            return
+
+        sorted_notes = sorted(self._notes, key=lambda n: n.get("order", 0))
+        current_index = next(
+            (i for i, n in enumerate(sorted_notes) if n.get("id") == note_id), None
+        )
+        if current_index is None:
+            return
+
+        new_index = max(0, min(new_index, len(sorted_notes) - 1))
+        if current_index == new_index:
+            return
+
+        sorted_notes.pop(current_index)
+        sorted_notes.insert(new_index, note)
+
+        for i, n in enumerate(sorted_notes):
+            n["order"] = i
+
+        self._save_notes()
 
     @Slot(str)
     def selectNote(self, note_id):

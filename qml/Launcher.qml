@@ -574,19 +574,29 @@ WidgetWindow {
                 }
 
                 Item {
-                    ColumnLayout {
+                    ScrollView {
                         anchors.fill: parent
-                        anchors.margins: Theme.padding
-                        spacing: Theme.spacing
+                        contentWidth: availableWidth
+                        clip: true
 
-                        Text {
-                            text: "Grid Columns"
-                            color: Theme.textSecondary
-                            font.pixelSize: Theme.fontSizeSmall
-                        }
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: Theme.spacing
+
+                            Item { Layout.preferredHeight: Theme.padding }
+
+                            Text {
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                text: "Grid Columns"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                            }
 
                         RowLayout {
                             Layout.fillWidth: true
+                            Layout.leftMargin: Theme.padding
+                            Layout.rightMargin: Theme.padding
                             spacing: 4
 
                             Rectangle {
@@ -650,6 +660,8 @@ WidgetWindow {
 
                         RowLayout {
                             Layout.fillWidth: true
+                            Layout.leftMargin: Theme.padding
+                            Layout.rightMargin: Theme.padding
                             spacing: Theme.spacing
 
                             Text {
@@ -686,6 +698,8 @@ WidgetWindow {
                         }
 
                         Text {
+                            Layout.leftMargin: Theme.padding
+                            Layout.rightMargin: Theme.padding
                             text: "Icon Size"
                             color: Theme.textSecondary
                             font.pixelSize: Theme.fontSizeSmall
@@ -693,6 +707,8 @@ WidgetWindow {
 
                         RowLayout {
                             Layout.fillWidth: true
+                            Layout.leftMargin: Theme.padding
+                            Layout.rightMargin: Theme.padding
                             spacing: 4
 
                             Rectangle {
@@ -754,7 +770,8 @@ WidgetWindow {
                             }
                         }
 
-                        Item { Layout.fillHeight: true }
+                        Item { Layout.preferredHeight: Theme.padding }
+                    }
                     }
                 }
             }
