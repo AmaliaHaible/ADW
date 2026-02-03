@@ -51,11 +51,12 @@ WidgetWindow {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: Theme.padding
-                spacing: Theme.spacing
+                spacing: Theme.spacing * 1.5
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: Theme.spacing
+                    Layout.topMargin: Theme.spacing / 2
+                    spacing: Theme.spacing * 1.5
 
                     Rectangle {
                         width: 60
@@ -97,7 +98,7 @@ WidgetWindow {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 2
+                        spacing: 4
 
                         Text {
                             text: batteryBackend.hasBattery ? batteryBackend.percent + "%" : "No battery"
@@ -122,6 +123,7 @@ WidgetWindow {
 
                 Text {
                     Layout.fillWidth: true
+                    Layout.topMargin: Theme.spacing / 2
                     text: batteryBackend.timeRemainingText
                     color: Theme.textSecondary
                     font.pixelSize: Theme.fontSizeNormal

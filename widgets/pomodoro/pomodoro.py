@@ -3,10 +3,7 @@ from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer
 
 # Try to import Windows toast notifications
 try:
-    from winrt.windows.ui.notifications import (
-        ToastNotificationManager,
-        ToastNotification,
-    )
+    import winrt.windows.ui.notifications as wun
     from winrt.windows.data.xml.dom import XmlDocument
 
     HAS_TOAST = True
@@ -129,10 +126,13 @@ class PomodoroBackend(QObject):
                     <audio src="ms-winsoundevent:Notification.Default"/>
                 </toast>
             """)
-            notifier = ToastNotificationManager.create_toast_notifier("QML Shell")
-            notifier.show(ToastNotification(xml))
+            manager = wun.ToastNotificationManager.get_default()
+            notifier = manager.create_toast_notifier_with_id(
+                "Microsoft.Windows.PowerShell"
+            )
+            notifier.show(wun.ToastNotification(xml))
         except Exception:
-            pass  # Silently fail if notification doesn't work
+            pass
 
     def _tick(self):
         """Timer tick - called every second."""

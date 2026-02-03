@@ -250,59 +250,259 @@ WidgetWindow {
                             spacing: Theme.spacing
 
                             Text {
-                                text: "Work Duration"
+                                text: "Work Duration (min)"
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
                             }
 
                             SpinBox {
+                                id: workSpinBox
                                 Layout.fillWidth: true
                                 from: 1
                                 to: 60
                                 value: pomodoroBackend.workDuration
                                 onValueModified: pomodoroBackend.setWorkDuration(value)
+
+                                contentItem: TextInput {
+                                    text: workSpinBox.value
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeNormal
+                                    horizontalAlignment: Qt.AlignHCenter
+                                    verticalAlignment: Qt.AlignVCenter
+                                    readOnly: true
+                                }
+
+                                up.indicator: Rectangle {
+                                    x: workSpinBox.width - width
+                                    height: workSpinBox.height / 2
+                                    implicitWidth: 24
+                                    implicitHeight: 20
+                                    color: workSpinBox.up.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+
+                                    Text {
+                                        text: "+"
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        color: Theme.textPrimary
+                                        anchors.centerIn: parent
+                                    }
+                                }
+
+                                down.indicator: Rectangle {
+                                    x: workSpinBox.width - width
+                                    y: workSpinBox.height / 2
+                                    height: workSpinBox.height / 2
+                                    implicitWidth: 24
+                                    implicitHeight: 20
+                                    color: workSpinBox.down.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+
+                                    Text {
+                                        text: "-"
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        color: Theme.textPrimary
+                                        anchors.centerIn: parent
+                                    }
+                                }
+
+                                background: Rectangle {
+                                    color: Theme.surfaceColor
+                                    border.color: Theme.borderColor
+                                    border.width: 1
+                                    radius: Theme.borderRadius
+                                }
                             }
 
                             Text {
-                                text: "Break Duration"
+                                text: "Break Duration (min)"
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
                             }
 
                             SpinBox {
+                                id: breakSpinBox
                                 Layout.fillWidth: true
                                 from: 1
                                 to: 30
                                 value: pomodoroBackend.breakDuration
                                 onValueModified: pomodoroBackend.setBreakDuration(value)
+
+                                contentItem: TextInput {
+                                    text: breakSpinBox.value
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeNormal
+                                    horizontalAlignment: Qt.AlignHCenter
+                                    verticalAlignment: Qt.AlignVCenter
+                                    readOnly: true
+                                }
+
+                                up.indicator: Rectangle {
+                                    x: breakSpinBox.width - width
+                                    height: breakSpinBox.height / 2
+                                    implicitWidth: 24
+                                    implicitHeight: 20
+                                    color: breakSpinBox.up.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+
+                                    Text {
+                                        text: "+"
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        color: Theme.textPrimary
+                                        anchors.centerIn: parent
+                                    }
+                                }
+
+                                down.indicator: Rectangle {
+                                    x: breakSpinBox.width - width
+                                    y: breakSpinBox.height / 2
+                                    height: breakSpinBox.height / 2
+                                    implicitWidth: 24
+                                    implicitHeight: 20
+                                    color: breakSpinBox.down.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+
+                                    Text {
+                                        text: "-"
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        color: Theme.textPrimary
+                                        anchors.centerIn: parent
+                                    }
+                                }
+
+                                background: Rectangle {
+                                    color: Theme.surfaceColor
+                                    border.color: Theme.borderColor
+                                    border.width: 1
+                                    radius: Theme.borderRadius
+                                }
                             }
 
                             Text {
-                                text: "Long Break Duration"
+                                text: "Long Break (min)"
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
                             }
 
                             SpinBox {
+                                id: longBreakSpinBox
                                 Layout.fillWidth: true
                                 from: 1
                                 to: 60
                                 value: pomodoroBackend.longBreakDuration
                                 onValueModified: pomodoroBackend.setLongBreakDuration(value)
+
+                                contentItem: TextInput {
+                                    text: longBreakSpinBox.value
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeNormal
+                                    horizontalAlignment: Qt.AlignHCenter
+                                    verticalAlignment: Qt.AlignVCenter
+                                    readOnly: true
+                                }
+
+                                up.indicator: Rectangle {
+                                    x: longBreakSpinBox.width - width
+                                    height: longBreakSpinBox.height / 2
+                                    implicitWidth: 24
+                                    implicitHeight: 20
+                                    color: longBreakSpinBox.up.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+
+                                    Text {
+                                        text: "+"
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        color: Theme.textPrimary
+                                        anchors.centerIn: parent
+                                    }
+                                }
+
+                                down.indicator: Rectangle {
+                                    x: longBreakSpinBox.width - width
+                                    y: longBreakSpinBox.height / 2
+                                    height: longBreakSpinBox.height / 2
+                                    implicitWidth: 24
+                                    implicitHeight: 20
+                                    color: longBreakSpinBox.down.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+
+                                    Text {
+                                        text: "-"
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        color: Theme.textPrimary
+                                        anchors.centerIn: parent
+                                    }
+                                }
+
+                                background: Rectangle {
+                                    color: Theme.surfaceColor
+                                    border.color: Theme.borderColor
+                                    border.width: 1
+                                    radius: Theme.borderRadius
+                                }
                             }
 
                             Text {
-                                text: "Sessions Before Long Break"
+                                text: "Sessions for Long Break"
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
                             }
 
                             SpinBox {
+                                id: sessionsSpinBox
                                 Layout.fillWidth: true
                                 from: 1
                                 to: 10
                                 value: pomodoroBackend.sessionsBeforeLongBreak
                                 onValueModified: pomodoroBackend.setSessionsBeforeLongBreak(value)
+
+                                contentItem: TextInput {
+                                    text: sessionsSpinBox.value
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeNormal
+                                    horizontalAlignment: Qt.AlignHCenter
+                                    verticalAlignment: Qt.AlignVCenter
+                                    readOnly: true
+                                }
+
+                                up.indicator: Rectangle {
+                                    x: sessionsSpinBox.width - width
+                                    height: sessionsSpinBox.height / 2
+                                    implicitWidth: 24
+                                    implicitHeight: 20
+                                    color: sessionsSpinBox.up.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+
+                                    Text {
+                                        text: "+"
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        color: Theme.textPrimary
+                                        anchors.centerIn: parent
+                                    }
+                                }
+
+                                down.indicator: Rectangle {
+                                    x: sessionsSpinBox.width - width
+                                    y: sessionsSpinBox.height / 2
+                                    height: sessionsSpinBox.height / 2
+                                    implicitWidth: 24
+                                    implicitHeight: 20
+                                    color: sessionsSpinBox.down.pressed ? Theme.borderColor : Theme.surfaceColor
+                                    border.color: Theme.borderColor
+
+                                    Text {
+                                        text: "-"
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        color: Theme.textPrimary
+                                        anchors.centerIn: parent
+                                    }
+                                }
+
+                                background: Rectangle {
+                                    color: Theme.surfaceColor
+                                    border.color: Theme.borderColor
+                                    border.width: 1
+                                    radius: Theme.borderRadius
+                                }
                             }
 
                             Rectangle {

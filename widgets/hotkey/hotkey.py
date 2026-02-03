@@ -2,6 +2,7 @@
 Hotkey backend QObject for QML bridge.
 Manages global hotkeys and connects to HubBackend for toggling alwaysOnTop.
 """
+
 from PySide6.QtCore import QObject, Property, Signal, Slot
 
 from .listener import (
@@ -16,11 +17,8 @@ from .listener import (
 
 
 class HotkeyBackend(QObject):
-    """
-    Backend for managing global hotkeys.
-    Exposes properties and slots for QML to configure hotkeys.
-    """
     alwaysOnTopHotkeyChanged = Signal(str)
+    showHubHotkeyChanged = Signal(str)
     recordingChanged = Signal(bool)
     recordedHotkeyChanged = Signal(str)
 
@@ -30,56 +28,65 @@ class HotkeyBackend(QObject):
         self._hub = hub_backend
         self._listener = None
         self._always_on_top_hotkey_id = None
+        self._show_hub_hotkey_id = None
         self._recording = False
         self._recorded_modifiers = 0
         self._recorded_vk = 0
         self._recorded_hotkey = ""
 
-        # Load hotkey from settings
         if self._settings:
-            self._always_on_top_hotkey = self._settings.getHotkey("always_on_top") or "ctrl+alt+j"
+            self._always_on_top_hotkey = (
+                self._settings.getHotkey("always_on_top") or "ctrl+alt+j"
+            )
+            self._show_hub_hotkey = self._settings.getHotkey("show_hub") or "ctrl+alt+h"
         else:
             self._always_on_top_hotkey = "ctrl+alt+j"
+            self._show_hub_hotkey = "ctrl+alt+h"
 
-        # Start the listener
         self._start_listener()
 
     def _start_listener(self):
-        """Start the hotkey listener thread and register initial hotkeys."""
         self._listener = HotkeyListener(self)
         self._listener.hotkeyPressed.connect(self._on_hotkey_pressed)
         self._listener.start()
-
-        # Wait for thread to start
         self._listener.msleep(100)
-
-        # Register the always-on-top hotkey
         self._register_always_on_top_hotkey()
+        self._register_show_hub_hotkey()
 
     def _register_always_on_top_hotkey(self):
-        """Register the always-on-top hotkey with the listener."""
         if not self._listener or not self._always_on_top_hotkey:
             return
-
-        # Unregister previous hotkey if exists
         if self._always_on_top_hotkey_id is not None:
             self._listener.unregister_hotkey(self._always_on_top_hotkey_id)
             self._always_on_top_hotkey_id = None
-
-        # Parse and register new hotkey
         parsed = parse_hotkey_string(self._always_on_top_hotkey)
         if parsed:
             modifiers, vk = parsed
-            self._always_on_top_hotkey_id = self._listener.register_hotkey(modifiers, vk)
+            self._always_on_top_hotkey_id = self._listener.register_hotkey(
+                modifiers, vk
+            )
             if self._always_on_top_hotkey_id is None:
                 print(f"Failed to register hotkey: {self._always_on_top_hotkey}")
 
+    def _register_show_hub_hotkey(self):
+        if not self._listener or not self._show_hub_hotkey:
+            return
+        if self._show_hub_hotkey_id is not None:
+            self._listener.unregister_hotkey(self._show_hub_hotkey_id)
+            self._show_hub_hotkey_id = None
+        parsed = parse_hotkey_string(self._show_hub_hotkey)
+        if parsed:
+            modifiers, vk = parsed
+            self._show_hub_hotkey_id = self._listener.register_hotkey(modifiers, vk)
+            if self._show_hub_hotkey_id is None:
+                print(f"Failed to register hotkey: {self._show_hub_hotkey}")
+
     def _on_hotkey_pressed(self, hotkey_id: int):
-        """Handle hotkey press events from the listener."""
         if hotkey_id == self._always_on_top_hotkey_id and self._hub:
-            # Toggle always on top
             current = self._hub.alwaysOnTop
             self._hub.setAlwaysOnTop(not current)
+        elif hotkey_id == self._show_hub_hotkey_id and self._hub:
+            self._hub.showHub()
 
     def cleanup(self):
         """Stop the listener thread. Call before application exit."""
@@ -199,10 +206,18 @@ class HotkeyBackend(QObject):
     def _qt_key_to_vk(self, qt_key: int) -> int | None:
         """Convert a Qt key code to a Windows virtual key code."""
         # Check for modifier-only keys
-        if qt_key in (0x01000020, 0x01000021, 0x01000022, 0x01000023,  # Shift keys
-                      0x01000024, 0x01000025,  # Control keys
-                      0x01000026, 0x01000027,  # Meta/Win keys
-                      0x01000028, 0x01000029):  # Alt keys
+        if qt_key in (
+            0x01000020,
+            0x01000021,
+            0x01000022,
+            0x01000023,  # Shift keys
+            0x01000024,
+            0x01000025,  # Control keys
+            0x01000026,
+            0x01000027,  # Meta/Win keys
+            0x01000028,
+            0x01000029,
+        ):  # Alt keys
             return None
 
         # Letters (Qt: A=0x41, Windows: A=0x41)
@@ -219,24 +234,24 @@ class HotkeyBackend(QObject):
 
         # Special keys mapping
         qt_to_vk = {
-            0x01000000: 0x1B,   # Escape
-            0x01000001: 0x09,   # Tab
-            0x01000003: 0x08,   # Backspace
-            0x01000004: 0x0D,   # Return
-            0x01000005: 0x0D,   # Enter
-            0x01000006: 0x2D,   # Insert
-            0x01000007: 0x2E,   # Delete
-            0x01000008: 0x13,   # Pause
-            0x01000009: 0x2C,   # Print Screen
-            0x01000010: 0x24,   # Home
-            0x01000011: 0x23,   # End
-            0x01000012: 0x25,   # Left
-            0x01000013: 0x26,   # Up
-            0x01000014: 0x27,   # Right
-            0x01000015: 0x28,   # Down
-            0x01000016: 0x21,   # Page Up
-            0x01000017: 0x22,   # Page Down
-            0x20: 0x20,         # Space
+            0x01000000: 0x1B,  # Escape
+            0x01000001: 0x09,  # Tab
+            0x01000003: 0x08,  # Backspace
+            0x01000004: 0x0D,  # Return
+            0x01000005: 0x0D,  # Enter
+            0x01000006: 0x2D,  # Insert
+            0x01000007: 0x2E,  # Delete
+            0x01000008: 0x13,  # Pause
+            0x01000009: 0x2C,  # Print Screen
+            0x01000010: 0x24,  # Home
+            0x01000011: 0x23,  # End
+            0x01000012: 0x25,  # Left
+            0x01000013: 0x26,  # Up
+            0x01000014: 0x27,  # Right
+            0x01000015: 0x28,  # Down
+            0x01000016: 0x21,  # Page Up
+            0x01000017: 0x22,  # Page Down
+            0x20: 0x20,  # Space
         }
 
         return qt_to_vk.get(qt_key)
@@ -244,19 +259,21 @@ class HotkeyBackend(QObject):
     def _update_recorded_display(self):
         """Update the recorded hotkey display string."""
         if self._recorded_vk:
-            self._recorded_hotkey = hotkey_to_string(self._recorded_modifiers, self._recorded_vk)
+            self._recorded_hotkey = hotkey_to_string(
+                self._recorded_modifiers, self._recorded_vk
+            )
         else:
             # Show just modifiers
             parts = []
             if self._recorded_modifiers & MOD_WIN:
-                parts.append('Win')
+                parts.append("Win")
             if self._recorded_modifiers & MOD_CONTROL:
-                parts.append('Ctrl')
+                parts.append("Ctrl")
             if self._recorded_modifiers & MOD_ALT:
-                parts.append('Alt')
+                parts.append("Alt")
             if self._recorded_modifiers & MOD_SHIFT:
-                parts.append('Shift')
-            self._recorded_hotkey = '+'.join(parts) + ('+...' if parts else '...')
+                parts.append("Shift")
+            self._recorded_hotkey = "+".join(parts) + ("+..." if parts else "...")
 
         self.recordedHotkeyChanged.emit(self._recorded_hotkey)
 

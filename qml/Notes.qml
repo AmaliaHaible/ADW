@@ -101,34 +101,37 @@ WidgetWindow {
 
                                     delegate: Rectangle {
                                         Layout.fillWidth: true
-                                        Layout.preferredHeight: 60
+                                        Layout.preferredHeight: 56
                                         radius: Theme.borderRadius
                                         color: noteMouseArea.containsMouse ? Theme.surfaceColor : modelData.color || Theme.surfaceColor
                                         border.color: Theme.borderColor
                                         border.width: 1
+                                        clip: true
 
-                                        ColumnLayout {
+                                        Column {
                                             anchors.fill: parent
                                             anchors.margins: Theme.padding / 2
                                             spacing: 2
 
                                             Text {
-                                                Layout.fillWidth: true
+                                                width: parent.width
                                                 text: modelData.title || "Untitled"
-                                                color: Theme.textPrimary
+                                                color: modelData.textColor || Theme.textPrimary
                                                 font.pixelSize: Theme.fontSizeNormal
                                                 font.weight: Font.Medium
                                                 elide: Text.ElideRight
                                             }
 
                                             Text {
-                                                Layout.fillWidth: true
+                                                width: parent.width
+                                                height: 28
                                                 text: modelData.content || ""
-                                                color: Theme.textSecondary
+                                                color: modelData.textColor ? Qt.lighter(modelData.textColor, 1.3) : Theme.textSecondary
                                                 font.pixelSize: Theme.fontSizeSmall
                                                 elide: Text.ElideRight
                                                 maximumLineCount: 2
                                                 wrapMode: Text.WordWrap
+                                                clip: true
                                             }
                                         }
 
@@ -199,12 +202,12 @@ WidgetWindow {
                                 id: contentArea
                                 text: notesBackend.currentNote ? notesBackend.currentNote.content : ""
                                 placeholderText: "Write your note..."
-                                color: Theme.textPrimary
+                                color: notesBackend.currentNote?.textColor || Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
                                 wrapMode: TextArea.Wrap
 
                                 background: Rectangle {
-                                    color: Theme.surfaceColor
+                                    color: notesBackend.currentNote?.color || Theme.surfaceColor
                                     border.color: contentArea.activeFocus ? Theme.accentColor : Theme.borderColor
                                     border.width: 1
                                     radius: Theme.borderRadius
@@ -228,13 +231,19 @@ WidgetWindow {
                             Layout.fillWidth: true
                             spacing: Theme.spacing
 
+                            Text {
+                                text: "Bg:"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                            }
+
                             Repeater {
                                 model: ["#313244", "#f38ba8", "#fab387", "#a6e3a1", "#89b4fa", "#cba6f7"]
 
                                 delegate: Rectangle {
-                                    width: 24
-                                    height: 24
-                                    radius: 12
+                                    width: 20
+                                    height: 20
+                                    radius: 10
                                     color: modelData
                                     border.color: notesBackend.currentNote?.color === modelData ? Theme.textPrimary : "transparent"
                                     border.width: 2
@@ -242,6 +251,44 @@ WidgetWindow {
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: notesBackend.updateNoteColor(notesBackend.currentNoteId, modelData)
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                width: 1
+                                height: 20
+                                color: Theme.borderColor
+                            }
+
+                            Text {
+                                text: "Txt:"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                            }
+
+                            Repeater {
+                                model: ["#cdd6f4", "#313244", "#1e1e2e", "#45475a"]
+
+                                delegate: Rectangle {
+                                    width: 20
+                                    height: 20
+                                    radius: 10
+                                    color: modelData
+                                    border.color: notesBackend.currentNote?.textColor === modelData ? Theme.accentColor : Theme.borderColor
+                                    border.width: 2
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "A"
+                                        color: index < 1 ? "#313244" : "#cdd6f4"
+                                        font.pixelSize: 10
+                                        font.weight: Font.Bold
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: notesBackend.updateNoteTextColor(notesBackend.currentNoteId, modelData)
                                     }
                                 }
                             }
