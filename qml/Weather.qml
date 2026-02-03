@@ -386,6 +386,7 @@ WidgetWindow {
                                 id: searchField
                                 Layout.fillWidth: true
                                 placeholderText: "Enter city name..."
+                                placeholderTextColor: Qt.rgba(Theme.textPrimary.r, Theme.textPrimary.g, Theme.textPrimary.b, 0.5)
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
 

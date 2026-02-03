@@ -148,6 +148,7 @@ WidgetWindow {
                                     id: newTodoField
                                     Layout.fillWidth: true
                                     placeholderText: "Add a todo..."
+                                    placeholderTextColor: Qt.rgba(Theme.textPrimary.r, Theme.textPrimary.g, Theme.textPrimary.b, 0.5)
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeNormal
 
@@ -549,6 +550,7 @@ WidgetWindow {
                     id: childTodoField
                     Layout.fillWidth: true
                     placeholderText: "Add subtask..."
+                    placeholderTextColor: Qt.rgba(Theme.textPrimary.r, Theme.textPrimary.g, Theme.textPrimary.b, 0.5)
                     color: Theme.textPrimary
                     font.pixelSize: Theme.fontSizeSmall
 

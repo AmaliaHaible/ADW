@@ -122,6 +122,7 @@ WidgetWindow {
                             id: searchField
                             Layout.fillWidth: true
                             placeholderText: "Search..."
+                            placeholderTextColor: Qt.rgba(Theme.textPrimary.r, Theme.textPrimary.g, Theme.textPrimary.b, 0.5)
                             color: Theme.textPrimary
                             font.pixelSize: Theme.fontSizeNormal
                             visible: launcherBackend.showSearchBar
@@ -271,6 +272,7 @@ WidgetWindow {
                                 Layout.leftMargin: Theme.padding
                                 Layout.rightMargin: Theme.padding
                                 placeholderText: "Shortcut name..."
+                                placeholderTextColor: Qt.rgba(Theme.textPrimary.r, Theme.textPrimary.g, Theme.textPrimary.b, 0.5)
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
 
@@ -296,6 +298,7 @@ WidgetWindow {
                                 Layout.leftMargin: Theme.padding
                                 Layout.rightMargin: Theme.padding
                                 placeholderText: "Full path to file or folder..."
+                                placeholderTextColor: Qt.rgba(Theme.textPrimary.r, Theme.textPrimary.g, Theme.textPrimary.b, 0.5)
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
 
@@ -321,6 +324,7 @@ WidgetWindow {
                                 Layout.leftMargin: Theme.padding
                                 Layout.rightMargin: Theme.padding
                                 placeholderText: "Leave empty to use exe folder..."
+                                placeholderTextColor: Qt.rgba(Theme.textPrimary.r, Theme.textPrimary.g, Theme.textPrimary.b, 0.5)
                                 color: Theme.textPrimary
                                 font.pixelSize: Theme.fontSizeNormal
 
