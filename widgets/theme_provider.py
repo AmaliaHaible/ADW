@@ -30,6 +30,12 @@ class ThemeProvider(QObject):
     successChanged = Signal()
     warningChanged = Signal()
     errorChanged = Signal()
+    colorRedChanged = Signal()
+    colorOrangeChanged = Signal()
+    colorYellowChanged = Signal()
+    colorGreenChanged = Signal()
+    colorBlueChanged = Signal()
+    colorPurpleChanged = Signal()
 
     # Int signals
     fontSizeSmallChanged = Signal()
@@ -103,6 +109,12 @@ class ThemeProvider(QObject):
         self.successChanged.emit()
         self.warningChanged.emit()
         self.errorChanged.emit()
+        self.colorRedChanged.emit()
+        self.colorOrangeChanged.emit()
+        self.colorYellowChanged.emit()
+        self.colorGreenChanged.emit()
+        self.colorBlueChanged.emit()
+        self.colorPurpleChanged.emit()
         self.fontSizeSmallChanged.emit()
         self.fontSizeNormalChanged.emit()
         self.fontSizeLargeChanged.emit()
@@ -192,6 +204,30 @@ class ThemeProvider(QObject):
     @Property(QColor, notify=errorChanged)
     def error(self):
         return QColor(self._theme["error"])
+
+    @Property(QColor, notify=colorRedChanged)
+    def colorRed(self):
+        return QColor(self._theme.get("colorRed", "#f38ba8"))
+
+    @Property(QColor, notify=colorOrangeChanged)
+    def colorOrange(self):
+        return QColor(self._theme.get("colorOrange", "#fab387"))
+
+    @Property(QColor, notify=colorYellowChanged)
+    def colorYellow(self):
+        return QColor(self._theme.get("colorYellow", "#f9e2af"))
+
+    @Property(QColor, notify=colorGreenChanged)
+    def colorGreen(self):
+        return QColor(self._theme.get("colorGreen", "#a6e3a1"))
+
+    @Property(QColor, notify=colorBlueChanged)
+    def colorBlue(self):
+        return QColor(self._theme.get("colorBlue", "#89b4fa"))
+
+    @Property(QColor, notify=colorPurpleChanged)
+    def colorPurple(self):
+        return QColor(self._theme.get("colorPurple", "#cba6f7"))
 
     # Int properties
     @Property(int, notify=fontSizeSmallChanged)

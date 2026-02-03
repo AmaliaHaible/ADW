@@ -2,9 +2,6 @@ import uuid
 from PySide6.QtCore import QObject, Property, Signal, Slot
 
 
-DEFAULT_COLORS = ["#313244", "#f38ba8", "#fab387", "#a6e3a1", "#89b4fa", "#cba6f7"]
-
-
 class NotesBackend(QObject):
     """Backend for quick notes widget."""
 
@@ -13,9 +10,10 @@ class NotesBackend(QObject):
     searchQueryChanged = Signal()
     colorsChanged = Signal()
 
-    def __init__(self, settings_backend=None, parent=None):
+    def __init__(self, settings_backend=None, theme_provider=None, parent=None):
         super().__init__(parent)
         self._settings = settings_backend
+        self._theme = theme_provider
         self._notes = []
         self._current_note_id = None
         self._search_query = ""
@@ -81,9 +79,27 @@ class NotesBackend(QObject):
     def availableColors(self):
         if self._settings:
             colors = self._settings.getWidgetSetting("notes", "colors")
-            if colors:
+            if colors and len(colors) > 0:
                 return colors
-        return DEFAULT_COLORS
+        if self._theme:
+            return [
+                self._theme._theme.get("surfaceColor", "#313244"),
+                self._theme._theme.get("colorRed", "#f38ba8"),
+                self._theme._theme.get("colorOrange", "#fab387"),
+                self._theme._theme.get("colorYellow", "#f9e2af"),
+                self._theme._theme.get("colorGreen", "#a6e3a1"),
+                self._theme._theme.get("colorBlue", "#89b4fa"),
+                self._theme._theme.get("colorPurple", "#cba6f7"),
+            ]
+        return [
+            "#313244",
+            "#f38ba8",
+            "#fab387",
+            "#f9e2af",
+            "#a6e3a1",
+            "#89b4fa",
+            "#cba6f7",
+        ]
 
     @Slot(int, str)
     def setColor(self, index, color):

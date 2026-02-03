@@ -23,9 +23,7 @@ DEFAULT_SETTINGS = {
             "anchor_top": True,
         },
         "theme": {"visible": False, "x": 100, "y": 370, "width": 320, "height": 450},
-        "notes": {
-            "colors": ["#313244", "#f38ba8", "#fab387", "#a6e3a1", "#89b4fa", "#cba6f7"]
-        },
+        "notes": {"colors": []},
     },
     "hotkeys": {"always_on_top": "ctrl+alt+j"},
     "theme": DEFAULT_THEME,

@@ -275,7 +275,7 @@ WidgetWindow {
                                 width: 32
                                 height: 32
                                 radius: Theme.borderRadius
-                                color: deleteArea.containsMouse ? Theme.error : Theme.surfaceColor
+                                color: deleteArea.containsMouse ? Theme.colorRed : Theme.surfaceColor
 
                                 Image {
                                     anchors.centerIn: parent

@@ -141,7 +141,7 @@ def main():
     # Set up notes backend (if enabled)
     notes = None
     if enabled.get("notes", True):
-        notes = NotesBackend(settings_backend=settings)
+        notes = NotesBackend(settings_backend=settings, theme_provider=theme_provider)
         engine.rootContext().setContextProperty("notesBackend", notes)
 
     # Set up pomodoro backend (if enabled)

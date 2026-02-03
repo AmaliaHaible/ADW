@@ -11,6 +11,7 @@ class LauncherBackend(QObject):
 
     shortcutsChanged = Signal()
     searchQueryChanged = Signal()
+    columnsChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
@@ -18,6 +19,20 @@ class LauncherBackend(QObject):
         self._shortcuts = []
         self._search_query = ""
         self._load_shortcuts()
+
+    @Property(int, notify=columnsChanged)
+    def columns(self):
+        if self._settings:
+            val = self._settings.getWidgetSetting("launcher", "columns")
+            if val is not None:
+                return val
+        return 3
+
+    @Slot(int)
+    def setColumns(self, value):
+        if self._settings and 1 <= value <= 8:
+            self._settings.setWidgetSetting("launcher", "columns", value)
+            self.columnsChanged.emit()
 
     def _load_shortcuts(self):
         """Load shortcuts from settings."""

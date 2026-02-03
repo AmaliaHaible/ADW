@@ -31,6 +31,14 @@ QtObject {
     readonly property color warning: themeProvider ? themeProvider.warning : "#f9e2af"
     readonly property color error: themeProvider ? themeProvider.error : "#f38ba8"
 
+    // Custom palette colors
+    readonly property color colorRed: themeProvider ? themeProvider.colorRed : "#f38ba8"
+    readonly property color colorOrange: themeProvider ? themeProvider.colorOrange : "#fab387"
+    readonly property color colorYellow: themeProvider ? themeProvider.colorYellow : "#f9e2af"
+    readonly property color colorGreen: themeProvider ? themeProvider.colorGreen : "#a6e3a1"
+    readonly property color colorBlue: themeProvider ? themeProvider.colorBlue : "#89b4fa"
+    readonly property color colorPurple: themeProvider ? themeProvider.colorPurple : "#cba6f7"
+
     // Font sizes
     readonly property int fontSizeSmall: themeProvider ? themeProvider.fontSizeSmall : 11
     readonly property int fontSizeNormal: themeProvider ? themeProvider.fontSizeNormal : 13
