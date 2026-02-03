@@ -18,9 +18,41 @@ Window {
     property bool minimized: false
     property real _expandedHeight: 0
     property bool anchorTop: true
+    property bool _wasMinimizedBeforeEdit: false
     readonly property real effectiveWindowRadius: Math.min(windowRadius, Theme.titleBarHeight / 2)
 
     default property alias content: mainContainer.data
+
+    onEditModeChanged: {
+        if (editMode) {
+            if (minimized) {
+                _wasMinimizedBeforeEdit = true
+                expandWithoutSaving()
+            }
+        } else {
+            if (_wasMinimizedBeforeEdit) {
+                _wasMinimizedBeforeEdit = false
+                collapseWithoutSaving()
+            }
+        }
+    }
+
+    function expandWithoutSaving() {
+        if (!anchorTop) {
+            y = y - (_expandedHeight - height)
+        }
+        height = _expandedHeight
+        minimized = false
+    }
+
+    function collapseWithoutSaving() {
+        _expandedHeight = height
+        if (!anchorTop) {
+            y = y + (height - Theme.titleBarHeight)
+        }
+        height = Theme.titleBarHeight
+        minimized = true
+    }
 
     function toggleMinimize() {
         if (minimized) {
@@ -37,6 +69,7 @@ Window {
             height = Theme.titleBarHeight
             minimized = true
         }
+        saveMinimizedSetting()
     }
 
     function toggleAnchor() {
@@ -50,11 +83,37 @@ Window {
         }
     }
 
+    function saveMinimizedSetting() {
+        if (settingsStore && geometryKey !== "") {
+            settingsStore.setWidgetSetting(geometryKey, "minimized", minimized)
+            if (!minimized) {
+                settingsStore.setWidgetSetting(geometryKey, "expandedHeight", height)
+            }
+        }
+    }
+
     function loadAnchorSetting() {
         if (settingsStore && geometryKey !== "") {
             var saved = settingsStore.getWidgetSetting(geometryKey, "anchorTop")
             if (saved !== null && saved !== undefined) {
                 anchorTop = saved
+            }
+        }
+    }
+
+    function loadMinimizedSetting() {
+        if (settingsStore && geometryKey !== "") {
+            var savedHeight = settingsStore.getWidgetSetting(geometryKey, "expandedHeight")
+            if (typeof savedHeight === "number" && savedHeight > 0) {
+                _expandedHeight = savedHeight
+            } else {
+                _expandedHeight = height
+            }
+            
+            var savedMinimized = settingsStore.getWidgetSetting(geometryKey, "minimized")
+            if (savedMinimized === true) {
+                height = Theme.titleBarHeight
+                minimized = true
             }
         }
     }
@@ -68,16 +127,16 @@ Window {
 
     color: "transparent"
 
-    onXChanged: if (visible) saveGeometryTimer.restart()
-    onYChanged: if (visible) saveGeometryTimer.restart()
-    onWidthChanged: if (visible) saveGeometryTimer.restart()
-    onHeightChanged: if (visible) saveGeometryTimer.restart()
+    onXChanged: if (visible && !minimized) saveGeometryTimer.restart()
+    onYChanged: if (visible && !minimized) saveGeometryTimer.restart()
+    onWidthChanged: if (visible && !minimized) saveGeometryTimer.restart()
+    onHeightChanged: if (visible && !minimized) saveGeometryTimer.restart()
 
     Timer {
         id: saveGeometryTimer
         interval: 500
         onTriggered: {
-            if (settingsStore && geometryKey !== "") {
+            if (settingsStore && geometryKey !== "" && !minimized) {
                 settingsStore.setWidgetGeometry(
                     geometryKey,
                     widgetWindow.x,
@@ -116,14 +175,17 @@ Window {
     Component.onCompleted: {
         applyGeometryFromSettings()
         loadAnchorSetting()
+        loadMinimizedSetting()
     }
     onSettingsStoreChanged: {
         applyGeometryFromSettings()
         loadAnchorSetting()
+        loadMinimizedSetting()
     }
     onGeometryKeyChanged: {
         applyGeometryFromSettings()
         loadAnchorSetting()
+        loadMinimizedSetting()
     }
 
     // Update window flags when conditions change
@@ -215,7 +277,7 @@ Window {
             color: Theme.colorGreen
             opacity: 0.9
             anchors.horizontalCenter: parent.horizontalCenter
-            y: anchorTop ? 0 : (parent.height - height)
+            y: anchorTop ? Theme.titleBarHeight : (parent.height - height)
 
             Text {
                 anchors.centerIn: parent
