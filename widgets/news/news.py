@@ -68,12 +68,28 @@ class NewsBackend(QObject):
             self._error = f"Failed to load categories: {e}"
             self.errorChanged.emit()
 
-    def _build_kagi_link(self, category, timestamp, title):
+    def _build_kagi_link(self, category, title, articles):
         """Build Kagi news link from cluster data."""
         import urllib.parse
         import re
+        from datetime import datetime
 
-        if not category or not timestamp or not title:
+        if not category or not title:
+            return ""
+
+        timestamp = ""
+        if articles:
+            date_str = articles[0].get("date", "")
+            if date_str:
+                try:
+                    dt = datetime.fromisoformat(
+                        date_str.replace("+00:00", "").replace("Z", "")
+                    )
+                    timestamp = dt.strftime("%Y%m%d%H")
+                except (ValueError, AttributeError):
+                    pass
+
+        if not timestamp:
             return ""
 
         slug = title.lower()
@@ -114,8 +130,8 @@ class NewsBackend(QObject):
             for cluster in data.get("clusters", [])[:10]:
                 title = cluster.get("title", "")
                 category = cluster.get("category", "")
-                timestamp = cluster.get("timestamp", "")
-                kagi_link = self._build_kagi_link(category, timestamp, title)
+                cluster_articles = cluster.get("articles", [])
+                kagi_link = self._build_kagi_link(category, title, cluster_articles)
 
                 articles.append(
                     {
@@ -125,8 +141,8 @@ class NewsBackend(QObject):
                         else cluster.get("short_summary", ""),
                         "emoji": cluster.get("emoji", ""),
                         "category": category,
-                        "sources": len(cluster.get("articles", [])),
-                        "articles": cluster.get("articles", [])[:5],
+                        "sources": len(cluster_articles),
+                        "articles": cluster_articles[:5],
                         "kagiLink": kagi_link,
                     }
                 )

@@ -109,9 +109,8 @@ WidgetWindow {
                         ColumnLayout {
                             id: currentWeatherLayout
                             anchors.centerIn: parent
-                            spacing: Theme.spacing
+                            spacing: 2
 
-                            // Weather icon
                             Image {
                                 Layout.alignment: Qt.AlignHCenter
                                 source: weatherBackend.currentIcon ? "file:///" + weatherBackend.currentIcon : ""
@@ -121,7 +120,6 @@ WidgetWindow {
                                 visible: weatherBackend.currentIcon !== ""
                             }
 
-                            // Temperature
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: Math.round(weatherBackend.currentTemp) + "°C"
@@ -130,7 +128,6 @@ WidgetWindow {
                                 font.weight: Font.Light
                             }
 
-                            // Precipitation
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: weatherBackend.currentPrecip + "%"

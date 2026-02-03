@@ -246,325 +246,357 @@ WidgetWindow {
                 }
 
                 Item {
-                    ColumnLayout {
+                    ScrollView {
                         anchors.fill: parent
-                        anchors.margins: Theme.padding
-                        spacing: Theme.spacing
+                        contentWidth: availableWidth
+                        clip: true
 
-                        Text {
-                            text: "Name"
-                            color: Theme.textSecondary
-                            font.pixelSize: Theme.fontSizeSmall
-                        }
+                        ColumnLayout {
+                            width: parent.width
+                            spacing: Theme.spacing
 
-                        TextField {
-                            id: nameField
-                            Layout.fillWidth: true
-                            placeholderText: "Shortcut name..."
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeNormal
+                            Item { Layout.preferredHeight: Theme.padding / 2 }
 
-                            background: Rectangle {
-                                color: Theme.surfaceColor
-                                border.color: nameField.activeFocus ? Theme.accentColor : Theme.borderColor
-                                border.width: 1
-                                radius: Theme.borderRadius
+                            Text {
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                text: "Name"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
                             }
-                        }
 
-                        Text {
-                            text: "Path"
-                            color: Theme.textSecondary
-                            font.pixelSize: Theme.fontSizeSmall
-                        }
-
-                        TextField {
-                            id: pathField
-                            Layout.fillWidth: true
-                            placeholderText: "Full path to file or folder..."
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeNormal
-
-                            background: Rectangle {
-                                color: Theme.surfaceColor
-                                border.color: pathField.activeFocus ? Theme.accentColor : Theme.borderColor
-                                border.width: 1
-                                radius: Theme.borderRadius
-                            }
-                        }
-
-                        Text {
-                            text: "Working Directory"
-                            color: Theme.textSecondary
-                            font.pixelSize: Theme.fontSizeSmall
-                        }
-
-                        TextField {
-                            id: workingDirField
-                            Layout.fillWidth: true
-                            placeholderText: "Leave empty to use exe folder..."
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeNormal
-
-                            background: Rectangle {
-                                color: Theme.surfaceColor
-                                border.color: workingDirField.activeFocus ? Theme.accentColor : Theme.borderColor
-                                border.width: 1
-                                radius: Theme.borderRadius
-                            }
-                        }
-
-                        Text {
-                            text: "Icon"
-                            color: Theme.textSecondary
-                            font.pixelSize: Theme.fontSizeSmall
-                        }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-
-                            Rectangle {
+                            TextField {
+                                id: nameField
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 28
-                                radius: Theme.borderRadius
-                                color: (!launcherWindow.useCustomIcon && !launcherWindow.customImagePath) ? Theme.accentColor : (defaultIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                placeholderText: "Shortcut name..."
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "Default"
-                                    color: Theme.textPrimary
-                                    font.pixelSize: Theme.fontSizeSmall
-                                }
-
-                                MouseArea {
-                                    id: defaultIconArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    onClicked: {
-                                        launcherWindow.useCustomIcon = false
-                                        launcherWindow.customImagePath = ""
-                                        launcherWindow.editingIcon = launcherBackend.getIconForPath(pathField.text)
-                                    }
+                                background: Rectangle {
+                                    color: Theme.surfaceColor
+                                    border.color: nameField.activeFocus ? Theme.accentColor : Theme.borderColor
+                                    border.width: 1
+                                    radius: Theme.borderRadius
                                 }
                             }
 
-                            Rectangle {
+                            Text {
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                text: "Path"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                            }
+
+                            TextField {
+                                id: pathField
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 28
-                                radius: Theme.borderRadius
-                                color: (launcherWindow.useCustomIcon && !launcherWindow.customImagePath) ? Theme.accentColor : (presetIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                placeholderText: "Full path to file or folder..."
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "Preset"
-                                    color: Theme.textPrimary
-                                    font.pixelSize: Theme.fontSizeSmall
-                                }
-
-                                MouseArea {
-                                    id: presetIconArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    onClicked: {
-                                        launcherWindow.useCustomIcon = true
-                                        launcherWindow.customImagePath = ""
-                                    }
+                                background: Rectangle {
+                                    color: Theme.surfaceColor
+                                    border.color: pathField.activeFocus ? Theme.accentColor : Theme.borderColor
+                                    border.width: 1
+                                    radius: Theme.borderRadius
                                 }
                             }
 
-                            Rectangle {
+                            Text {
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                text: "Working Directory"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                            }
+
+                            TextField {
+                                id: workingDirField
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 28
-                                radius: Theme.borderRadius
-                                color: launcherWindow.customImagePath ? Theme.accentColor : (imageIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                placeholderText: "Leave empty to use exe folder..."
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "Image"
-                                    color: Theme.textPrimary
-                                    font.pixelSize: Theme.fontSizeSmall
-                                }
-
-                                MouseArea {
-                                    id: imageIconArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    onClicked: imageFileDialog.open()
+                                background: Rectangle {
+                                    color: Theme.surfaceColor
+                                    border.color: workingDirField.activeFocus ? Theme.accentColor : Theme.borderColor
+                                    border.width: 1
+                                    radius: Theme.borderRadius
                                 }
                             }
-                        }
 
-                        ScrollView {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 72
-                            clip: true
-                            contentWidth: availableWidth
-                            visible: launcherWindow.useCustomIcon && !launcherWindow.customImagePath
+                            Text {
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                text: "Icon"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                            }
 
-                            Flow {
-                                width: parent.width
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
                                 spacing: 4
 
-                                Repeater {
-                                    model: launcherWindow.availableIcons
-
-                                    delegate: Rectangle {
-                                        width: 32
-                                        height: 32
-                                        radius: 4
-                                        color: launcherWindow.editingIcon === modelData ? Theme.accentColor : (iconArea.containsMouse ? Theme.surfaceColor : "transparent")
-                                        border.color: launcherWindow.editingIcon === modelData ? Theme.accentColor : "transparent"
-                                        border.width: 2
-
-                                        Image {
-                                            anchors.centerIn: parent
-                                            source: iconsPath + modelData
-                                            sourceSize: Qt.size(20, 20)
-                                        }
-
-                                        MouseArea {
-                                            id: iconArea
-                                            anchors.fill: parent
-                                            hoverEnabled: true
-                                            onClicked: launcherWindow.editingIcon = modelData
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 48
-                            radius: Theme.borderRadius
-                            color: Theme.surfaceColor
-                            visible: !launcherWindow.useCustomIcon && !launcherWindow.customImagePath
-
-                            property string extractedUrl: launcherBackend.getExtractedIconUrl(pathField.text)
-
-                            RowLayout {
-                                anchors.centerIn: parent
-                                spacing: Theme.spacing
-
-                                Image {
-                                    source: parent.parent.extractedUrl || (iconsPath + (launcherWindow.editingIcon || "file.svg"))
-                                    sourceSize: Qt.size(24, 24)
-                                }
-
-                                Text {
-                                    text: parent.parent.extractedUrl ? "Using extracted icon" : "Using default icon"
-                                    color: Theme.textSecondary
-                                    font.pixelSize: Theme.fontSizeSmall
-                                }
-                            }
-                        }
-
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.preferredHeight: 48
-                            radius: Theme.borderRadius
-                            color: Theme.surfaceColor
-                            visible: launcherWindow.customImagePath
-
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.margins: Theme.padding / 2
-                                spacing: Theme.spacing
-
-                                Image {
-                                    source: launcherWindow.customImagePath
-                                    sourceSize: Qt.size(32, 32)
-                                    fillMode: Image.PreserveAspectFit
-                                }
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: launcherWindow.customImagePath.split("/").pop().split("\\").pop()
-                                    color: Theme.textSecondary
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    elide: Text.ElideMiddle
-                                }
-
                                 Rectangle {
-                                    width: 24
-                                    height: 24
-                                    radius: 4
-                                    color: clearImgArea.containsMouse ? Theme.colorRed : Theme.surfaceColor
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 28
+                                    radius: Theme.borderRadius
+                                    color: (!launcherWindow.useCustomIcon && !launcherWindow.customImagePath) ? Theme.accentColor : (defaultIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
 
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "x"
+                                        text: "Default"
                                         color: Theme.textPrimary
-                                        font.pixelSize: 12
+                                        font.pixelSize: Theme.fontSizeSmall
                                     }
 
                                     MouseArea {
-                                        id: clearImgArea
+                                        id: defaultIconArea
                                         anchors.fill: parent
                                         hoverEnabled: true
-                                        onClicked: launcherWindow.customImagePath = ""
+                                        onClicked: {
+                                            launcherWindow.useCustomIcon = false
+                                            launcherWindow.customImagePath = ""
+                                            launcherWindow.editingIcon = launcherBackend.getIconForPath(pathField.text)
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 28
+                                    radius: Theme.borderRadius
+                                    color: (launcherWindow.useCustomIcon && !launcherWindow.customImagePath) ? Theme.accentColor : (presetIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "Preset"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: Theme.fontSizeSmall
+                                    }
+
+                                    MouseArea {
+                                        id: presetIconArea
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: {
+                                            launcherWindow.useCustomIcon = true
+                                            launcherWindow.customImagePath = ""
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 28
+                                    radius: Theme.borderRadius
+                                    color: launcherWindow.customImagePath ? Theme.accentColor : (imageIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "Image"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: Theme.fontSizeSmall
+                                    }
+
+                                    MouseArea {
+                                        id: imageIconArea
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: imageFileDialog.open()
                                     }
                                 }
                             }
-                        }
 
-                        Item { Layout.fillHeight: true }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: Theme.spacing
-
-                            Rectangle {
+                            ScrollView {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 36
-                                radius: Theme.borderRadius
-                                color: deleteBtn.containsMouse ? Theme.colorRed : Theme.surfaceColor
-                                visible: launcherWindow.editingShortcutId !== ""
+                                Layout.preferredHeight: 72
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                clip: true
+                                contentWidth: availableWidth
+                                visible: launcherWindow.useCustomIcon && !launcherWindow.customImagePath
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "Delete"
-                                    color: Theme.textPrimary
-                                    font.pixelSize: Theme.fontSizeNormal
-                                }
+                                Flow {
+                                    width: parent.width
+                                    spacing: 4
 
-                                MouseArea {
-                                    id: deleteBtn
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    onClicked: {
-                                        launcherBackend.removeShortcut(launcherWindow.editingShortcutId)
-                                        launcherWindow.currentView = 0
-                                    }
-                                }
-                            }
+                                    Repeater {
+                                        model: launcherWindow.availableIcons
 
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 36
-                                radius: Theme.borderRadius
-                                color: saveBtn.containsMouse ? Theme.accentHover : Theme.accentColor
+                                        delegate: Rectangle {
+                                            width: 32
+                                            height: 32
+                                            radius: 4
+                                            color: launcherWindow.editingIcon === modelData ? Theme.accentColor : (iconArea.containsMouse ? Theme.surfaceColor : "transparent")
+                                            border.color: launcherWindow.editingIcon === modelData ? Theme.accentColor : "transparent"
+                                            border.width: 2
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: launcherWindow.editingShortcutId ? "Save" : "Add"
-                                    color: Theme.textPrimary
-                                    font.pixelSize: Theme.fontSizeNormal
-                                }
-
-                                MouseArea {
-                                    id: saveBtn
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    onClicked: {
-                                        if (nameField.text && pathField.text) {
-                                            if (launcherWindow.editingShortcutId) {
-                                                launcherBackend.updateShortcut(launcherWindow.editingShortcutId, nameField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath, workingDirField.text)
-                                            } else {
-                                                launcherBackend.addShortcut(nameField.text, pathField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath, workingDirField.text)
+                                            Image {
+                                                anchors.centerIn: parent
+                                                source: iconsPath + modelData
+                                                sourceSize: Qt.size(20, 20)
                                             }
+
+                                            MouseArea {
+                                                id: iconArea
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                onClicked: launcherWindow.editingIcon = modelData
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 48
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                radius: Theme.borderRadius
+                                color: Theme.surfaceColor
+                                visible: !launcherWindow.useCustomIcon && !launcherWindow.customImagePath
+
+                                property string extractedUrl: launcherBackend.getExtractedIconUrl(pathField.text)
+
+                                RowLayout {
+                                    anchors.centerIn: parent
+                                    spacing: Theme.spacing
+
+                                    Image {
+                                        source: parent.parent.extractedUrl || (iconsPath + (launcherWindow.editingIcon || "file.svg"))
+                                        sourceSize: Qt.size(24, 24)
+                                    }
+
+                                    Text {
+                                        text: parent.parent.extractedUrl ? "Using extracted icon" : "Using default icon"
+                                        color: Theme.textSecondary
+                                        font.pixelSize: Theme.fontSizeSmall
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 48
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                radius: Theme.borderRadius
+                                color: Theme.surfaceColor
+                                visible: launcherWindow.customImagePath
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: Theme.padding / 2
+                                    spacing: Theme.spacing
+
+                                    Image {
+                                        source: launcherWindow.customImagePath
+                                        sourceSize: Qt.size(32, 32)
+                                        fillMode: Image.PreserveAspectFit
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: launcherWindow.customImagePath.split("/").pop().split("\\").pop()
+                                        color: Theme.textSecondary
+                                        font.pixelSize: Theme.fontSizeSmall
+                                        elide: Text.ElideMiddle
+                                    }
+
+                                    Rectangle {
+                                        width: 24
+                                        height: 24
+                                        radius: 4
+                                        color: clearImgArea.containsMouse ? Theme.colorRed : Theme.surfaceColor
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: "x"
+                                            color: Theme.textPrimary
+                                            font.pixelSize: 12
+                                        }
+
+                                        MouseArea {
+                                            id: clearImgArea
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            onClicked: launcherWindow.customImagePath = ""
+                                        }
+                                    }
+                                }
+                            }
+
+                            Item { Layout.fillHeight: true }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.leftMargin: Theme.padding
+                                Layout.rightMargin: Theme.padding
+                                Layout.bottomMargin: Theme.padding
+                                spacing: Theme.spacing
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 36
+                                    radius: Theme.borderRadius
+                                    color: deleteBtn.containsMouse ? Theme.colorRed : Theme.surfaceColor
+                                    visible: launcherWindow.editingShortcutId !== ""
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "Delete"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: Theme.fontSizeNormal
+                                    }
+
+                                    MouseArea {
+                                        id: deleteBtn
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: {
+                                            launcherBackend.removeShortcut(launcherWindow.editingShortcutId)
                                             launcherWindow.currentView = 0
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 36
+                                    radius: Theme.borderRadius
+                                    color: saveBtn.containsMouse ? Theme.accentHover : Theme.accentColor
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: launcherWindow.editingShortcutId ? "Save" : "Add"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: Theme.fontSizeNormal
+                                    }
+
+                                    MouseArea {
+                                        id: saveBtn
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: {
+                                            if (nameField.text && pathField.text) {
+                                                if (launcherWindow.editingShortcutId) {
+                                                    launcherBackend.updateShortcut(launcherWindow.editingShortcutId, nameField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath, workingDirField.text)
+                                                } else {
+                                                    launcherBackend.addShortcut(nameField.text, pathField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath, workingDirField.text)
+                                                }
+                                                launcherWindow.currentView = 0
+                                            }
                                         }
                                     }
                                 }
