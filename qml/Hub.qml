@@ -421,6 +421,419 @@ WidgetWindow {
                             }
                         }
                     }
+
+                    // Notes widget toggle
+                    Rectangle {
+                        id: notesToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.notes === true
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
+
+                            Image {
+                                source: iconsPath + "sticky-note.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                            }
+
+                            Text {
+                                text: "Notes"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !notesToggle.widgetEnabled
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.notesVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.notesVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.notesVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: notesToggle.widgetEnabled
+                                    onClicked: hubBackend.setNotesVisible(!hubBackend.notesVisible)
+                                }
+                            }
+                        }
+                    }
+
+                    // Pomodoro widget toggle
+                    Rectangle {
+                        id: pomodoroToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.pomodoro === true
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
+
+                            Image {
+                                source: iconsPath + "timer.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                            }
+
+                            Text {
+                                text: "Pomodoro"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !pomodoroToggle.widgetEnabled
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.pomodoroVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.pomodoroVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.pomodoroVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: pomodoroToggle.widgetEnabled
+                                    onClicked: hubBackend.setPomodoroVisible(!hubBackend.pomodoroVisible)
+                                }
+                            }
+                        }
+                    }
+
+                    // Launcher widget toggle
+                    Rectangle {
+                        id: launcherToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.launcher === true
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
+
+                            Image {
+                                source: iconsPath + "rocket.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                            }
+
+                            Text {
+                                text: "Launcher"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !launcherToggle.widgetEnabled
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.launcherVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.launcherVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.launcherVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: launcherToggle.widgetEnabled
+                                    onClicked: hubBackend.setLauncherVisible(!hubBackend.launcherVisible)
+                                }
+                            }
+                        }
+                    }
+
+                    // System Monitor widget toggle
+                    Rectangle {
+                        id: sysMonToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.system_monitor === true
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
+
+                            Image {
+                                source: iconsPath + "cpu.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                            }
+
+                            Text {
+                                text: "System"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !sysMonToggle.widgetEnabled
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.systemMonitorVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.systemMonitorVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.systemMonitorVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: sysMonToggle.widgetEnabled
+                                    onClicked: hubBackend.setSystemMonitorVisible(!hubBackend.systemMonitorVisible)
+                                }
+                            }
+                        }
+                    }
+
+                    // Network Monitor widget toggle
+                    Rectangle {
+                        id: netMonToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.network_monitor === true
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
+
+                            Image {
+                                source: iconsPath + "wifi.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                            }
+
+                            Text {
+                                text: "Network"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !netMonToggle.widgetEnabled
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.networkMonitorVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.networkMonitorVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.networkMonitorVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: netMonToggle.widgetEnabled
+                                    onClicked: hubBackend.setNetworkMonitorVisible(!hubBackend.networkMonitorVisible)
+                                }
+                            }
+                        }
+                    }
+
+                    // Battery widget toggle
+                    Rectangle {
+                        id: batteryToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.battery === true
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
+
+                            Image {
+                                source: iconsPath + "battery.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                            }
+
+                            Text {
+                                text: "Battery"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !batteryToggle.widgetEnabled
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.batteryVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.batteryVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.batteryVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: batteryToggle.widgetEnabled
+                                    onClicked: hubBackend.setBatteryVisible(!hubBackend.batteryVisible)
+                                }
+                            }
+                        }
+                    }
+
+                    // News widget toggle
+                    Rectangle {
+                        id: newsToggle
+                        property bool widgetEnabled: enabledWidgets && enabledWidgets.news === true
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        radius: Theme.borderRadius
+                        color: Theme.surfaceColor
+                        opacity: widgetEnabled ? 1.0 : 0.5
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.padding
+                            anchors.rightMargin: Theme.padding
+                            spacing: Theme.spacing
+
+                            Image {
+                                source: iconsPath + "newspaper.svg"
+                                sourceSize: Qt.size(20, 20)
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                            }
+
+                            Text {
+                                text: "News"
+                                color: Theme.textPrimary
+                                font.pixelSize: Theme.fontSizeNormal
+                                font.strikeout: !newsToggle.widgetEnabled
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 40
+                                Layout.preferredHeight: 20
+                                radius: 10
+                                color: hubBackend.newsVisible ? Theme.accentColor : Theme.accentInactive
+                                border.color: hubBackend.newsVisible ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    x: hubBackend.newsVisible ? parent.width - width - 2 : 2
+                                    y: 2
+                                    width: 16
+                                    height: 16
+                                    radius: 8
+                                    color: Theme.textPrimary
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    enabled: newsToggle.widgetEnabled
+                                    onClicked: hubBackend.setNewsVisible(!hubBackend.newsVisible)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

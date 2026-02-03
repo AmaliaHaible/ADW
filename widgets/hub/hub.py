@@ -10,6 +10,13 @@ class HubBackend(QObject):
     mediaVisibleChanged = Signal(bool)
     themeVisibleChanged = Signal(bool)
     todoVisibleChanged = Signal(bool)
+    notesVisibleChanged = Signal(bool)
+    pomodoroVisibleChanged = Signal(bool)
+    launcherVisibleChanged = Signal(bool)
+    systemMonitorVisibleChanged = Signal(bool)
+    networkMonitorVisibleChanged = Signal(bool)
+    batteryVisibleChanged = Signal(bool)
+    newsVisibleChanged = Signal(bool)
     editModeChanged = Signal(bool)
     alwaysOnTopChanged = Signal(bool)
     hubVisibleChanged = Signal(bool)
@@ -24,19 +31,37 @@ class HubBackend(QObject):
         self._tray_menu = None
         self._hub_visible = True  # Hub starts visible by default
 
-        # Load initial visibility states from settings
         if self._settings:
             self._weather_visible = self._settings.getWidgetVisible("weather")
             self._media_visible = self._settings.getWidgetVisible("media")
             self._theme_visible = self._settings.getWidgetVisible("theme")
             self._todo_visible = self._settings.getWidgetVisible("todo")
-            # Load always on top setting
-            self._always_on_top = self._settings.getWidgetSetting("hub", "always_on_top") or False
+            self._notes_visible = self._settings.getWidgetVisible("notes")
+            self._pomodoro_visible = self._settings.getWidgetVisible("pomodoro")
+            self._launcher_visible = self._settings.getWidgetVisible("launcher")
+            self._system_monitor_visible = self._settings.getWidgetVisible(
+                "system_monitor"
+            )
+            self._network_monitor_visible = self._settings.getWidgetVisible(
+                "network_monitor"
+            )
+            self._battery_visible = self._settings.getWidgetVisible("battery")
+            self._news_visible = self._settings.getWidgetVisible("news")
+            self._always_on_top = (
+                self._settings.getWidgetSetting("hub", "always_on_top") or False
+            )
         else:
             self._weather_visible = False
             self._media_visible = False
             self._theme_visible = False
             self._todo_visible = False
+            self._notes_visible = False
+            self._pomodoro_visible = False
+            self._launcher_visible = False
+            self._system_monitor_visible = False
+            self._network_monitor_visible = False
+            self._battery_visible = False
+            self._news_visible = False
             self._always_on_top = False
 
     def setup_tray(self, app):
@@ -145,8 +170,119 @@ class HubBackend(QObject):
 
     @Slot(bool)
     def setTodoVisible(self, visible):
-        """Set todo widget visibility."""
         self.todoVisible = visible
+
+    @Property(bool, notify=notesVisibleChanged)
+    def notesVisible(self):
+        return self._notes_visible
+
+    @notesVisible.setter
+    def notesVisible(self, value):
+        if self._notes_visible != value:
+            self._notes_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("notes", value)
+            self.notesVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setNotesVisible(self, visible):
+        self.notesVisible = visible
+
+    @Property(bool, notify=pomodoroVisibleChanged)
+    def pomodoroVisible(self):
+        return self._pomodoro_visible
+
+    @pomodoroVisible.setter
+    def pomodoroVisible(self, value):
+        if self._pomodoro_visible != value:
+            self._pomodoro_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("pomodoro", value)
+            self.pomodoroVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setPomodoroVisible(self, visible):
+        self.pomodoroVisible = visible
+
+    @Property(bool, notify=launcherVisibleChanged)
+    def launcherVisible(self):
+        return self._launcher_visible
+
+    @launcherVisible.setter
+    def launcherVisible(self, value):
+        if self._launcher_visible != value:
+            self._launcher_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("launcher", value)
+            self.launcherVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setLauncherVisible(self, visible):
+        self.launcherVisible = visible
+
+    @Property(bool, notify=systemMonitorVisibleChanged)
+    def systemMonitorVisible(self):
+        return self._system_monitor_visible
+
+    @systemMonitorVisible.setter
+    def systemMonitorVisible(self, value):
+        if self._system_monitor_visible != value:
+            self._system_monitor_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("system_monitor", value)
+            self.systemMonitorVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setSystemMonitorVisible(self, visible):
+        self.systemMonitorVisible = visible
+
+    @Property(bool, notify=networkMonitorVisibleChanged)
+    def networkMonitorVisible(self):
+        return self._network_monitor_visible
+
+    @networkMonitorVisible.setter
+    def networkMonitorVisible(self, value):
+        if self._network_monitor_visible != value:
+            self._network_monitor_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("network_monitor", value)
+            self.networkMonitorVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setNetworkMonitorVisible(self, visible):
+        self.networkMonitorVisible = visible
+
+    @Property(bool, notify=batteryVisibleChanged)
+    def batteryVisible(self):
+        return self._battery_visible
+
+    @batteryVisible.setter
+    def batteryVisible(self, value):
+        if self._battery_visible != value:
+            self._battery_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("battery", value)
+            self.batteryVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setBatteryVisible(self, visible):
+        self.batteryVisible = visible
+
+    @Property(bool, notify=newsVisibleChanged)
+    def newsVisible(self):
+        return self._news_visible
+
+    @newsVisible.setter
+    def newsVisible(self, value):
+        if self._news_visible != value:
+            self._news_visible = value
+            if self._settings:
+                self._settings.setWidgetVisible("news", value)
+            self.newsVisibleChanged.emit(value)
+
+    @Slot(bool)
+    def setNewsVisible(self, visible):
+        self.newsVisible = visible
 
     # Edit mode
     @Property(bool, notify=editModeChanged)
