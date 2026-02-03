@@ -68,16 +68,16 @@ class NewsBackend(QObject):
             self._error = f"Failed to load categories: {e}"
             self.errorChanged.emit()
 
-    def _build_kagi_link(self, category, title, articles):
+    def _build_kagi_link(self, json_category, cluster_number, title, articles):
         """Build Kagi news link from cluster data."""
         import urllib.parse
         import re
         from datetime import datetime
 
-        if not category or not title:
+        if not json_category or not title or cluster_number is None:
             return ""
 
-        timestamp = ""
+        date_part = ""
         if articles:
             date_str = articles[0].get("date", "")
             if date_str:
@@ -85,12 +85,14 @@ class NewsBackend(QObject):
                     dt = datetime.fromisoformat(
                         date_str.replace("+00:00", "").replace("Z", "")
                     )
-                    timestamp = dt.strftime("%Y%m%d%H")
+                    date_part = dt.strftime("%Y%m%d")
                 except (ValueError, AttributeError):
                     pass
 
-        if not timestamp:
+        if not date_part:
             return ""
+
+        timestamp = f"{date_part}1{cluster_number}"
 
         slug = title.lower()
         slug = re.sub(r"[^\w\s-]", "", slug)
@@ -98,7 +100,7 @@ class NewsBackend(QObject):
         slug = slug.strip("-")
         slug = urllib.parse.quote(slug, safe="-")
 
-        return f"https://news.kagi.com/{category}/{timestamp}/{slug}"
+        return f"https://news.kagi.com/{json_category}/{timestamp}/{slug}"
 
     def _fetch_articles(self):
         """Fetch articles for selected category."""
@@ -130,8 +132,11 @@ class NewsBackend(QObject):
             for cluster in data.get("clusters", [])[:10]:
                 title = cluster.get("title", "")
                 category = cluster.get("category", "")
+                cluster_number = cluster.get("cluster_number", 0)
                 cluster_articles = cluster.get("articles", [])
-                kagi_link = self._build_kagi_link(category, title, cluster_articles)
+                kagi_link = self._build_kagi_link(
+                    self._selected_category, cluster_number, title, cluster_articles
+                )
 
                 articles.append(
                     {

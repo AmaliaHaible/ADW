@@ -135,7 +135,7 @@ class NotesBackend(QObject):
         now = int(time.time())
         note = {
             "id": note_id,
-            "title": "New Note",
+            "title": "",
             "content": "",
             "colorIndex": 0,
             "created": now,
@@ -194,7 +194,7 @@ class NotesBackend(QObject):
         note = next(
             (n for n in self._notes if n.get("id") == self._newly_created_note_id), None
         )
-        if note and note.get("title") == "New Note" and not note.get("content"):
+        if note and not note.get("title") and not note.get("content"):
             self._notes = [
                 n for n in self._notes if n.get("id") != self._newly_created_note_id
             ]
@@ -210,7 +210,7 @@ class NotesBackend(QObject):
         if note:
             note["title"] = title
             note["updated"] = int(time.time())
-            if note_id == self._newly_created_note_id and title != "New Note":
+            if note_id == self._newly_created_note_id and title:
                 self._newly_created_note_id = None
             self._save_notes()
             if note_id == self._current_note_id:

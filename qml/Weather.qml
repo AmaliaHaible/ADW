@@ -103,13 +103,13 @@ WidgetWindow {
                     // Current Weather
                     Item {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: currentWeatherLayout.height + Theme.padding * 2
+                        Layout.preferredHeight: currentWeatherLayout.height + Theme.padding
                         visible: weatherBackend.locationName !== ""
 
                         ColumnLayout {
                             id: currentWeatherLayout
                             anchors.centerIn: parent
-                            spacing: 2
+                            spacing: 0
 
                             Image {
                                 Layout.alignment: Qt.AlignHCenter
