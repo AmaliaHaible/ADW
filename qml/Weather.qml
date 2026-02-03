@@ -39,7 +39,7 @@ WidgetWindow {
                 {icon: "refresh-cw.svg", action: "refresh", enabled: !hubBackend.editMode}
             ]
             rightButtons: [
-                {icon: "eye-off.svg", action: "minimize"}
+                {icon: weatherWindow.minimized ? "eye.svg" : "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {

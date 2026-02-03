@@ -38,7 +38,7 @@ WidgetWindow {
             ]
             rightButtons: [
                 {icon: "rotate-ccw.svg", action: "reset", enabled: !hubBackend.editMode},
-                {icon: "eye-off.svg", action: "minimize"}
+                {icon: themeWindow.minimized ? "eye.svg" : "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {

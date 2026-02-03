@@ -4,6 +4,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 from pathlib import Path
+from threading import Thread
 
 from dotenv import load_dotenv
 from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer
@@ -25,6 +26,9 @@ class WeatherBackend(QObject):
     isSearchingChanged = Signal()
     isLoadingChanged = Signal()
     errorMessageChanged = Signal()
+    _weatherDataReady = Signal(dict)
+    _searchDataReady = Signal(list)
+    _fetchError = Signal(str)
 
     # Weather code to icon mapping
     WEATHER_CODE_TO_ICON = {
@@ -84,6 +88,11 @@ class WeatherBackend(QObject):
         # Get LocationIQ API key from environment
         self._locationiq_key = os.getenv("LOCATIONIQ_KEY", "")
 
+        # Connect background thread signals
+        self._weatherDataReady.connect(self._on_weather_data_ready)
+        self._searchDataReady.connect(self._on_search_data_ready)
+        self._fetchError.connect(self._on_fetch_error)
+
         # Load settings
         self._load_settings()
 
@@ -92,7 +101,7 @@ class WeatherBackend(QObject):
         self._refresh_timer.timeout.connect(self.refreshWeather)
         self._refresh_timer.start(30 * 60 * 1000)  # 30 minutes in milliseconds
 
-        # Initial weather fetch if location is set
+        # Initial weather fetch if location is set (in background)
         if self._location_name:
             self.refreshWeather()
 
@@ -112,8 +121,12 @@ class WeatherBackend(QObject):
             self._lon = None
 
         # Load forecast hours (minimum 3)
-        forecast_hours = self._settings_backend.getWidgetSetting("weather", "forecast_hours")
-        self._forecast_hours = max(3, forecast_hours if forecast_hours is not None else 5)
+        forecast_hours = self._settings_backend.getWidgetSetting(
+            "weather", "forecast_hours"
+        )
+        self._forecast_hours = max(
+            3, forecast_hours if forecast_hours is not None else 5
+        )
 
     def _save_settings(self):
         """Save weather settings to SettingsBackend."""
@@ -122,14 +135,20 @@ class WeatherBackend(QObject):
 
         # Save location
         if hasattr(self, "_lat") and self._lat is not None:
-            self._settings_backend.setWidgetSetting("weather", "location", {
-                "display_name": self._location_name,
-                "lat": self._lat,
-                "lon": self._lon
-            })
+            self._settings_backend.setWidgetSetting(
+                "weather",
+                "location",
+                {
+                    "display_name": self._location_name,
+                    "lat": self._lat,
+                    "lon": self._lon,
+                },
+            )
 
         # Save forecast hours
-        self._settings_backend.setWidgetSetting("weather", "forecast_hours", self._forecast_hours)
+        self._settings_backend.setWidgetSetting(
+            "weather", "forecast_hours", self._forecast_hours
+        )
 
     def _get_icon_path(self, weather_code: int) -> str:
         """Get full path to weather icon based on weather code."""
@@ -161,15 +180,15 @@ class WeatherBackend(QObject):
     def forecastHours(self):
         return self._forecast_hours
 
-    @Property('QVariantList', notify=hourlyDataChanged)
+    @Property("QVariantList", notify=hourlyDataChanged)
     def hourlyData(self):
         return self._hourly_data
 
-    @Property('QVariantList', notify=dailyDataChanged)
+    @Property("QVariantList", notify=dailyDataChanged)
     def dailyData(self):
         return self._daily_data
 
-    @Property('QVariantList', notify=searchResultsChanged)
+    @Property("QVariantList", notify=searchResultsChanged)
     def searchResults(self):
         return self._search_results
 
@@ -186,60 +205,123 @@ class WeatherBackend(QObject):
         return self._error_message
 
     def _set_error(self, message: str):
-        """Set error message and emit signal."""
         self._error_message = message
         self.errorMessageChanged.emit()
 
     def _clear_error(self):
-        """Clear error message."""
         if self._error_message:
             self._error_message = ""
             self.errorMessageChanged.emit()
 
+    def _on_fetch_error(self, message: str):
+        self._set_error(message)
+        self._is_loading = False
+        self._is_searching = False
+        self.isLoadingChanged.emit()
+        self.isSearchingChanged.emit()
+
+    def _on_search_data_ready(self, results: list):
+        self._search_results = results
+        self.searchResultsChanged.emit()
+        self._is_searching = False
+        self.isSearchingChanged.emit()
+
+    def _on_weather_data_ready(self, data: dict):
+        current = data.get("current", {})
+        self._current_temp = current.get("temperature_2m", 0.0)
+        self._current_weather_code = current.get("weather_code", 0)
+        self._current_precip = current.get("precipitation_probability", 0)
+        self._current_icon = self._get_icon_path(self._current_weather_code)
+
+        self.currentTempChanged.emit()
+        self.currentWeatherCodeChanged.emit()
+        self.currentPrecipChanged.emit()
+        self.currentIconChanged.emit()
+
+        hourly = data.get("hourly", {})
+        times = hourly.get("time", [])
+        temps = hourly.get("temperature_2m", [])
+        precips = hourly.get("precipitation_probability", [])
+        codes = hourly.get("weather_code", [])
+
+        self._hourly_data = []
+        for i in range(min(self._forecast_hours, len(times))):
+            self._hourly_data.append(
+                {
+                    "time": times[i],
+                    "temp": temps[i] if i < len(temps) else 0,
+                    "precip": precips[i] if i < len(precips) else 0,
+                    "icon": self._get_icon_path(codes[i]) if i < len(codes) else "",
+                }
+            )
+        self.hourlyDataChanged.emit()
+
+        daily = data.get("daily", {})
+        d_times = daily.get("time", [])
+        d_max_temps = daily.get("temperature_2m_max", [])
+        d_min_temps = daily.get("temperature_2m_min", [])
+        d_precips = daily.get("precipitation_probability_max", [])
+        d_codes = daily.get("weather_code", [])
+
+        self._daily_data = []
+        for i in range(min(self._forecast_hours, len(d_times))):
+            self._daily_data.append(
+                {
+                    "date": d_times[i],
+                    "maxTemp": d_max_temps[i] if i < len(d_max_temps) else 0,
+                    "minTemp": d_min_temps[i] if i < len(d_min_temps) else 0,
+                    "precip": d_precips[i] if i < len(d_precips) else 0,
+                    "icon": self._get_icon_path(d_codes[i]) if i < len(d_codes) else "",
+                }
+            )
+        self.dailyDataChanged.emit()
+
+        self._is_loading = False
+        self.isLoadingChanged.emit()
+
     @Slot(str)
     def searchLocation(self, query: str):
-        """Search for locations using LocationIQ API."""
         if not query.strip():
             return
 
         if not self._locationiq_key:
-            self._set_error("LocationIQ API key not found. Please set LOCATIONIQ_KEY in .env file.")
+            self._set_error(
+                "LocationIQ API key not found. Please set LOCATIONIQ_KEY in .env file."
+            )
             return
 
         self._is_searching = True
         self.isSearchingChanged.emit()
         self._clear_error()
 
-        try:
-            # Encode query for URL
-            encoded_query = urllib.parse.quote(query)
-            url = f"https://us1.locationiq.com/v1/search?key={self._locationiq_key}&q={encoded_query}&format=json&limit=3"
+        def fetch():
+            try:
+                encoded_query = urllib.parse.quote(query)
+                url = f"https://us1.locationiq.com/v1/search?key={self._locationiq_key}&q={encoded_query}&format=json&limit=3"
 
-            # Make request
-            with urllib.request.urlopen(url, timeout=10) as response:
-                data = json.loads(response.read().decode())
+                with urllib.request.urlopen(url, timeout=10) as response:
+                    data = json.loads(response.read().decode())
 
-            # Parse results
-            results = []
-            for item in data:
-                results.append({
-                    "display_name": item.get("display_name", ""),
-                    "lat": float(item.get("lat", 0)),
-                    "lon": float(item.get("lon", 0))
-                })
+                results = []
+                for item in data:
+                    results.append(
+                        {
+                            "display_name": item.get("display_name", ""),
+                            "lat": float(item.get("lat", 0)),
+                            "lon": float(item.get("lon", 0)),
+                        }
+                    )
 
-            self._search_results = results
-            self.searchResultsChanged.emit()
+                self._searchDataReady.emit(results)
 
-        except urllib.error.URLError as e:
-            self._set_error(f"Network error: {str(e)}")
-        except json.JSONDecodeError as e:
-            self._set_error(f"Failed to parse response: {str(e)}")
-        except Exception as e:
-            self._set_error(f"Search failed: {str(e)}")
-        finally:
-            self._is_searching = False
-            self.isSearchingChanged.emit()
+            except urllib.error.URLError as e:
+                self._fetchError.emit(f"Network error: {str(e)}")
+            except json.JSONDecodeError as e:
+                self._fetchError.emit(f"Failed to parse response: {str(e)}")
+            except Exception as e:
+                self._fetchError.emit(f"Search failed: {str(e)}")
+
+        Thread(target=fetch, daemon=True).start()
 
     @Slot(int)
     def selectLocation(self, index: int):
@@ -284,7 +366,6 @@ class WeatherBackend(QObject):
 
     @Slot()
     def refreshWeather(self):
-        """Fetch weather data from Open-Meteo API."""
         if not hasattr(self, "_lat") or self._lat is None or self._lon is None:
             return
 
@@ -292,80 +373,33 @@ class WeatherBackend(QObject):
         self.isLoadingChanged.emit()
         self._clear_error()
 
-        try:
-            # Build URL
-            forecast_days = self._forecast_hours
-            url = (
-                f"https://api.open-meteo.com/v1/forecast?"
-                f"latitude={self._lat}&longitude={self._lon}"
-                f"&current=temperature_2m,precipitation_probability,weather_code"
-                f"&hourly=temperature_2m,precipitation_probability,weather_code"
-                f"&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code"
-                f"&timezone=auto"
-                f"&forecast_hours={forecast_days * 24}"
-                f"&forecast_days={forecast_days}"
-            )
+        lat = self._lat
+        lon = self._lon
+        forecast_days = self._forecast_hours
 
-            # Make request
-            with urllib.request.urlopen(url, timeout=10) as response:
-                data = json.loads(response.read().decode())
+        def fetch():
+            try:
+                url = (
+                    f"https://api.open-meteo.com/v1/forecast?"
+                    f"latitude={lat}&longitude={lon}"
+                    f"&current=temperature_2m,precipitation_probability,weather_code"
+                    f"&hourly=temperature_2m,precipitation_probability,weather_code"
+                    f"&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code"
+                    f"&timezone=auto"
+                    f"&forecast_hours={forecast_days * 24}"
+                    f"&forecast_days={forecast_days}"
+                )
 
-            # Parse current weather
-            current = data.get("current", {})
-            self._current_temp = current.get("temperature_2m", 0.0)
-            self._current_weather_code = current.get("weather_code", 0)
-            self._current_precip = current.get("precipitation_probability", 0)
-            self._current_icon = self._get_icon_path(self._current_weather_code)
+                with urllib.request.urlopen(url, timeout=10) as response:
+                    data = json.loads(response.read().decode())
 
-            self.currentTempChanged.emit()
-            self.currentWeatherCodeChanged.emit()
-            self.currentPrecipChanged.emit()
-            self.currentIconChanged.emit()
+                self._weatherDataReady.emit(data)
 
-            # Parse hourly data (take first N hours)
-            hourly = data.get("hourly", {})
-            times = hourly.get("time", [])
-            temps = hourly.get("temperature_2m", [])
-            precips = hourly.get("precipitation_probability", [])
-            codes = hourly.get("weather_code", [])
+            except urllib.error.URLError as e:
+                self._fetchError.emit(f"Network error: {str(e)}")
+            except json.JSONDecodeError as e:
+                self._fetchError.emit(f"Failed to parse weather data: {str(e)}")
+            except Exception as e:
+                self._fetchError.emit(f"Weather fetch failed: {str(e)}")
 
-            self._hourly_data = []
-            for i in range(min(self._forecast_hours, len(times))):
-                self._hourly_data.append({
-                    "time": times[i],
-                    "temp": temps[i] if i < len(temps) else 0,
-                    "precip": precips[i] if i < len(precips) else 0,
-                    "icon": self._get_icon_path(codes[i]) if i < len(codes) else ""
-                })
-
-            self.hourlyDataChanged.emit()
-
-            # Parse daily data
-            daily = data.get("daily", {})
-            d_times = daily.get("time", [])
-            d_max_temps = daily.get("temperature_2m_max", [])
-            d_min_temps = daily.get("temperature_2m_min", [])
-            d_precips = daily.get("precipitation_probability_max", [])
-            d_codes = daily.get("weather_code", [])
-
-            self._daily_data = []
-            for i in range(min(self._forecast_hours, len(d_times))):
-                self._daily_data.append({
-                    "date": d_times[i],
-                    "maxTemp": d_max_temps[i] if i < len(d_max_temps) else 0,
-                    "minTemp": d_min_temps[i] if i < len(d_min_temps) else 0,
-                    "precip": d_precips[i] if i < len(d_precips) else 0,
-                    "icon": self._get_icon_path(d_codes[i]) if i < len(d_codes) else ""
-                })
-
-            self.dailyDataChanged.emit()
-
-        except urllib.error.URLError as e:
-            self._set_error(f"Network error: {str(e)}")
-        except json.JSONDecodeError as e:
-            self._set_error(f"Failed to parse weather data: {str(e)}")
-        except Exception as e:
-            self._set_error(f"Weather fetch failed: {str(e)}")
-        finally:
-            self._is_loading = False
-            self.isLoadingChanged.emit()
+        Thread(target=fetch, daemon=True).start()

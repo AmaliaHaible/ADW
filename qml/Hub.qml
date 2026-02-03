@@ -50,12 +50,12 @@ WidgetWindow {
             title: "Widget Hub"
             dragEnabled: hubBackend.editMode
             rightButtons: [
-                {icon: "eye-off.svg", action: "minimize"},
+                {icon: "eye-off.svg", action: "hide"},
                 {icon: "x.svg", action: "exit"}
             ]
 
             onButtonClicked: function(action) {
-                if (action === "minimize") {
+                if (action === "hide") {
                     hubBackend.setEditMode(false)
                     hubWindow.hide()
                 } else if (action === "exit") {

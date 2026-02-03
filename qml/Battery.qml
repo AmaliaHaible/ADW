@@ -32,7 +32,7 @@ WidgetWindow {
             minimized: batteryWindow.minimized
             effectiveRadius: batteryWindow.effectiveWindowRadius
             rightButtons: [
-                {icon: "eye-off.svg", action: "minimize"}
+                {icon: batteryWindow.minimized ? "eye.svg" : "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {

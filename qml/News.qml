@@ -40,7 +40,7 @@ WidgetWindow {
                 {icon: "refresh-cw.svg", action: "refresh", enabled: !hubBackend.editMode && !newsBackend.isLoading}
             ]
             rightButtons: [
-                {icon: "eye-off.svg", action: "minimize"}
+                {icon: newsWindow.minimized ? "eye.svg" : "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {

@@ -59,7 +59,7 @@ WidgetWindow {
                 {icon: "plus.svg", action: "new", enabled: !hubBackend.editMode}
             ]
             rightButtons: [
-                {icon: "eye-off.svg", action: "minimize"}
+                {icon: notesWindow.minimized ? "eye.svg" : "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {

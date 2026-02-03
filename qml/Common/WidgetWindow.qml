@@ -24,20 +24,38 @@ Window {
 
     function toggleMinimize() {
         if (minimized) {
-            // Expand
             if (!anchorTop) {
                 y = y - (_expandedHeight - height)
             }
             height = _expandedHeight
             minimized = false
         } else {
-            // Minimize
             _expandedHeight = height
             if (!anchorTop) {
                 y = y + (height - Theme.titleBarHeight)
             }
             height = Theme.titleBarHeight
             minimized = true
+        }
+    }
+
+    function toggleAnchor() {
+        anchorTop = !anchorTop
+        saveAnchorSetting()
+    }
+
+    function saveAnchorSetting() {
+        if (settingsStore && geometryKey !== "") {
+            settingsStore.setWidgetSetting(geometryKey, "anchorTop", anchorTop)
+        }
+    }
+
+    function loadAnchorSetting() {
+        if (settingsStore && geometryKey !== "") {
+            var saved = settingsStore.getWidgetSetting(geometryKey, "anchorTop")
+            if (saved !== null && saved !== undefined) {
+                anchorTop = saved
+            }
         }
     }
 
@@ -95,9 +113,18 @@ Window {
 
     property bool isUpdatingFlags: false
 
-    Component.onCompleted: applyGeometryFromSettings()
-    onSettingsStoreChanged: applyGeometryFromSettings()
-    onGeometryKeyChanged: applyGeometryFromSettings()
+    Component.onCompleted: {
+        applyGeometryFromSettings()
+        loadAnchorSetting()
+    }
+    onSettingsStoreChanged: {
+        applyGeometryFromSettings()
+        loadAnchorSetting()
+    }
+    onGeometryKeyChanged: {
+        applyGeometryFromSettings()
+        loadAnchorSetting()
+    }
 
     // Update window flags when conditions change
     onHubVisibleChanged: {
@@ -166,14 +193,12 @@ Window {
         anchors.fill: parent
         color: "transparent"
         visible: editOverlayEnabled && editMode
-        // radius: windowRadius
         z: 10
 
         Rectangle {
             anchors.fill: parent
             color: Theme.accentColor
             opacity: 0.1
-            // radius: windowRadius
         }
 
         Rectangle {
@@ -181,17 +206,40 @@ Window {
             color: "transparent"
             border.color: Theme.accentColor
             border.width: 2
-            // radius: windowRadius
+        }
+
+        Rectangle {
+            id: anchorIndicator
+            width: parent.width
+            height: 20
+            color: Theme.colorGreen
+            opacity: 0.9
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: anchorTop ? 0 : (parent.height - height)
+
+            Text {
+                anchors.centerIn: parent
+                text: "Anchor"
+                color: "#1e1e2e"
+                font.pixelSize: 11
+                font.weight: Font.Medium
+            }
         }
 
         MouseArea {
             anchors.fill: parent
-            acceptedButtons: Qt.LeftButton
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
             hoverEnabled: true
 
             onPressed: function(mouse) {
                 if (mouse.button === Qt.LeftButton) {
                     widgetWindow.startSystemMove()
+                }
+            }
+
+            onClicked: function(mouse) {
+                if (mouse.button === Qt.RightButton) {
+                    widgetWindow.toggleAnchor()
                 }
             }
         }

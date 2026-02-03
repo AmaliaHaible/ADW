@@ -48,7 +48,7 @@ WidgetWindow {
                 {icon: "circle-check-big.svg", action: "finished", enabled: !hubBackend.editMode}
             ]
             rightButtons: [
-                {icon: "eye-off.svg", action: "minimize"}
+                {icon: todoWindow.minimized ? "eye.svg" : "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {

@@ -64,7 +64,7 @@ WidgetWindow {
                 {icon: "settings.svg", action: "settings", enabled: !hubBackend.editMode}
             ]
             rightButtons: [
-                {icon: "eye-off.svg", action: "minimize"}
+                {icon: launcherWindow.minimized ? "eye.svg" : "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {

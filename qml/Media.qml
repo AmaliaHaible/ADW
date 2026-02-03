@@ -10,7 +10,6 @@ WidgetWindow {
     editMode: hubBackend.editMode
     visible: hubBackend.mediaVisible
     hubVisible: hubBackend.hubVisible
-    anchorTop: mediaBackend.anchorTop
 
     width: 350
     minResizeWidth: 300
@@ -38,10 +37,9 @@ WidgetWindow {
         return slotIndex < mediaBackend.sessionList.length ? slotIndex : -1
     }
 
-    // Handle dynamic resizing with anchor support
     onCalculatedHeightChanged: {
         if (!mediaWindow.editMode) {
-            if (mediaBackend.anchorTop) {
+            if (mediaWindow.anchorTop) {
                 // Anchor top - height grows downward
                 height = calculatedHeight
             } else {
@@ -77,7 +75,7 @@ WidgetWindow {
                 {icon: "settings.svg", action: "settings", enabled: !hubBackend.editMode}
             ]
             rightButtons: [
-                {icon: "eye-off.svg", action: "minimize"}
+                {icon: mediaWindow.minimized ? "eye.svg" : "eye-off.svg", action: "minimize"}
             ]
 
             onButtonClicked: function(action) {
@@ -207,20 +205,23 @@ WidgetWindow {
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: 32
                                     radius: 4
-                                    color: mediaBackend.anchorTop ? Theme.accentColor : Theme.surfaceColor
+                                    color: mediaWindow.anchorTop ? Theme.accentColor : Theme.surfaceColor
                                     border.color: Theme.borderColor
                                     border.width: 1
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "Anchor Top"
-                                        color: mediaBackend.anchorTop ? Theme.windowBackground : Theme.textSecondary
+                                        color: mediaWindow.anchorTop ? Theme.windowBackground : Theme.textSecondary
                                         font.pixelSize: Theme.fontSizeSmall
                                     }
 
                                     MouseArea {
                                         anchors.fill: parent
-                                        onClicked: mediaBackend.setAnchorTop(true)
+                                        onClicked: {
+                                            mediaWindow.anchorTop = true
+                                            mediaWindow.saveAnchorSetting()
+                                        }
                                     }
                                 }
 
@@ -228,20 +229,23 @@ WidgetWindow {
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: 32
                                     radius: 4
-                                    color: !mediaBackend.anchorTop ? Theme.accentColor : Theme.surfaceColor
+                                    color: !mediaWindow.anchorTop ? Theme.accentColor : Theme.surfaceColor
                                     border.color: Theme.borderColor
                                     border.width: 1
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: "Anchor Bottom"
-                                        color: !mediaBackend.anchorTop ? Theme.windowBackground : Theme.textSecondary
+                                        color: !mediaWindow.anchorTop ? Theme.windowBackground : Theme.textSecondary
                                         font.pixelSize: Theme.fontSizeSmall
                                     }
 
                                     MouseArea {
                                         anchors.fill: parent
-                                        onClicked: mediaBackend.setAnchorTop(false)
+                                        onClicked: {
+                                            mediaWindow.anchorTop = false
+                                            mediaWindow.saveAnchorSetting()
+                                        }
                                     }
                                 }
                             }
