@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, Property, Signal, Slot
 
-from .icon_extractor import get_icon_url
+from .icon_extractor import get_icon_url, get_lnk_info
 
 
 class LauncherBackend(QObject):
@@ -103,10 +103,23 @@ class LauncherBackend(QObject):
             self.searchQueryChanged.emit()
             self.shortcutsChanged.emit()
 
-    @Slot(str, str, str, bool, str)
-    def addShortcut(self, name, path, icon="", use_custom_icon=False, custom_image=""):
-        """Add a new shortcut."""
+    @Slot(str, str, str, bool, str, str)
+    def addShortcut(
+        self,
+        name,
+        path,
+        icon="",
+        use_custom_icon=False,
+        custom_image="",
+        working_dir="",
+    ):
         extracted_url = get_icon_url(path)
+
+        if Path(path).suffix.lower() == ".lnk" and not working_dir:
+            lnk_info = get_lnk_info(path)
+            if lnk_info.get("workingDir"):
+                working_dir = lnk_info["workingDir"]
+
         shortcut = {
             "id": str(uuid.uuid4()),
             "name": name,
@@ -115,6 +128,7 @@ class LauncherBackend(QObject):
             "extractedIcon": extracted_url,
             "useCustomIcon": use_custom_icon,
             "customImagePath": custom_image,
+            "workingDir": working_dir,
         }
         self._shortcuts.append(shortcut)
         self._save_shortcuts()
@@ -134,15 +148,17 @@ class LauncherBackend(QObject):
                 break
         self._save_shortcuts()
 
-    @Slot(str, str, str, bool, str)
-    def updateShortcut(self, shortcut_id, name, icon, use_custom_icon, custom_image=""):
-        """Update shortcut name and icon."""
+    @Slot(str, str, str, bool, str, str)
+    def updateShortcut(
+        self, shortcut_id, name, icon, use_custom_icon, custom_image="", working_dir=""
+    ):
         for s in self._shortcuts:
             if s.get("id") == shortcut_id:
                 s["name"] = name
                 s["icon"] = icon
                 s["useCustomIcon"] = use_custom_icon
                 s["customImagePath"] = custom_image
+                s["workingDir"] = working_dir
                 break
         self._save_shortcuts()
 
@@ -161,7 +177,6 @@ class LauncherBackend(QObject):
 
     @Slot(str)
     def launchShortcut(self, shortcut_id):
-        """Launch a shortcut."""
         shortcut = next(
             (s for s in self._shortcuts if s.get("id") == shortcut_id), None
         )
@@ -172,12 +187,27 @@ class LauncherBackend(QObject):
         if not path:
             return
 
+        working_dir = shortcut.get("workingDir", "")
+        if not working_dir:
+            path_obj = Path(path)
+            if path_obj.suffix.lower() in (".exe", ".bat", ".cmd"):
+                working_dir = str(path_obj.parent)
+
         try:
-            # Use os.startfile on Windows for proper file association handling
             if os.name == "nt":
-                os.startfile(path)
+                if working_dir and Path(working_dir).exists():
+                    subprocess.Popen(
+                        f'start "" "{path}"',
+                        shell=True,
+                        cwd=working_dir,
+                    )
+                else:
+                    os.startfile(path)
             else:
-                subprocess.Popen(["xdg-open", path])
+                if working_dir and Path(working_dir).exists():
+                    subprocess.Popen(["xdg-open", path], cwd=working_dir)
+                else:
+                    subprocess.Popen(["xdg-open", path])
         except Exception as e:
             print(f"Failed to launch {path}: {e}")
 

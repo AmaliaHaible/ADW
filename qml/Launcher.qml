@@ -25,6 +25,7 @@ WidgetWindow {
     property string editingIcon: ""
     property bool useCustomIcon: false
     property string customImagePath: ""
+    property string workingDir: ""
     property int currentView: 0
 
     property var availableIcons: [
@@ -74,8 +75,10 @@ WidgetWindow {
                     launcherWindow.editingIcon = "file.svg"
                     launcherWindow.useCustomIcon = false
                     launcherWindow.customImagePath = ""
+                    launcherWindow.workingDir = ""
                     nameField.text = ""
                     pathField.text = ""
+                    workingDirField.text = ""
                     launcherWindow.currentView = 1
                 } else if (action === "settings") {
                     launcherWindow.currentView = 2
@@ -207,8 +210,10 @@ WidgetWindow {
                                                     launcherWindow.editingShortcutId = modelData.id
                                                     launcherWindow.editingIcon = modelData.icon || "file.svg"
                                                     launcherWindow.customImagePath = modelData.customImagePath || ""
+                                                    launcherWindow.workingDir = modelData.workingDir || ""
                                                     nameField.text = modelData.name
                                                     pathField.text = modelData.path
+                                                    workingDirField.text = modelData.workingDir || ""
                                                     launcherWindow.useCustomIcon = modelData.useCustomIcon || false
                                                     launcherWindow.currentView = 1
                                                 }
@@ -232,7 +237,7 @@ WidgetWindow {
                                         var path = url.substring(8)
                                         var name = launcherBackend.getNameFromPath(path)
                                         var icon = launcherBackend.getIconForPath(path)
-                                        launcherBackend.addShortcut(name, path, icon, false)
+                                        launcherBackend.addShortcut(name, path, icon, false, "", "")
                                     }
                                 }
                             }
@@ -283,6 +288,27 @@ WidgetWindow {
                             background: Rectangle {
                                 color: Theme.surfaceColor
                                 border.color: pathField.activeFocus ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+                                radius: Theme.borderRadius
+                            }
+                        }
+
+                        Text {
+                            text: "Working Directory"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        TextField {
+                            id: workingDirField
+                            Layout.fillWidth: true
+                            placeholderText: "Leave empty to use exe folder..."
+                            color: Theme.textPrimary
+                            font.pixelSize: Theme.fontSizeNormal
+
+                            background: Rectangle {
+                                color: Theme.surfaceColor
+                                border.color: workingDirField.activeFocus ? Theme.accentColor : Theme.borderColor
                                 border.width: 1
                                 radius: Theme.borderRadius
                             }
@@ -534,9 +560,9 @@ WidgetWindow {
                                     onClicked: {
                                         if (nameField.text && pathField.text) {
                                             if (launcherWindow.editingShortcutId) {
-                                                launcherBackend.updateShortcut(launcherWindow.editingShortcutId, nameField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath)
+                                                launcherBackend.updateShortcut(launcherWindow.editingShortcutId, nameField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath, workingDirField.text)
                                             } else {
-                                                launcherBackend.addShortcut(nameField.text, pathField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath)
+                                                launcherBackend.addShortcut(nameField.text, pathField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath, workingDirField.text)
                                             }
                                             launcherWindow.currentView = 0
                                         }

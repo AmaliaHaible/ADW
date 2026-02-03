@@ -117,7 +117,8 @@ WidgetWindow {
                                     model: notesBackend.notes
 
                                     delegate: Rectangle {
-                                        property color noteColor: modelData.color || Theme.surfaceColor
+                                        property int colorIdx: modelData.colorIndex !== undefined ? modelData.colorIndex : 0
+                                        property color noteColor: notesBackend.availableColors[colorIdx] || Theme.surfaceColor
                                         property color hoverColor: isLightColor(noteColor.toString()) ? Qt.darker(noteColor, 1.1) : Qt.lighter(noteColor, 1.2)
 
                                         Layout.fillWidth: true
@@ -136,7 +137,7 @@ WidgetWindow {
                                             Text {
                                                 width: parent.width
                                                 text: modelData.title || "Untitled"
-                                                color: getTextColor(modelData.color)
+                                                color: getTextColor(noteColor.toString())
                                                 font.pixelSize: Theme.fontSizeNormal
                                                 font.weight: Font.Medium
                                                 elide: Text.ElideRight
@@ -146,7 +147,7 @@ WidgetWindow {
                                                 width: parent.width
                                                 height: 28
                                                 text: modelData.content || ""
-                                                color: getSecondaryTextColor(modelData.color)
+                                                color: getSecondaryTextColor(noteColor.toString())
                                                 font.pixelSize: Theme.fontSizeSmall
                                                 elide: Text.ElideRight
                                                 maximumLineCount: 2
@@ -179,6 +180,10 @@ WidgetWindow {
                 }
 
                 Item {
+                    id: editorView
+                    property int currentColorIndex: notesBackend.currentNote?.colorIndex !== undefined ? notesBackend.currentNote.colorIndex : 0
+                    property color currentNoteColor: notesBackend.availableColors[currentColorIndex] || Theme.surfaceColor
+
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: Theme.padding
@@ -222,13 +227,13 @@ WidgetWindow {
                                 id: contentArea
                                 text: notesBackend.currentNote ? notesBackend.currentNote.content : ""
                                 placeholderText: "Write your note..."
-                                placeholderTextColor: getSecondaryTextColor(notesBackend.currentNote?.color)
-                                color: getTextColor(notesBackend.currentNote?.color)
+                                placeholderTextColor: getSecondaryTextColor(editorView.currentNoteColor.toString())
+                                color: getTextColor(editorView.currentNoteColor.toString())
                                 font.pixelSize: Theme.fontSizeNormal
                                 wrapMode: TextArea.Wrap
 
                                 background: Rectangle {
-                                    color: notesBackend.currentNote?.color || Theme.surfaceColor
+                                    color: editorView.currentNoteColor
                                     border.color: contentArea.activeFocus ? Theme.accentColor : Theme.borderColor
                                     border.width: 1
                                     radius: Theme.borderRadius
@@ -260,12 +265,12 @@ WidgetWindow {
                                     height: 24
                                     radius: 12
                                     color: modelData
-                                    border.color: notesBackend.currentNote?.color === modelData ? Theme.textPrimary : "transparent"
+                                    border.color: editorView.currentColorIndex === index ? Theme.textPrimary : "transparent"
                                     border.width: 2
 
                                     MouseArea {
                                         anchors.fill: parent
-                                        onClicked: notesBackend.updateNoteColor(notesBackend.currentNoteId, modelData)
+                                        onClicked: notesBackend.updateNoteColor(notesBackend.currentNoteId, index)
                                     }
                                 }
                             }

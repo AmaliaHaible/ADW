@@ -121,7 +121,7 @@ class NotesBackend(QObject):
             "id": note_id,
             "title": "New Note",
             "content": "",
-            "color": "#313244",
+            "colorIndex": 0,
             "created": now,
             "updated": now,
         }
@@ -188,18 +188,29 @@ class NotesBackend(QObject):
             if note_id == self._current_note_id:
                 self.currentNoteChanged.emit()
 
-    @Slot(str, str)
-    def updateNoteColor(self, note_id, color):
-        """Update note color."""
+    @Slot(str, int)
+    def updateNoteColor(self, note_id, color_index):
         import time
 
         note = next((n for n in self._notes if n.get("id") == note_id), None)
         if note:
-            note["color"] = color
+            note["colorIndex"] = color_index
             note["updated"] = int(time.time())
             self._save_notes()
             if note_id == self._current_note_id:
                 self.currentNoteChanged.emit()
+
+    @Slot(str, result=str)
+    def getNoteColor(self, note_id):
+        note = next((n for n in self._notes if n.get("id") == note_id), None)
+        if note:
+            color_index = note.get("colorIndex", 0)
+            if note.get("color") and not isinstance(note.get("colorIndex"), int):
+                color_index = 0
+            colors = self.availableColors
+            if 0 <= color_index < len(colors):
+                return colors[color_index]
+        return self.availableColors[0] if self.availableColors else "#313244"
 
     @Slot(str)
     def deleteNote(self, note_id):
