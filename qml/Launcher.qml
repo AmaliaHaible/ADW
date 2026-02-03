@@ -151,7 +151,15 @@ WidgetWindow {
 
                                             Image {
                                                 Layout.alignment: Qt.AlignHCenter
-                                                source: iconsPath + (modelData.icon || "file.svg")
+                                                source: {
+                                                    if (modelData.useCustomIcon) {
+                                                        return iconsPath + (modelData.icon || "file.svg")
+                                                    }
+                                                    if (modelData.extractedIcon) {
+                                                        return modelData.extractedIcon
+                                                    }
+                                                    return iconsPath + (modelData.icon || "file.svg")
+                                                }
                                                 sourceSize: Qt.size(28, 28)
                                             }
 
@@ -181,8 +189,7 @@ WidgetWindow {
                                                     launcherWindow.editingIcon = modelData.icon || "file.svg"
                                                     nameField.text = modelData.name
                                                     pathField.text = modelData.path
-                                                    var defaultIcon = launcherBackend.getIconForPath(modelData.path)
-                                                    launcherWindow.useCustomIcon = (modelData.icon && modelData.icon !== defaultIcon)
+                                                    launcherWindow.useCustomIcon = modelData.useCustomIcon || false
                                                     launcherWindow.currentView = 1
                                                 }
                                             }
@@ -205,7 +212,7 @@ WidgetWindow {
                                         var path = url.substring(8)
                                         var name = launcherBackend.getNameFromPath(path)
                                         var icon = launcherBackend.getIconForPath(path)
-                                        launcherBackend.addShortcut(name, path, icon)
+                                        launcherBackend.addShortcut(name, path, icon, false)
                                     }
                                 }
                             }
@@ -363,17 +370,19 @@ WidgetWindow {
                             color: Theme.surfaceColor
                             visible: !launcherWindow.useCustomIcon
 
+                            property string extractedUrl: launcherBackend.getExtractedIconUrl(pathField.text)
+
                             RowLayout {
                                 anchors.centerIn: parent
                                 spacing: Theme.spacing
 
                                 Image {
-                                    source: iconsPath + launcherWindow.editingIcon
+                                    source: parent.parent.extractedUrl || (iconsPath + (launcherWindow.editingIcon || "file.svg"))
                                     sourceSize: Qt.size(24, 24)
                                 }
 
                                 Text {
-                                    text: "Using default icon for file type"
+                                    text: parent.parent.extractedUrl ? "Using extracted icon" : "Using default icon for file type"
                                     color: Theme.textSecondary
                                     font.pixelSize: Theme.fontSizeSmall
                                 }
@@ -431,9 +440,9 @@ WidgetWindow {
                                     onClicked: {
                                         if (nameField.text && pathField.text) {
                                             if (launcherWindow.editingShortcutId) {
-                                                launcherBackend.updateShortcut(launcherWindow.editingShortcutId, nameField.text, launcherWindow.editingIcon)
+                                                launcherBackend.updateShortcut(launcherWindow.editingShortcutId, nameField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon)
                                             } else {
-                                                launcherBackend.addShortcut(nameField.text, pathField.text, launcherWindow.editingIcon)
+                                                launcherBackend.addShortcut(nameField.text, pathField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon)
                                             }
                                             launcherWindow.currentView = 0
                                         }

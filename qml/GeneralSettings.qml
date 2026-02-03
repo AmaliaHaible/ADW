@@ -92,7 +92,13 @@ WidgetWindow {
                                 {name: "textMuted", label: "Text Muted"},
                                 {name: "textPrimaryDark", label: "Text Primary (Dark)"},
                                 {name: "textSecondaryDark", label: "Text Secondary (Dark)"},
-                                {name: "borderColor", label: "Border"}
+                                {name: "borderColor", label: "Border"},
+                                {name: "colorRed", label: "Red"},
+                                {name: "colorOrange", label: "Orange"},
+                                {name: "colorYellow", label: "Yellow"},
+                                {name: "colorGreen", label: "Green"},
+                                {name: "colorBlue", label: "Blue"},
+                                {name: "colorPurple", label: "Purple"}
                             ]
 
                         Rectangle {

@@ -12,6 +12,7 @@ enabled_widgets.toml
 .env
 themes/
 widgets/media/assets/temp/
+/.icon_cache
 
 # Virtual environments
 .venv

@@ -5,6 +5,8 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, Property, Signal, Slot
 
+from .icon_extractor import get_icon_url
+
 
 class LauncherBackend(QObject):
     """Backend for quick launcher widget."""
@@ -71,14 +73,17 @@ class LauncherBackend(QObject):
             self.searchQueryChanged.emit()
             self.shortcutsChanged.emit()
 
-    @Slot(str, str, str)
-    def addShortcut(self, name, path, icon=""):
+    @Slot(str, str, str, bool)
+    def addShortcut(self, name, path, icon="", use_custom_icon=False):
         """Add a new shortcut."""
+        extracted_url = get_icon_url(path)
         shortcut = {
             "id": str(uuid.uuid4()),
             "name": name,
             "path": path,
             "icon": icon or self._get_default_icon(path),
+            "extractedIcon": extracted_url,
+            "useCustomIcon": use_custom_icon,
         }
         self._shortcuts.append(shortcut)
         self._save_shortcuts()
@@ -98,13 +103,14 @@ class LauncherBackend(QObject):
                 break
         self._save_shortcuts()
 
-    @Slot(str, str, str)
-    def updateShortcut(self, shortcut_id, name, icon):
+    @Slot(str, str, str, bool)
+    def updateShortcut(self, shortcut_id, name, icon, use_custom_icon):
         """Update shortcut name and icon."""
         for s in self._shortcuts:
             if s.get("id") == shortcut_id:
                 s["name"] = name
                 s["icon"] = icon
+                s["useCustomIcon"] = use_custom_icon
                 break
         self._save_shortcuts()
 
@@ -184,6 +190,11 @@ class LauncherBackend(QObject):
     def getIconForPath(self, path):
         """Get appropriate icon for a file path."""
         return self._get_default_icon(path)
+
+    @Slot(str, result=str)
+    def getExtractedIconUrl(self, path):
+        """Get extracted icon URL from exe/lnk file, or empty if not available."""
+        return get_icon_url(path)
 
     @Slot(result=str)
     def getDesktopPath(self):
