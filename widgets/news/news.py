@@ -68,30 +68,22 @@ class NewsBackend(QObject):
             self._error = f"Failed to load categories: {e}"
             self.errorChanged.emit()
 
-    def _build_kagi_link(self, json_category, cluster_number, title, articles):
+    def _build_kagi_link(self, json_category, cluster_number, title, file_timestamp):
         """Build Kagi news link from cluster data."""
         import urllib.parse
         import re
         from datetime import datetime
 
-        if not json_category or not title or cluster_number is None:
+        if (
+            not json_category
+            or not title
+            or cluster_number is None
+            or not file_timestamp
+        ):
             return ""
 
-        date_part = ""
-        if articles:
-            date_str = articles[0].get("date", "")
-            if date_str:
-                try:
-                    dt = datetime.fromisoformat(
-                        date_str.replace("+00:00", "").replace("Z", "")
-                    )
-                    date_part = dt.strftime("%Y%m%d")
-                except (ValueError, AttributeError):
-                    pass
-
-        if not date_part:
-            return ""
-
+        dt = datetime.fromtimestamp(file_timestamp)
+        date_part = dt.strftime("%Y%m%d")
         timestamp = f"{date_part}1{cluster_number}"
 
         slug = title.lower()
@@ -128,6 +120,7 @@ class NewsBackend(QObject):
             with urllib.request.urlopen(url, timeout=15) as response:
                 data = json.loads(response.read().decode())
 
+            file_timestamp = data.get("timestamp", 0)
             articles = []
             for cluster in data.get("clusters", [])[:10]:
                 title = cluster.get("title", "")
@@ -135,7 +128,7 @@ class NewsBackend(QObject):
                 cluster_number = cluster.get("cluster_number", 0)
                 cluster_articles = cluster.get("articles", [])
                 kagi_link = self._build_kagi_link(
-                    self._selected_category, cluster_number, title, cluster_articles
+                    self._selected_category, cluster_number, title, file_timestamp
                 )
 
                 articles.append(
