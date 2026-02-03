@@ -8,6 +8,7 @@ class SystemMonitorBackend(QObject):
     cpuChanged = Signal()
     memoryChanged = Signal()
     historyChanged = Signal()
+    colorSettingsChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
@@ -33,6 +34,44 @@ class SystemMonitorBackend(QObject):
 
         # Initial update
         self._update()
+
+    @Property(int, notify=colorSettingsChanged)
+    def cpuColorIndex(self):
+        if self._settings:
+            return self._settings.getWidgetSetting("system_monitor", "cpuColorIndex", 4)
+        return 4
+
+    @Slot(int)
+    def setCpuColorIndex(self, index):
+        if self._settings:
+            self._settings.setWidgetSetting("system_monitor", "cpuColorIndex", index)
+            self.colorSettingsChanged.emit()
+
+    @Property(int, notify=colorSettingsChanged)
+    def ramColorIndex(self):
+        if self._settings:
+            return self._settings.getWidgetSetting("system_monitor", "ramColorIndex", 3)
+        return 3
+
+    @Slot(int)
+    def setRamColorIndex(self, index):
+        if self._settings:
+            self._settings.setWidgetSetting("system_monitor", "ramColorIndex", index)
+            self.colorSettingsChanged.emit()
+
+    @Property(int, notify=colorSettingsChanged)
+    def coresColorIndex(self):
+        if self._settings:
+            return self._settings.getWidgetSetting(
+                "system_monitor", "coresColorIndex", 4
+            )
+        return 4
+
+    @Slot(int)
+    def setCoresColorIndex(self, index):
+        if self._settings:
+            self._settings.setWidgetSetting("system_monitor", "coresColorIndex", index)
+            self.colorSettingsChanged.emit()
 
     def _update(self):
         """Update system stats."""

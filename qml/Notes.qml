@@ -222,6 +222,7 @@ WidgetWindow {
                                 id: contentArea
                                 text: notesBackend.currentNote ? notesBackend.currentNote.content : ""
                                 placeholderText: "Write your note..."
+                                placeholderTextColor: getSecondaryTextColor(notesBackend.currentNote?.color)
                                 color: getTextColor(notesBackend.currentNote?.color)
                                 font.pixelSize: Theme.fontSizeNormal
                                 wrapMode: TextArea.Wrap

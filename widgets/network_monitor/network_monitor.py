@@ -7,6 +7,7 @@ class NetworkMonitorBackend(QObject):
 
     statsChanged = Signal()
     historyChanged = Signal()
+    colorSettingsChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
@@ -144,3 +145,35 @@ class NetworkMonitorBackend(QObject):
     def cleanup(self):
         """Stop timer on cleanup."""
         self._timer.stop()
+
+    @Property(int, notify=colorSettingsChanged)
+    def uploadColorIndex(self):
+        if self._settings:
+            return self._settings.getWidgetSetting(
+                "network_monitor", "uploadColorIndex", 1
+            )
+        return 1
+
+    @Slot(int)
+    def setUploadColorIndex(self, index):
+        if self._settings:
+            self._settings.setWidgetSetting(
+                "network_monitor", "uploadColorIndex", index
+            )
+            self.colorSettingsChanged.emit()
+
+    @Property(int, notify=colorSettingsChanged)
+    def downloadColorIndex(self):
+        if self._settings:
+            return self._settings.getWidgetSetting(
+                "network_monitor", "downloadColorIndex", 4
+            )
+        return 4
+
+    @Slot(int)
+    def setDownloadColorIndex(self, index):
+        if self._settings:
+            self._settings.setWidgetSetting(
+                "network_monitor", "downloadColorIndex", index
+            )
+            self.colorSettingsChanged.emit()

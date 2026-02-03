@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import QtQuick.Dialogs
 import Common 1.0
 
 WidgetWindow {
@@ -23,7 +24,8 @@ WidgetWindow {
     property string editingShortcutId: ""
     property string editingIcon: ""
     property bool useCustomIcon: false
-    property int currentView: 0  // 0=main, 1=edit shortcut, 2=settings
+    property string customImagePath: ""
+    property int currentView: 0
 
     property var availableIcons: [
         "file.svg", "folder.svg", "globe.svg", "terminal.svg", "link.svg",
@@ -33,6 +35,15 @@ WidgetWindow {
         "settings.svg", "shopping-cart.svg", "slack.svg", "github.svg", "twitch.svg",
         "video.svg", "youtube.svg", "zap.svg", "coffee.svg", "camera.svg"
     ]
+
+    FileDialog {
+        id: imageFileDialog
+        title: "Select Image"
+        nameFilters: ["Image files (*.png *.jpg *.jpeg *.gif *.bmp *.svg *.ico)"]
+        onAccepted: {
+            launcherWindow.customImagePath = selectedFile.toString()
+        }
+    }
 
     Column {
         anchors.fill: parent
@@ -62,6 +73,7 @@ WidgetWindow {
                     launcherWindow.editingShortcutId = ""
                     launcherWindow.editingIcon = "file.svg"
                     launcherWindow.useCustomIcon = false
+                    launcherWindow.customImagePath = ""
                     nameField.text = ""
                     pathField.text = ""
                     launcherWindow.currentView = 1
@@ -109,6 +121,7 @@ WidgetWindow {
                             placeholderText: "Search..."
                             color: Theme.textPrimary
                             font.pixelSize: Theme.fontSizeNormal
+                            visible: launcherBackend.showSearchBar
 
                             background: Rectangle {
                                 color: Theme.surfaceColor
@@ -152,6 +165,9 @@ WidgetWindow {
                                             Image {
                                                 Layout.alignment: Qt.AlignHCenter
                                                 source: {
+                                                    if (modelData.customImagePath) {
+                                                        return modelData.customImagePath
+                                                    }
                                                     if (modelData.useCustomIcon) {
                                                         return iconsPath + (modelData.icon || "file.svg")
                                                     }
@@ -187,6 +203,7 @@ WidgetWindow {
                                                 } else if (mouse.button === Qt.RightButton) {
                                                     launcherWindow.editingShortcutId = modelData.id
                                                     launcherWindow.editingIcon = modelData.icon || "file.svg"
+                                                    launcherWindow.customImagePath = modelData.customImagePath || ""
                                                     nameField.text = modelData.name
                                                     pathField.text = modelData.path
                                                     launcherWindow.useCustomIcon = modelData.useCustomIcon || false
@@ -276,13 +293,13 @@ WidgetWindow {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: Theme.spacing
+                            spacing: 4
 
                             Rectangle {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 32
+                                Layout.preferredHeight: 28
                                 radius: Theme.borderRadius
-                                color: !launcherWindow.useCustomIcon ? Theme.accentColor : (defaultIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+                                color: (!launcherWindow.useCustomIcon && !launcherWindow.customImagePath) ? Theme.accentColor : (defaultIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
 
                                 Text {
                                     anchors.centerIn: parent
@@ -297,6 +314,7 @@ WidgetWindow {
                                     hoverEnabled: true
                                     onClicked: {
                                         launcherWindow.useCustomIcon = false
+                                        launcherWindow.customImagePath = ""
                                         launcherWindow.editingIcon = launcherBackend.getIconForPath(pathField.text)
                                     }
                                 }
@@ -304,22 +322,46 @@ WidgetWindow {
 
                             Rectangle {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 32
+                                Layout.preferredHeight: 28
                                 radius: Theme.borderRadius
-                                color: launcherWindow.useCustomIcon ? Theme.accentColor : (customIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+                                color: (launcherWindow.useCustomIcon && !launcherWindow.customImagePath) ? Theme.accentColor : (presetIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: "Custom"
+                                    text: "Preset"
                                     color: Theme.textPrimary
                                     font.pixelSize: Theme.fontSizeSmall
                                 }
 
                                 MouseArea {
-                                    id: customIconArea
+                                    id: presetIconArea
                                     anchors.fill: parent
                                     hoverEnabled: true
-                                    onClicked: launcherWindow.useCustomIcon = true
+                                    onClicked: {
+                                        launcherWindow.useCustomIcon = true
+                                        launcherWindow.customImagePath = ""
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 28
+                                radius: Theme.borderRadius
+                                color: launcherWindow.customImagePath ? Theme.accentColor : (imageIconArea.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "Image"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeSmall
+                                }
+
+                                MouseArea {
+                                    id: imageIconArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: imageFileDialog.open()
                                 }
                             }
                         }
@@ -329,7 +371,7 @@ WidgetWindow {
                             Layout.preferredHeight: 72
                             clip: true
                             contentWidth: availableWidth
-                            visible: launcherWindow.useCustomIcon
+                            visible: launcherWindow.useCustomIcon && !launcherWindow.customImagePath
 
                             Flow {
                                 width: parent.width
@@ -368,7 +410,7 @@ WidgetWindow {
                             Layout.preferredHeight: 48
                             radius: Theme.borderRadius
                             color: Theme.surfaceColor
-                            visible: !launcherWindow.useCustomIcon
+                            visible: !launcherWindow.useCustomIcon && !launcherWindow.customImagePath
 
                             property string extractedUrl: launcherBackend.getExtractedIconUrl(pathField.text)
 
@@ -382,9 +424,58 @@ WidgetWindow {
                                 }
 
                                 Text {
-                                    text: parent.parent.extractedUrl ? "Using extracted icon" : "Using default icon for file type"
+                                    text: parent.parent.extractedUrl ? "Using extracted icon" : "Using default icon"
                                     color: Theme.textSecondary
                                     font.pixelSize: Theme.fontSizeSmall
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 48
+                            radius: Theme.borderRadius
+                            color: Theme.surfaceColor
+                            visible: launcherWindow.customImagePath
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.margins: Theme.padding / 2
+                                spacing: Theme.spacing
+
+                                Image {
+                                    source: launcherWindow.customImagePath
+                                    sourceSize: Qt.size(32, 32)
+                                    fillMode: Image.PreserveAspectFit
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: launcherWindow.customImagePath.split("/").pop().split("\\").pop()
+                                    color: Theme.textSecondary
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    elide: Text.ElideMiddle
+                                }
+
+                                Rectangle {
+                                    width: 24
+                                    height: 24
+                                    radius: 4
+                                    color: clearImgArea.containsMouse ? Theme.colorRed : Theme.surfaceColor
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "x"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: 12
+                                    }
+
+                                    MouseArea {
+                                        id: clearImgArea
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onClicked: launcherWindow.customImagePath = ""
+                                    }
                                 }
                             }
                         }
@@ -440,9 +531,9 @@ WidgetWindow {
                                     onClicked: {
                                         if (nameField.text && pathField.text) {
                                             if (launcherWindow.editingShortcutId) {
-                                                launcherBackend.updateShortcut(launcherWindow.editingShortcutId, nameField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon)
+                                                launcherBackend.updateShortcut(launcherWindow.editingShortcutId, nameField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath)
                                             } else {
-                                                launcherBackend.addShortcut(nameField.text, pathField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon)
+                                                launcherBackend.addShortcut(nameField.text, pathField.text, launcherWindow.editingIcon, launcherWindow.useCustomIcon, launcherWindow.customImagePath)
                                             }
                                             launcherWindow.currentView = 0
                                         }
@@ -453,7 +544,6 @@ WidgetWindow {
                     }
                 }
 
-                // Settings view (index 2)
                 Item {
                     ColumnLayout {
                         anchors.fill: parent
@@ -525,6 +615,43 @@ WidgetWindow {
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     onClicked: if (launcherBackend.columns < 8) launcherBackend.setColumns(launcherBackend.columns + 1)
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.spacing
+
+                            Text {
+                                text: "Show Search Bar"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                width: 44
+                                height: 24
+                                radius: 12
+                                color: launcherBackend.showSearchBar ? Theme.accentColor : Theme.surfaceColor
+                                border.color: launcherBackend.showSearchBar ? Theme.accentColor : Theme.borderColor
+                                border.width: 1
+
+                                Rectangle {
+                                    width: 18
+                                    height: 18
+                                    radius: 9
+                                    x: launcherBackend.showSearchBar ? parent.width - width - 3 : 3
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    color: Theme.textPrimary
+
+                                    Behavior on x { NumberAnimation { duration: 150 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: launcherBackend.setShowSearchBar(!launcherBackend.showSearchBar)
                                 }
                             }
                         }

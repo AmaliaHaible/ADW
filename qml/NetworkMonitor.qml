@@ -20,6 +20,17 @@ WidgetWindow {
     visible: hubBackend.networkMonitorVisible
     title: "Network"
 
+    property int currentView: 0
+
+    property var colorPalette: [
+        Theme.colorRed, Theme.colorOrange, Theme.colorYellow,
+        Theme.colorGreen, Theme.colorBlue, Theme.colorPurple
+    ]
+
+    function getColor(index) {
+        return colorPalette[index] || Theme.accentColor
+    }
+
     Column {
         anchors.fill: parent
         spacing: 0
@@ -27,10 +38,15 @@ WidgetWindow {
         TitleBar {
             id: titleBar
             width: parent.width
-            title: "Network"
+            title: netMonWindow.currentView === 0 ? "Network" : "Settings"
             dragEnabled: netMonWindow.editMode
             minimized: netMonWindow.minimized
             effectiveRadius: netMonWindow.effectiveWindowRadius
+            leftButtons: netMonWindow.currentView === 0 ? [
+                {icon: "settings.svg", action: "settings", enabled: !hubBackend.editMode}
+            ] : [
+                {icon: "arrow-left.svg", action: "back", enabled: !hubBackend.editMode}
+            ]
             rightButtons: [
                 {icon: "eye-off.svg", action: "minimize"}
             ]
@@ -38,6 +54,10 @@ WidgetWindow {
             onButtonClicked: function(action) {
                 if (action === "minimize") {
                     netMonWindow.toggleMinimize()
+                } else if (action === "settings") {
+                    netMonWindow.currentView = 1
+                } else if (action === "back") {
+                    netMonWindow.currentView = 0
                 }
             }
         }
@@ -48,163 +68,246 @@ WidgetWindow {
             color: "transparent"
             visible: !netMonWindow.minimized
 
-            ColumnLayout {
+            StackLayout {
                 anchors.fill: parent
-                anchors.margins: Theme.padding
-                spacing: Theme.spacing
+                currentIndex: netMonWindow.currentView
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 60
-                    radius: Theme.borderRadius
-                    color: Theme.surfaceColor
-
+                Item {
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: Theme.padding / 2
-                        spacing: 2
+                        anchors.margins: Theme.padding
+                        spacing: Theme.spacing
 
-                        RowLayout {
+                        Rectangle {
                             Layout.fillWidth: true
+                            Layout.preferredHeight: 60
+                            radius: Theme.borderRadius
+                            color: Theme.surfaceColor
 
-                            Image {
-                                source: iconsPath + "upload.svg"
-                                sourceSize: Qt.size(14, 14)
-                            }
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: Theme.padding / 2
+                                spacing: 2
 
-                            Text {
-                                text: "Upload"
-                                color: Theme.textSecondary
-                                font.pixelSize: Theme.fontSizeSmall
-                            }
+                                RowLayout {
+                                    Layout.fillWidth: true
 
-                            Item { Layout.fillWidth: true }
+                                    Image {
+                                        source: iconsPath + "upload.svg"
+                                        sourceSize: Qt.size(14, 14)
+                                    }
 
-                            Text {
-                                text: networkMonitorBackend.uploadSpeedText
-                                color: Theme.warning
-                                font.pixelSize: Theme.fontSizeNormal
-                                font.weight: Font.Medium
+                                    Text {
+                                        text: "Upload"
+                                        color: Theme.textSecondary
+                                        font.pixelSize: Theme.fontSizeSmall
+                                    }
+
+                                    Item { Layout.fillWidth: true }
+
+                                    Text {
+                                        text: networkMonitorBackend.uploadSpeedText
+                                        color: netMonWindow.getColor(networkMonitorBackend.uploadColorIndex)
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        font.weight: Font.Medium
+                                    }
+                                }
+
+                                Canvas {
+                                    id: uploadCanvas
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+
+                                    property color lineColor: netMonWindow.getColor(networkMonitorBackend.uploadColorIndex)
+
+                                    onPaint: {
+                                        var ctx = getContext("2d")
+                                        ctx.clearRect(0, 0, width, height)
+
+                                        var history = networkMonitorBackend.uploadHistory
+                                        var maxVal = networkMonitorBackend.maxUploadHistory
+                                        if (history.length < 2 || maxVal <= 0) return
+
+                                        ctx.beginPath()
+                                        ctx.strokeStyle = lineColor
+                                        ctx.lineWidth = 1.5
+
+                                        var stepX = width / (history.length - 1)
+                                        for (var i = 0; i < history.length; i++) {
+                                            var x = i * stepX
+                                            var y = height - (history[i] / maxVal * height * 0.9)
+                                            if (i === 0) ctx.moveTo(x, y)
+                                            else ctx.lineTo(x, y)
+                                        }
+                                        ctx.stroke()
+                                    }
+
+                                    onLineColorChanged: requestPaint()
+
+                                    Connections {
+                                        target: networkMonitorBackend
+                                        function onHistoryChanged() {
+                                            uploadCanvas.requestPaint()
+                                        }
+                                    }
+                                }
                             }
                         }
 
-                        Canvas {
-                            id: uploadCanvas
+                        Rectangle {
                             Layout.fillWidth: true
-                            Layout.fillHeight: true
+                            Layout.preferredHeight: 60
+                            radius: Theme.borderRadius
+                            color: Theme.surfaceColor
 
-                            onPaint: {
-                                var ctx = getContext("2d")
-                                ctx.clearRect(0, 0, width, height)
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: Theme.padding / 2
+                                spacing: 2
 
-                                var history = networkMonitorBackend.uploadHistory
-                                var maxVal = networkMonitorBackend.maxUploadHistory
-                                if (history.length < 2 || maxVal <= 0) return
+                                RowLayout {
+                                    Layout.fillWidth: true
 
-                                ctx.beginPath()
-                                ctx.strokeStyle = Theme.warning
-                                ctx.lineWidth = 1.5
+                                    Image {
+                                        source: iconsPath + "download.svg"
+                                        sourceSize: Qt.size(14, 14)
+                                    }
 
-                                var stepX = width / (history.length - 1)
-                                for (var i = 0; i < history.length; i++) {
-                                    var x = i * stepX
-                                    var y = height - (history[i] / maxVal * height * 0.9)
-                                    if (i === 0) ctx.moveTo(x, y)
-                                    else ctx.lineTo(x, y)
+                                    Text {
+                                        text: "Download"
+                                        color: Theme.textSecondary
+                                        font.pixelSize: Theme.fontSizeSmall
+                                    }
+
+                                    Item { Layout.fillWidth: true }
+
+                                    Text {
+                                        text: networkMonitorBackend.downloadSpeedText
+                                        color: netMonWindow.getColor(networkMonitorBackend.downloadColorIndex)
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        font.weight: Font.Medium
+                                    }
                                 }
-                                ctx.stroke()
+
+                                Canvas {
+                                    id: downloadCanvas
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+
+                                    property color lineColor: netMonWindow.getColor(networkMonitorBackend.downloadColorIndex)
+
+                                    onPaint: {
+                                        var ctx = getContext("2d")
+                                        ctx.clearRect(0, 0, width, height)
+
+                                        var history = networkMonitorBackend.downloadHistory
+                                        var maxVal = networkMonitorBackend.maxDownloadHistory
+                                        if (history.length < 2 || maxVal <= 0) return
+
+                                        ctx.beginPath()
+                                        ctx.strokeStyle = lineColor
+                                        ctx.lineWidth = 1.5
+
+                                        var stepX = width / (history.length - 1)
+                                        for (var i = 0; i < history.length; i++) {
+                                            var x = i * stepX
+                                            var y = height - (history[i] / maxVal * height * 0.9)
+                                            if (i === 0) ctx.moveTo(x, y)
+                                            else ctx.lineTo(x, y)
+                                        }
+                                        ctx.stroke()
+                                    }
+
+                                    onLineColorChanged: requestPaint()
+
+                                    Connections {
+                                        target: networkMonitorBackend
+                                        function onHistoryChanged() {
+                                            downloadCanvas.requestPaint()
+                                        }
+                                    }
+                                }
                             }
+                        }
 
-                            Connections {
-                                target: networkMonitorBackend
-                                function onHistoryChanged() {
-                                    uploadCanvas.requestPaint()
-                                }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.spacing
+
+                            Text {
+                                text: "Total: " + networkMonitorBackend.totalSentText + " / " + networkMonitorBackend.totalReceivedText
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
                             }
                         }
                     }
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 60
-                    radius: Theme.borderRadius
-                    color: Theme.surfaceColor
-
+                Item {
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: Theme.padding / 2
-                        spacing: 2
+                        anchors.margins: Theme.padding
+                        spacing: Theme.spacing
 
-                        RowLayout {
-                            Layout.fillWidth: true
-
-                            Image {
-                                source: iconsPath + "download.svg"
-                                sourceSize: Qt.size(14, 14)
-                            }
-
-                            Text {
-                                text: "Download"
-                                color: Theme.textSecondary
-                                font.pixelSize: Theme.fontSizeSmall
-                            }
-
-                            Item { Layout.fillWidth: true }
-
-                            Text {
-                                text: networkMonitorBackend.downloadSpeedText
-                                color: Theme.accentColor
-                                font.pixelSize: Theme.fontSizeNormal
-                                font.weight: Font.Medium
-                            }
+                        Text {
+                            text: "Upload Color"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
                         }
 
-                        Canvas {
-                            id: downloadCanvas
+                        Row {
                             Layout.fillWidth: true
-                            Layout.fillHeight: true
+                            spacing: 8
 
-                            onPaint: {
-                                var ctx = getContext("2d")
-                                ctx.clearRect(0, 0, width, height)
+                            Repeater {
+                                model: netMonWindow.colorPalette
 
-                                var history = networkMonitorBackend.downloadHistory
-                                var maxVal = networkMonitorBackend.maxDownloadHistory
-                                if (history.length < 2 || maxVal <= 0) return
+                                delegate: Rectangle {
+                                    width: 28
+                                    height: 28
+                                    radius: 14
+                                    color: modelData
+                                    border.color: networkMonitorBackend.uploadColorIndex === index ? Theme.textPrimary : "transparent"
+                                    border.width: 2
 
-                                ctx.beginPath()
-                                ctx.strokeStyle = Theme.accentColor
-                                ctx.lineWidth = 1.5
-
-                                var stepX = width / (history.length - 1)
-                                for (var i = 0; i < history.length; i++) {
-                                    var x = i * stepX
-                                    var y = height - (history[i] / maxVal * height * 0.9)
-                                    if (i === 0) ctx.moveTo(x, y)
-                                    else ctx.lineTo(x, y)
-                                }
-                                ctx.stroke()
-                            }
-
-                            Connections {
-                                target: networkMonitorBackend
-                                function onHistoryChanged() {
-                                    downloadCanvas.requestPaint()
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: networkMonitorBackend.setUploadColorIndex(index)
+                                    }
                                 }
                             }
                         }
-                    }
-                }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Theme.spacing
+                        Text {
+                            text: "Download Color"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
 
-                    Text {
-                        text: "Total: " + networkMonitorBackend.totalSentText + " / " + networkMonitorBackend.totalReceivedText
-                        color: Theme.textSecondary
-                        font.pixelSize: Theme.fontSizeSmall
+                        Row {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            Repeater {
+                                model: netMonWindow.colorPalette
+
+                                delegate: Rectangle {
+                                    width: 28
+                                    height: 28
+                                    radius: 14
+                                    color: modelData
+                                    border.color: networkMonitorBackend.downloadColorIndex === index ? Theme.textPrimary : "transparent"
+                                    border.width: 2
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: networkMonitorBackend.setDownloadColorIndex(index)
+                                    }
+                                }
+                            }
+                        }
+
+                        Item { Layout.fillHeight: true }
                     }
                 }
             }

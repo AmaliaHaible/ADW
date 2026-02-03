@@ -14,6 +14,7 @@ class LauncherBackend(QObject):
     shortcutsChanged = Signal()
     searchQueryChanged = Signal()
     columnsChanged = Signal()
+    showSearchBarChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
@@ -35,6 +36,20 @@ class LauncherBackend(QObject):
         if self._settings and 1 <= value <= 8:
             self._settings.setWidgetSetting("launcher", "columns", value)
             self.columnsChanged.emit()
+
+    @Property(bool, notify=showSearchBarChanged)
+    def showSearchBar(self):
+        if self._settings:
+            val = self._settings.getWidgetSetting("launcher", "showSearchBar")
+            if val is not None:
+                return val
+        return True
+
+    @Slot(bool)
+    def setShowSearchBar(self, value):
+        if self._settings:
+            self._settings.setWidgetSetting("launcher", "showSearchBar", value)
+            self.showSearchBarChanged.emit()
 
     def _load_shortcuts(self):
         """Load shortcuts from settings."""
@@ -73,8 +88,8 @@ class LauncherBackend(QObject):
             self.searchQueryChanged.emit()
             self.shortcutsChanged.emit()
 
-    @Slot(str, str, str, bool)
-    def addShortcut(self, name, path, icon="", use_custom_icon=False):
+    @Slot(str, str, str, bool, str)
+    def addShortcut(self, name, path, icon="", use_custom_icon=False, custom_image=""):
         """Add a new shortcut."""
         extracted_url = get_icon_url(path)
         shortcut = {
@@ -84,6 +99,7 @@ class LauncherBackend(QObject):
             "icon": icon or self._get_default_icon(path),
             "extractedIcon": extracted_url,
             "useCustomIcon": use_custom_icon,
+            "customImagePath": custom_image,
         }
         self._shortcuts.append(shortcut)
         self._save_shortcuts()
@@ -103,14 +119,15 @@ class LauncherBackend(QObject):
                 break
         self._save_shortcuts()
 
-    @Slot(str, str, str, bool)
-    def updateShortcut(self, shortcut_id, name, icon, use_custom_icon):
+    @Slot(str, str, str, bool, str)
+    def updateShortcut(self, shortcut_id, name, icon, use_custom_icon, custom_image=""):
         """Update shortcut name and icon."""
         for s in self._shortcuts:
             if s.get("id") == shortcut_id:
                 s["name"] = name
                 s["icon"] = icon
                 s["useCustomIcon"] = use_custom_icon
+                s["customImagePath"] = custom_image
                 break
         self._save_shortcuts()
 

@@ -1,10 +1,8 @@
 import copy
 import json
 from pathlib import Path
-from typing import Any
 
-from PySide6.QtCore import QObject, Property, Signal, Slot
-from PySide6.QtGui import QColor
+from PySide6.QtCore import QObject, Signal, Slot
 
 from .theme_constants import DEFAULT_THEME
 

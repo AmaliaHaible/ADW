@@ -20,6 +20,17 @@ WidgetWindow {
     visible: hubBackend.systemMonitorVisible
     title: "System"
 
+    property int currentView: 0
+
+    property var colorPalette: [
+        Theme.colorRed, Theme.colorOrange, Theme.colorYellow,
+        Theme.colorGreen, Theme.colorBlue, Theme.colorPurple
+    ]
+
+    function getColor(index) {
+        return colorPalette[index] || Theme.accentColor
+    }
+
     Column {
         anchors.fill: parent
         spacing: 0
@@ -27,10 +38,15 @@ WidgetWindow {
         TitleBar {
             id: titleBar
             width: parent.width
-            title: "System"
+            title: sysMonWindow.currentView === 0 ? "System" : "Settings"
             dragEnabled: sysMonWindow.editMode
             minimized: sysMonWindow.minimized
             effectiveRadius: sysMonWindow.effectiveWindowRadius
+            leftButtons: sysMonWindow.currentView === 0 ? [
+                {icon: "settings.svg", action: "settings", enabled: !hubBackend.editMode}
+            ] : [
+                {icon: "arrow-left.svg", action: "back", enabled: !hubBackend.editMode}
+            ]
             rightButtons: [
                 {icon: "eye-off.svg", action: "minimize"}
             ]
@@ -38,6 +54,10 @@ WidgetWindow {
             onButtonClicked: function(action) {
                 if (action === "minimize") {
                     sysMonWindow.toggleMinimize()
+                } else if (action === "settings") {
+                    sysMonWindow.currentView = 1
+                } else if (action === "back") {
+                    sysMonWindow.currentView = 0
                 }
             }
         }
@@ -48,197 +68,309 @@ WidgetWindow {
             color: "transparent"
             visible: !sysMonWindow.minimized
 
-            ColumnLayout {
+            StackLayout {
                 anchors.fill: parent
-                anchors.margins: Theme.padding
-                spacing: Theme.spacing
+                currentIndex: sysMonWindow.currentView
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 80
-                    radius: Theme.borderRadius
-                    color: Theme.surfaceColor
-
+                Item {
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: Theme.padding / 2
-                        spacing: 4
+                        anchors.margins: Theme.padding
+                        spacing: Theme.spacing
 
-                        RowLayout {
+                        Rectangle {
                             Layout.fillWidth: true
+                            Layout.preferredHeight: 80
+                            radius: Theme.borderRadius
+                            color: Theme.surfaceColor
 
-                            Image {
-                                source: iconsPath + "cpu.svg"
-                                sourceSize: Qt.size(16, 16)
-                            }
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: Theme.padding / 2
+                                spacing: 4
 
-                            Text {
-                                text: "CPU"
-                                color: Theme.textPrimary
-                                font.pixelSize: Theme.fontSizeNormal
-                                font.weight: Font.Medium
-                            }
-
-                            Item { Layout.fillWidth: true }
-
-                            Text {
-                                text: systemMonitorBackend.cpuPercent.toFixed(0) + "%"
-                                color: Theme.accentColor
-                                font.pixelSize: Theme.fontSizeNormal
-                                font.weight: Font.Medium
-                            }
-                        }
-
-                        Canvas {
-                            id: cpuCanvas
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-
-                            onPaint: {
-                                var ctx = getContext("2d")
-                                ctx.clearRect(0, 0, width, height)
-
-                                var history = systemMonitorBackend.cpuHistory
-                                if (history.length < 2) return
-
-                                ctx.beginPath()
-                                ctx.strokeStyle = Theme.accentColor
-                                ctx.lineWidth = 1.5
-
-                                var stepX = width / (history.length - 1)
-                                for (var i = 0; i < history.length; i++) {
-                                    var x = i * stepX
-                                    var y = height - (history[i] / 100 * height)
-                                    if (i === 0) ctx.moveTo(x, y)
-                                    else ctx.lineTo(x, y)
-                                }
-                                ctx.stroke()
-                            }
-
-                            Connections {
-                                target: systemMonitorBackend
-                                function onHistoryChanged() {
-                                    cpuCanvas.requestPaint()
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 80
-                    radius: Theme.borderRadius
-                    color: Theme.surfaceColor
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: Theme.padding / 2
-                        spacing: 4
-
-                        RowLayout {
-                            Layout.fillWidth: true
-
-                            Image {
-                                source: iconsPath + "memory-stick.svg"
-                                sourceSize: Qt.size(16, 16)
-                            }
-
-                            Text {
-                                text: "RAM"
-                                color: Theme.textPrimary
-                                font.pixelSize: Theme.fontSizeNormal
-                                font.weight: Font.Medium
-                            }
-
-                            Item { Layout.fillWidth: true }
-
-                            Text {
-                                text: systemMonitorBackend.memoryText
-                                color: Theme.success
-                                font.pixelSize: Theme.fontSizeSmall
-                            }
-                        }
-
-                        Canvas {
-                            id: memCanvas
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-
-                            onPaint: {
-                                var ctx = getContext("2d")
-                                ctx.clearRect(0, 0, width, height)
-
-                                var history = systemMonitorBackend.memoryHistory
-                                if (history.length < 2) return
-
-                                ctx.beginPath()
-                                ctx.strokeStyle = Theme.success
-                                ctx.lineWidth = 1.5
-
-                                var stepX = width / (history.length - 1)
-                                for (var i = 0; i < history.length; i++) {
-                                    var x = i * stepX
-                                    var y = height - (history[i] / 100 * height)
-                                    if (i === 0) ctx.moveTo(x, y)
-                                    else ctx.lineTo(x, y)
-                                }
-                                ctx.stroke()
-                            }
-
-                            Connections {
-                                target: systemMonitorBackend
-                                function onHistoryChanged() {
-                                    memCanvas.requestPaint()
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    radius: Theme.borderRadius
-                    color: Theme.surfaceColor
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: Theme.padding / 2
-                        spacing: 4
-
-                        Text {
-                            text: "CPU Cores"
-                            color: Theme.textPrimary
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.weight: Font.Medium
-                        }
-
-                        GridLayout {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            columns: 4
-                            columnSpacing: 4
-                            rowSpacing: 4
-
-                            Repeater {
-                                model: systemMonitorBackend.cpuPerCore
-
-                                delegate: Rectangle {
+                                RowLayout {
                                     Layout.fillWidth: true
-                                    Layout.preferredHeight: 16
-                                    radius: 2
-                                    color: Theme.windowBackground
 
-                                    Rectangle {
-                                        width: parent.width * (modelData / 100)
-                                        height: parent.height
-                                        radius: 2
-                                        color: modelData > 80 ? Theme.error : (modelData > 50 ? Theme.warning : Theme.accentColor)
+                                    Image {
+                                        source: iconsPath + "cpu.svg"
+                                        sourceSize: Qt.size(16, 16)
+                                    }
+
+                                    Text {
+                                        text: "CPU"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        font.weight: Font.Medium
+                                    }
+
+                                    Item { Layout.fillWidth: true }
+
+                                    Text {
+                                        text: systemMonitorBackend.cpuPercent.toFixed(0) + "%"
+                                        color: sysMonWindow.getColor(systemMonitorBackend.cpuColorIndex)
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        font.weight: Font.Medium
+                                    }
+                                }
+
+                                Canvas {
+                                    id: cpuCanvas
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+
+                                    property color lineColor: sysMonWindow.getColor(systemMonitorBackend.cpuColorIndex)
+
+                                    onPaint: {
+                                        var ctx = getContext("2d")
+                                        ctx.clearRect(0, 0, width, height)
+
+                                        var history = systemMonitorBackend.cpuHistory
+                                        if (history.length < 2) return
+
+                                        ctx.beginPath()
+                                        ctx.strokeStyle = lineColor
+                                        ctx.lineWidth = 1.5
+
+                                        var stepX = width / (history.length - 1)
+                                        for (var i = 0; i < history.length; i++) {
+                                            var x = i * stepX
+                                            var y = height - (history[i] / 100 * height)
+                                            if (i === 0) ctx.moveTo(x, y)
+                                            else ctx.lineTo(x, y)
+                                        }
+                                        ctx.stroke()
+                                    }
+
+                                    onLineColorChanged: requestPaint()
+
+                                    Connections {
+                                        target: systemMonitorBackend
+                                        function onHistoryChanged() {
+                                            cpuCanvas.requestPaint()
+                                        }
                                     }
                                 }
                             }
                         }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 80
+                            radius: Theme.borderRadius
+                            color: Theme.surfaceColor
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: Theme.padding / 2
+                                spacing: 4
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+
+                                    Image {
+                                        source: iconsPath + "memory-stick.svg"
+                                        sourceSize: Qt.size(16, 16)
+                                    }
+
+                                    Text {
+                                        text: "RAM"
+                                        color: Theme.textPrimary
+                                        font.pixelSize: Theme.fontSizeNormal
+                                        font.weight: Font.Medium
+                                    }
+
+                                    Item { Layout.fillWidth: true }
+
+                                    Text {
+                                        text: systemMonitorBackend.memoryText
+                                        color: sysMonWindow.getColor(systemMonitorBackend.ramColorIndex)
+                                        font.pixelSize: Theme.fontSizeSmall
+                                    }
+                                }
+
+                                Canvas {
+                                    id: memCanvas
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+
+                                    property color lineColor: sysMonWindow.getColor(systemMonitorBackend.ramColorIndex)
+
+                                    onPaint: {
+                                        var ctx = getContext("2d")
+                                        ctx.clearRect(0, 0, width, height)
+
+                                        var history = systemMonitorBackend.memoryHistory
+                                        if (history.length < 2) return
+
+                                        ctx.beginPath()
+                                        ctx.strokeStyle = lineColor
+                                        ctx.lineWidth = 1.5
+
+                                        var stepX = width / (history.length - 1)
+                                        for (var i = 0; i < history.length; i++) {
+                                            var x = i * stepX
+                                            var y = height - (history[i] / 100 * height)
+                                            if (i === 0) ctx.moveTo(x, y)
+                                            else ctx.lineTo(x, y)
+                                        }
+                                        ctx.stroke()
+                                    }
+
+                                    onLineColorChanged: requestPaint()
+
+                                    Connections {
+                                        target: systemMonitorBackend
+                                        function onHistoryChanged() {
+                                            memCanvas.requestPaint()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            radius: Theme.borderRadius
+                            color: Theme.surfaceColor
+
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: Theme.padding / 2
+                                spacing: 4
+
+                                Text {
+                                    text: "CPU Cores"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    font.weight: Font.Medium
+                                }
+
+                                GridLayout {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    columns: 4
+                                    columnSpacing: 4
+                                    rowSpacing: 4
+
+                                    Repeater {
+                                        model: systemMonitorBackend.cpuPerCore
+
+                                        delegate: Rectangle {
+                                            Layout.fillWidth: true
+                                            Layout.preferredHeight: 16
+                                            radius: 2
+                                            color: Theme.windowBackground
+
+                                            Rectangle {
+                                                width: parent.width * (modelData / 100)
+                                                height: parent.height
+                                                radius: 2
+                                                color: sysMonWindow.getColor(systemMonitorBackend.coresColorIndex)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Item {
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: Theme.padding
+                        spacing: Theme.spacing
+
+                        Text {
+                            text: "CPU Graph Color"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        Row {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            Repeater {
+                                model: sysMonWindow.colorPalette
+
+                                delegate: Rectangle {
+                                    width: 28
+                                    height: 28
+                                    radius: 14
+                                    color: modelData
+                                    border.color: systemMonitorBackend.cpuColorIndex === index ? Theme.textPrimary : "transparent"
+                                    border.width: 2
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: systemMonitorBackend.setCpuColorIndex(index)
+                                    }
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: "RAM Graph Color"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        Row {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            Repeater {
+                                model: sysMonWindow.colorPalette
+
+                                delegate: Rectangle {
+                                    width: 28
+                                    height: 28
+                                    radius: 14
+                                    color: modelData
+                                    border.color: systemMonitorBackend.ramColorIndex === index ? Theme.textPrimary : "transparent"
+                                    border.width: 2
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: systemMonitorBackend.setRamColorIndex(index)
+                                    }
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: "CPU Cores Color"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        Row {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            Repeater {
+                                model: sysMonWindow.colorPalette
+
+                                delegate: Rectangle {
+                                    width: 28
+                                    height: 28
+                                    radius: 14
+                                    color: modelData
+                                    border.color: systemMonitorBackend.coresColorIndex === index ? Theme.textPrimary : "transparent"
+                                    border.width: 2
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        onClicked: systemMonitorBackend.setCoresColorIndex(index)
+                                    }
+                                }
+                            }
+                        }
+
+                        Item { Layout.fillHeight: true }
                     }
                 }
             }

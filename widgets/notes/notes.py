@@ -19,6 +19,11 @@ class NotesBackend(QObject):
         self._search_query = ""
         self._newly_created_note_id = None
         self._load_notes()
+        if self._theme:
+            self._theme.themeChanged.connect(self._on_theme_changed)
+
+    def _on_theme_changed(self):
+        self.colorsChanged.emit()
 
     def _load_notes(self):
         """Load notes from settings."""

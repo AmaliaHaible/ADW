@@ -4,7 +4,6 @@ import urllib.request
 import urllib.parse
 import urllib.error
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
 from PySide6.QtCore import QObject, Property, Signal, Slot, QTimer
