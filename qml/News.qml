@@ -127,7 +127,7 @@ WidgetWindow {
                             Text {
                                 anchors.centerIn: parent
                                 text: newsBackend.error
-                                color: Theme.error
+                                color: Theme.colorRed
                                 font.pixelSize: Theme.fontSizeSmall
                             }
                         }

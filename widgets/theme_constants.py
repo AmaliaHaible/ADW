@@ -1,7 +1,6 @@
 """Shared theme constants for the application."""
 
 DEFAULT_THEME = {
-    "baseColor": "#9cbfd7",
     "windowBackground": "#1e1e2e",
     "surfaceColor": "#313244",
     "titleBarBackground": "#383858",
@@ -17,9 +16,6 @@ DEFAULT_THEME = {
     "textPrimaryDark": "#1e1e2e",
     "textSecondaryDark": "#313244",
     "borderColor": "#6c7086",
-    "success": "#a6e3a1",
-    "warning": "#f9e2af",
-    "error": "#f38ba8",
     "colorRed": "#f38ba8",
     "colorOrange": "#fab387",
     "colorYellow": "#f9e2af",
@@ -31,7 +27,6 @@ DEFAULT_THEME = {
     "fontSizeLarge": 16,
     "fontSizeTitle": 14,
     "titleBarHeight": 32,
-    "buttonSize": 24,
     "borderRadius": 8,
     "windowRadius": 12,
     "spacing": 8,

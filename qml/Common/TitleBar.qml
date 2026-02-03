@@ -15,6 +15,10 @@ Rectangle {
     property var leftButtons: []
     property var rightButtons: []
 
+    // Derived sizes from titleBarHeight
+    readonly property int buttonSize: Theme.titleBarHeight - 8
+    readonly property int iconSize: Math.round(buttonSize * 0.58)
+
     // Signals for button actions
     signal buttonClicked(string action)
 
@@ -48,8 +52,8 @@ Rectangle {
             model: titleBar.leftButtons
 
             Rectangle {
-                width: Theme.buttonSize
-                height: Theme.buttonSize
+                width: titleBar.buttonSize
+                height: titleBar.buttonSize
                 radius: 4
                 color: leftMouseArea.containsMouse && leftMouseArea.enabled
                        ? (leftMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
@@ -57,10 +61,10 @@ Rectangle {
 
                 Image {
                     anchors.centerIn: parent
-                    width: 14
-                    height: 14
+                    width: titleBar.iconSize
+                    height: titleBar.iconSize
                     source: iconsPath + modelData.icon
-                    sourceSize: Qt.size(14, 14)
+                    sourceSize: Qt.size(titleBar.iconSize, titleBar.iconSize)
                 }
 
                 MouseArea {
@@ -88,8 +92,8 @@ Rectangle {
             model: titleBar.rightButtons
 
             Rectangle {
-                width: Theme.buttonSize
-                height: Theme.buttonSize
+                width: titleBar.buttonSize
+                height: titleBar.buttonSize
                 radius: 4
                 color: rightMouseArea.containsMouse && rightMouseArea.enabled
                        ? (rightMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
@@ -97,10 +101,10 @@ Rectangle {
 
                 Image {
                     anchors.centerIn: parent
-                    width: 14
-                    height: 14
+                    width: titleBar.iconSize
+                    height: titleBar.iconSize
                     source: iconsPath + modelData.icon
-                    sourceSize: Qt.size(14, 14)
+                    sourceSize: Qt.size(titleBar.iconSize, titleBar.iconSize)
                 }
 
                 MouseArea {

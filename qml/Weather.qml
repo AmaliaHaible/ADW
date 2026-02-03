@@ -93,7 +93,7 @@ WidgetWindow {
                             anchors.centerIn: parent
                             width: parent.width - Theme.padding * 2
                             text: weatherBackend.errorMessage
-                            color: Theme.error
+                            color: Theme.colorRed
                             font.pixelSize: Theme.fontSizeSmall
                             wrapMode: Text.WordWrap
                             horizontalAlignment: Text.AlignHCenter
@@ -475,7 +475,7 @@ WidgetWindow {
                         Text {
                             Layout.fillWidth: true
                             text: weatherBackend.errorMessage
-                            color: Theme.error
+                            color: Theme.colorRed
                             font.pixelSize: Theme.fontSizeSmall
                             wrapMode: Text.WordWrap
                             visible: weatherBackend.errorMessage !== ""

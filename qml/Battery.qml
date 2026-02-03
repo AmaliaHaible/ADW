@@ -65,9 +65,9 @@ WidgetWindow {
                         color: "transparent"
                         border.color: {
                             if (!batteryBackend.hasBattery) return Theme.borderColor
-                            if (batteryBackend.percent <= 20) return Theme.error
-                            if (batteryBackend.percent <= 50) return Theme.warning
-                            return Theme.success
+                            if (batteryBackend.percent <= 20) return Theme.colorRed
+                            if (batteryBackend.percent <= 50) return Theme.colorYellow
+                            return Theme.colorGreen
                         }
                         border.width: 2
 
@@ -79,9 +79,9 @@ WidgetWindow {
                             radius: 2
                             color: {
                                 if (!batteryBackend.hasBattery) return Theme.borderColor
-                                if (batteryBackend.percent <= 20) return Theme.error
-                                if (batteryBackend.percent <= 50) return Theme.warning
-                                return Theme.success
+                                if (batteryBackend.percent <= 20) return Theme.colorRed
+                                if (batteryBackend.percent <= 50) return Theme.colorYellow
+                                return Theme.colorGreen
                             }
                         }
 

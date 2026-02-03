@@ -11,7 +11,6 @@ class ThemeProvider(QObject):
     themeChanged = Signal()
 
     # Color signals
-    baseColorChanged = Signal()
     windowBackgroundChanged = Signal()
     surfaceColorChanged = Signal()
     titleBarBackgroundChanged = Signal()
@@ -27,9 +26,6 @@ class ThemeProvider(QObject):
     textPrimaryDarkChanged = Signal()
     textSecondaryDarkChanged = Signal()
     borderColorChanged = Signal()
-    successChanged = Signal()
-    warningChanged = Signal()
-    errorChanged = Signal()
     colorRedChanged = Signal()
     colorOrangeChanged = Signal()
     colorYellowChanged = Signal()
@@ -43,7 +39,6 @@ class ThemeProvider(QObject):
     fontSizeLargeChanged = Signal()
     fontSizeTitleChanged = Signal()
     titleBarHeightChanged = Signal()
-    buttonSizeChanged = Signal()
     borderRadiusChanged = Signal()
     windowRadiusChanged = Signal()
     spacingChanged = Signal()
@@ -90,7 +85,6 @@ class ThemeProvider(QObject):
 
     def _emit_all_signals(self):
         """Emit all property change signals."""
-        self.baseColorChanged.emit()
         self.windowBackgroundChanged.emit()
         self.surfaceColorChanged.emit()
         self.titleBarBackgroundChanged.emit()
@@ -106,9 +100,6 @@ class ThemeProvider(QObject):
         self.textPrimaryDarkChanged.emit()
         self.textSecondaryDarkChanged.emit()
         self.borderColorChanged.emit()
-        self.successChanged.emit()
-        self.warningChanged.emit()
-        self.errorChanged.emit()
         self.colorRedChanged.emit()
         self.colorOrangeChanged.emit()
         self.colorYellowChanged.emit()
@@ -120,7 +111,6 @@ class ThemeProvider(QObject):
         self.fontSizeLargeChanged.emit()
         self.fontSizeTitleChanged.emit()
         self.titleBarHeightChanged.emit()
-        self.buttonSizeChanged.emit()
         self.borderRadiusChanged.emit()
         self.windowRadiusChanged.emit()
         self.spacingChanged.emit()
@@ -129,10 +119,6 @@ class ThemeProvider(QObject):
         self.themeChanged.emit()
 
     # Color properties
-    @Property(QColor, notify=baseColorChanged)
-    def baseColor(self):
-        return QColor(self._theme["baseColor"])
-
     @Property(QColor, notify=windowBackgroundChanged)
     def windowBackground(self):
         return QColor(self._theme["windowBackground"])
@@ -193,18 +179,6 @@ class ThemeProvider(QObject):
     def borderColor(self):
         return QColor(self._theme["borderColor"])
 
-    @Property(QColor, notify=successChanged)
-    def success(self):
-        return QColor(self._theme["success"])
-
-    @Property(QColor, notify=warningChanged)
-    def warning(self):
-        return QColor(self._theme["warning"])
-
-    @Property(QColor, notify=errorChanged)
-    def error(self):
-        return QColor(self._theme["error"])
-
     @Property(QColor, notify=colorRedChanged)
     def colorRed(self):
         return QColor(self._theme.get("colorRed", "#f38ba8"))
@@ -249,10 +223,6 @@ class ThemeProvider(QObject):
     @Property(int, notify=titleBarHeightChanged)
     def titleBarHeight(self):
         return self._theme["titleBarHeight"]
-
-    @Property(int, notify=buttonSizeChanged)
-    def buttonSize(self):
-        return self._theme["buttonSize"]
 
     @Property(int, notify=borderRadiusChanged)
     def borderRadius(self):

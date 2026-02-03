@@ -3,7 +3,6 @@ import QtQuick 2.15
 
 QtObject {
     // Base colors - read from themeProvider if available, otherwise use defaults
-    readonly property color baseColor: themeProvider ? themeProvider.baseColor : "#9cbfd7"
     readonly property color windowBackground: themeProvider ? themeProvider.windowBackground : "#1e1e2e"
     readonly property color surfaceColor: themeProvider ? themeProvider.surfaceColor : "#313244"
 
@@ -26,11 +25,6 @@ QtObject {
     readonly property color textSecondaryDark: themeProvider ? themeProvider.textSecondaryDark : "#313244"
     readonly property color borderColor: themeProvider ? themeProvider.borderColor : "#6c7086"
 
-    // Status colors
-    readonly property color success: themeProvider ? themeProvider.success : "#a6e3a1"
-    readonly property color warning: themeProvider ? themeProvider.warning : "#f9e2af"
-    readonly property color error: themeProvider ? themeProvider.error : "#f38ba8"
-
     // Custom palette colors
     readonly property color colorRed: themeProvider ? themeProvider.colorRed : "#f38ba8"
     readonly property color colorOrange: themeProvider ? themeProvider.colorOrange : "#fab387"
@@ -47,7 +41,6 @@ QtObject {
 
     // Dimensions
     readonly property int titleBarHeight: themeProvider ? themeProvider.titleBarHeight : 32
-    readonly property int buttonSize: themeProvider ? themeProvider.buttonSize : 24
     readonly property int borderRadius: themeProvider ? themeProvider.borderRadius : 8
     readonly property int windowRadius: themeProvider ? themeProvider.windowRadius : 12
     readonly property int spacing: themeProvider ? themeProvider.spacing : 8

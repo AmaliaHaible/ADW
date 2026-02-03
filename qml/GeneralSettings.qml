@@ -184,6 +184,7 @@ WidgetWindow {
                             {name: "fontSizeSmall", label: "Font Small", min: 8, max: 20},
                             {name: "fontSizeNormal", label: "Font Normal", min: 10, max: 24},
                             {name: "fontSizeLarge", label: "Font Large", min: 12, max: 32},
+                            {name: "fontSizeTitle", label: "Font Title", min: 10, max: 24},
                             {name: "titleBarHeight", label: "Title Bar Height", min: 24, max: 48},
                             {name: "borderRadius", label: "Border Radius", min: 0, max: 20},
                             {name: "windowRadius", label: "Window Radius", min: 0, max: 24},
