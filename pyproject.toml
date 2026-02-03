@@ -1,7 +1,7 @@
 [project]
-name = "widgets"
+name = "ADW"
 version = "0.1.0"
-description = "Add your description here"
+description = "QML Desktop Widget System for Windows"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
