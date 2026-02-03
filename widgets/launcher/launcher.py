@@ -15,6 +15,7 @@ class LauncherBackend(QObject):
     searchQueryChanged = Signal()
     columnsChanged = Signal()
     showSearchBarChanged = Signal()
+    iconSizeChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
@@ -50,6 +51,20 @@ class LauncherBackend(QObject):
         if self._settings:
             self._settings.setWidgetSetting("launcher", "showSearchBar", value)
             self.showSearchBarChanged.emit()
+
+    @Property(int, notify=iconSizeChanged)
+    def iconSize(self):
+        if self._settings:
+            val = self._settings.getWidgetSetting("launcher", "iconSize")
+            if val is not None:
+                return val
+        return 28
+
+    @Slot(int)
+    def setIconSize(self, value):
+        if self._settings and 16 <= value <= 64:
+            self._settings.setWidgetSetting("launcher", "iconSize", value)
+            self.iconSizeChanged.emit()
 
     def _load_shortcuts(self):
         """Load shortcuts from settings."""

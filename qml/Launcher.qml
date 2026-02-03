@@ -164,6 +164,9 @@ WidgetWindow {
 
                                             Image {
                                                 Layout.alignment: Qt.AlignHCenter
+                                                Layout.preferredWidth: launcherBackend.iconSize
+                                                Layout.preferredHeight: launcherBackend.iconSize
+                                                fillMode: Image.PreserveAspectFit
                                                 source: {
                                                     if (modelData.customImagePath) {
                                                         return modelData.customImagePath
@@ -176,7 +179,7 @@ WidgetWindow {
                                                     }
                                                     return iconsPath + (modelData.icon || "file.svg")
                                                 }
-                                                sourceSize: Qt.size(28, 28)
+                                                sourceSize: Qt.size(launcherBackend.iconSize, launcherBackend.iconSize)
                                             }
 
                                             Text {
@@ -652,6 +655,75 @@ WidgetWindow {
                                 MouseArea {
                                     anchors.fill: parent
                                     onClicked: launcherBackend.setShowSearchBar(!launcherBackend.showSearchBar)
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: "Icon Size"
+                            color: Theme.textSecondary
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            Rectangle {
+                                width: 28
+                                height: 28
+                                radius: Theme.borderRadius
+                                color: iconDown.pressed ? Theme.accentColor : (iconDown.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "-"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: 14
+                                }
+
+                                MouseArea {
+                                    id: iconDown
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: if (launcherBackend.iconSize > 16) launcherBackend.setIconSize(launcherBackend.iconSize - 4)
+                                }
+                            }
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 28
+                                color: Theme.surfaceColor
+                                border.color: Theme.borderColor
+                                border.width: 1
+                                radius: Theme.borderRadius
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: launcherBackend.iconSize + "px"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: Theme.fontSizeNormal
+                                }
+                            }
+
+                            Rectangle {
+                                width: 28
+                                height: 28
+                                radius: Theme.borderRadius
+                                color: iconUp.pressed ? Theme.accentColor : (iconUp.containsMouse ? Theme.borderColor : Theme.surfaceColor)
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "+"
+                                    color: Theme.textPrimary
+                                    font.pixelSize: 14
+                                }
+
+                                MouseArea {
+                                    id: iconUp
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    onClicked: if (launcherBackend.iconSize < 64) launcherBackend.setIconSize(launcherBackend.iconSize + 4)
                                 }
                             }
                         }

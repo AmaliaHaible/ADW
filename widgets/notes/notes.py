@@ -82,10 +82,6 @@ class NotesBackend(QObject):
 
     @Property("QVariantList", notify=colorsChanged)
     def availableColors(self):
-        if self._settings:
-            colors = self._settings.getWidgetSetting("notes", "colors")
-            if colors and len(colors) > 0:
-                return colors
         if self._theme:
             return [
                 self._theme._theme.get("surfaceColor", "#313244"),
@@ -105,15 +101,6 @@ class NotesBackend(QObject):
             "#89b4fa",
             "#cba6f7",
         ]
-
-    @Slot(int, str)
-    def setColor(self, index, color):
-        if self._settings:
-            colors = list(self.availableColors)
-            if 0 <= index < len(colors):
-                colors[index] = color
-                self._settings.setWidgetSetting("notes", "colors", colors)
-                self.colorsChanged.emit()
 
     @Slot(str)
     def setSearchQuery(self, query):
