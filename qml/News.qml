@@ -73,6 +73,53 @@ WidgetWindow {
 
                         Rectangle {
                             Layout.fillWidth: true
+                            Layout.preferredHeight: 32
+                            color: Theme.surfaceColor
+                            visible: newsBackend.selectedCategories.length > 1
+
+                            Row {
+                                anchors.fill: parent
+                                anchors.margins: 4
+
+                                Repeater {
+                                    model: newsBackend.selectedCategories
+
+                                    delegate: Rectangle {
+                                        width: parent.width / newsBackend.selectedCategories.length
+                                        height: parent.height
+                                        radius: Theme.borderRadius
+                                        color: modelData === newsBackend.activeCategory ? Theme.accentColor : (tabArea.containsMouse ? Theme.borderColor : "transparent")
+
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: {
+                                                for (var i = 0; i < newsBackend.categories.length; i++) {
+                                                    if (newsBackend.categories[i].file.replace(".json", "") === modelData) {
+                                                        return newsBackend.categories[i].name
+                                                    }
+                                                }
+                                                return modelData
+                                            }
+                                            color: modelData === newsBackend.activeCategory ? Theme.windowBackground : Theme.textPrimary
+                                            font.pixelSize: Theme.fontSizeSmall
+                                            elide: Text.ElideRight
+                                            width: parent.width - 8
+                                            horizontalAlignment: Text.AlignHCenter
+                                        }
+
+                                        MouseArea {
+                                            id: tabArea
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            onClicked: newsBackend.setActiveCategory(modelData)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            Layout.fillWidth: true
                             Layout.preferredHeight: 30
                             color: Theme.surfaceColor
                             visible: newsBackend.error !== ""
@@ -99,11 +146,26 @@ WidgetWindow {
                             }
                         }
 
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            visible: newsBackend.selectedCategories.length === 0
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "No categories selected.\n\nClick the list icon to\nadd categories."
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeNormal
+                                horizontalAlignment: Text.AlignHCenter
+                            }
+                        }
+
                         ScrollView {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             clip: true
                             contentWidth: availableWidth
+                            visible: newsBackend.selectedCategories.length > 0
 
                             ColumnLayout {
                                 width: parent.width
@@ -234,11 +296,13 @@ WidgetWindow {
                                 model: newsBackend.categories
 
                                 delegate: Rectangle {
+                                    property string catId: modelData.file.replace(".json", "")
+                                    property bool isSelected: newsBackend.selectedCategories.indexOf(catId) !== -1
+
                                     width: catText.width + Theme.padding
                                     height: 28
                                     radius: 14
-                                    color: modelData.file.replace(".json", "") === newsBackend.selectedCategory ?
-                                           Theme.accentColor : (catArea.containsMouse ? Theme.surfaceColor : Theme.windowBackground)
+                                    color: isSelected ? Theme.accentColor : (catArea.containsMouse ? Theme.surfaceColor : Theme.windowBackground)
                                     border.color: Theme.borderColor
                                     border.width: 1
 
@@ -246,8 +310,7 @@ WidgetWindow {
                                         id: catText
                                         anchors.centerIn: parent
                                         text: modelData.name
-                                        color: modelData.file.replace(".json", "") === newsBackend.selectedCategory ?
-                                               Theme.windowBackground : Theme.textPrimary
+                                        color: parent.isSelected ? Theme.windowBackground : Theme.textPrimary
                                         font.pixelSize: Theme.fontSizeSmall
                                     }
 
@@ -255,10 +318,7 @@ WidgetWindow {
                                         id: catArea
                                         anchors.fill: parent
                                         hoverEnabled: true
-                                        onClicked: {
-                                            newsBackend.setCategory(modelData.file.replace(".json", ""))
-                                            newsWindow.showCategories = false
-                                        }
+                                        onClicked: newsBackend.toggleCategory(parent.catId)
                                     }
                                 }
                             }

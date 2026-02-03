@@ -11,7 +11,8 @@ class NewsBackend(QObject):
     articlesChanged = Signal()
     isLoadingChanged = Signal()
     errorChanged = Signal()
-    selectedCategoryChanged = Signal()
+    selectedCategoriesChanged = Signal()
+    activeCategoryChanged = Signal()
 
     BASE_URL = "https://kite.kagi.com"
 
@@ -19,36 +20,40 @@ class NewsBackend(QObject):
         super().__init__(parent)
         self._settings = settings_backend
 
-        # State
         self._categories = []
         self._articles = []
         self._is_loading = False
         self._error = ""
-        self._selected_category = "tech"  # Default
+        self._selected_categories = ["tech"]
+        self._active_category = "tech"
 
-        # Load settings
         self._load_settings()
 
-        # Auto-refresh timer (15 minutes)
         self._refresh_timer = QTimer(self)
         self._refresh_timer.timeout.connect(self.refresh)
         self._refresh_timer.start(15 * 60 * 1000)
 
-        # Load categories on init
         self._fetch_categories()
 
     def _load_settings(self):
         """Load settings from backend."""
         if self._settings:
-            cat = self._settings.getWidgetSetting("news", "selected_category")
-            if cat:
-                self._selected_category = cat
+            cats = self._settings.getWidgetSetting("news", "selected_categories")
+            if cats and isinstance(cats, list):
+                self._selected_categories = cats
+            elif not cats:
+                old_cat = self._settings.getWidgetSetting("news", "selected_category")
+                if old_cat:
+                    self._selected_categories = [old_cat]
+
+            if self._selected_categories:
+                self._active_category = self._selected_categories[0]
 
     def _save_settings(self):
         """Save settings to backend."""
         if self._settings:
             self._settings.setWidgetSetting(
-                "news", "selected_category", self._selected_category
+                "news", "selected_categories", self._selected_categories
             )
 
     def _fetch_categories(self):
@@ -61,8 +66,8 @@ class NewsBackend(QObject):
             self._categories = data.get("categories", [])
             self.categoriesChanged.emit()
 
-            # Fetch articles for selected category
-            self._fetch_articles()
+            if self._selected_categories and self._active_category:
+                self._fetch_articles()
 
         except Exception as e:
             self._error = f"Failed to load categories: {e}"
@@ -95,8 +100,10 @@ class NewsBackend(QObject):
         return f"https://news.kagi.com/{json_category}/{timestamp}/{slug}"
 
     def _fetch_articles(self):
-        """Fetch articles for selected category."""
-        if not self._selected_category:
+        """Fetch articles for active category."""
+        if not self._active_category:
+            self._articles = []
+            self.articlesChanged.emit()
             return
 
         self._is_loading = True
@@ -105,16 +112,14 @@ class NewsBackend(QObject):
         self.errorChanged.emit()
 
         try:
-            # Find the file for selected category
             cat_file = None
             for cat in self._categories:
-                if cat.get("file", "").replace(".json", "") == self._selected_category:
+                if cat.get("file", "").replace(".json", "") == self._active_category:
                     cat_file = cat.get("file")
                     break
 
             if not cat_file:
-                # Try direct file name
-                cat_file = f"{self._selected_category}.json"
+                cat_file = f"{self._active_category}.json"
 
             url = f"{self.BASE_URL}/{cat_file}"
             with urllib.request.urlopen(url, timeout=15) as response:
@@ -128,7 +133,7 @@ class NewsBackend(QObject):
                 cluster_number = cluster.get("cluster_number", 0)
                 cluster_articles = cluster.get("articles", [])
                 kagi_link = self._build_kagi_link(
-                    self._selected_category, cluster_number, title, file_timestamp
+                    self._active_category, cluster_number, title, file_timestamp
                 )
 
                 articles.append(
@@ -161,7 +166,6 @@ class NewsBackend(QObject):
             self._is_loading = False
             self.isLoadingChanged.emit()
 
-    # Properties
     @Property("QVariantList", notify=categoriesChanged)
     def categories(self):
         return self._categories
@@ -178,18 +182,40 @@ class NewsBackend(QObject):
     def error(self):
         return self._error
 
-    @Property(str, notify=selectedCategoryChanged)
-    def selectedCategory(self):
-        return self._selected_category
+    @Property("QVariantList", notify=selectedCategoriesChanged)
+    def selectedCategories(self):
+        return self._selected_categories
 
-    # Slots
+    @Property(str, notify=activeCategoryChanged)
+    def activeCategory(self):
+        return self._active_category
+
     @Slot(str)
-    def setCategory(self, category):
-        """Set selected category and refresh."""
-        if self._selected_category != category:
-            self._selected_category = category
-            self._save_settings()
-            self.selectedCategoryChanged.emit()
+    def toggleCategory(self, category):
+        """Toggle a category on/off in the selected list."""
+        if category in self._selected_categories:
+            self._selected_categories.remove(category)
+            if self._active_category == category:
+                self._active_category = (
+                    self._selected_categories[0] if self._selected_categories else ""
+                )
+                self.activeCategoryChanged.emit()
+                self._fetch_articles()
+        else:
+            self._selected_categories.append(category)
+            if not self._active_category:
+                self._active_category = category
+                self.activeCategoryChanged.emit()
+                self._fetch_articles()
+        self._save_settings()
+        self.selectedCategoriesChanged.emit()
+
+    @Slot(str)
+    def setActiveCategory(self, category):
+        """Set the active tab category."""
+        if self._active_category != category and category in self._selected_categories:
+            self._active_category = category
+            self.activeCategoryChanged.emit()
             self._fetch_articles()
 
     @Slot()
