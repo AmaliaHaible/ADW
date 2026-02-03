@@ -111,12 +111,13 @@ class PomodoroBackend(QObject):
     def _show_notification(self, title, message):
         """Show Windows toast notification."""
         if not HAS_TOAST:
+            print(f"[Pomodoro] Toast not available: {title}")
             return
 
         try:
             xml = XmlDocument()
             xml.load_xml(f"""
-                <toast>
+                <toast duration="short">
                     <visual>
                         <binding template="ToastGeneric">
                             <text>{title}</text>
@@ -131,8 +132,9 @@ class PomodoroBackend(QObject):
                 "Microsoft.Windows.PowerShell"
             )
             notifier.show(wun.ToastNotification(xml))
-        except Exception:
-            pass
+            print(f"[Pomodoro] Toast sent: {title}")
+        except Exception as e:
+            print(f"[Pomodoro] Toast error: {e}")
 
     def _tick(self):
         """Timer tick - called every second."""

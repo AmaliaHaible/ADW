@@ -24,6 +24,8 @@ class ThemeProvider(QObject):
     textPrimaryChanged = Signal()
     textSecondaryChanged = Signal()
     textMutedChanged = Signal()
+    textPrimaryDarkChanged = Signal()
+    textSecondaryDarkChanged = Signal()
     borderColorChanged = Signal()
     successChanged = Signal()
     warningChanged = Signal()
@@ -95,6 +97,8 @@ class ThemeProvider(QObject):
         self.textPrimaryChanged.emit()
         self.textSecondaryChanged.emit()
         self.textMutedChanged.emit()
+        self.textPrimaryDarkChanged.emit()
+        self.textSecondaryDarkChanged.emit()
         self.borderColorChanged.emit()
         self.successChanged.emit()
         self.warningChanged.emit()
@@ -164,6 +168,14 @@ class ThemeProvider(QObject):
     @Property(QColor, notify=textMutedChanged)
     def textMuted(self):
         return QColor(self._theme["textMuted"])
+
+    @Property(QColor, notify=textPrimaryDarkChanged)
+    def textPrimaryDark(self):
+        return QColor(self._theme.get("textPrimaryDark", "#1e1e2e"))
+
+    @Property(QColor, notify=textSecondaryDarkChanged)
+    def textSecondaryDark(self):
+        return QColor(self._theme.get("textSecondaryDark", "#313244"))
 
     @Property(QColor, notify=borderColorChanged)
     def borderColor(self):

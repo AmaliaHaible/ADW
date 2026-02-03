@@ -22,6 +22,23 @@ WidgetWindow {
 
     property bool showingEditor: notesBackend.currentNoteId !== ""
 
+    function isLightColor(hexColor) {
+        if (!hexColor || hexColor.length < 7) return false
+        var r = parseInt(hexColor.substring(1, 3), 16)
+        var g = parseInt(hexColor.substring(3, 5), 16)
+        var b = parseInt(hexColor.substring(5, 7), 16)
+        var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        return luminance > 0.5
+    }
+
+    function getTextColor(bgColor) {
+        return isLightColor(bgColor) ? Theme.textPrimaryDark : Theme.textPrimary
+    }
+
+    function getSecondaryTextColor(bgColor) {
+        return isLightColor(bgColor) ? Theme.textSecondaryDark : Theme.textSecondary
+    }
+
     Column {
         anchors.fill: parent
         spacing: 0
@@ -116,7 +133,7 @@ WidgetWindow {
                                             Text {
                                                 width: parent.width
                                                 text: modelData.title || "Untitled"
-                                                color: modelData.textColor || Theme.textPrimary
+                                                color: getTextColor(modelData.color)
                                                 font.pixelSize: Theme.fontSizeNormal
                                                 font.weight: Font.Medium
                                                 elide: Text.ElideRight
@@ -126,7 +143,7 @@ WidgetWindow {
                                                 width: parent.width
                                                 height: 28
                                                 text: modelData.content || ""
-                                                color: modelData.textColor ? Qt.lighter(modelData.textColor, 1.3) : Theme.textSecondary
+                                                color: getSecondaryTextColor(modelData.color)
                                                 font.pixelSize: Theme.fontSizeSmall
                                                 elide: Text.ElideRight
                                                 maximumLineCount: 2
@@ -202,7 +219,7 @@ WidgetWindow {
                                 id: contentArea
                                 text: notesBackend.currentNote ? notesBackend.currentNote.content : ""
                                 placeholderText: "Write your note..."
-                                color: notesBackend.currentNote?.textColor || Theme.textPrimary
+                                color: getTextColor(notesBackend.currentNote?.color)
                                 font.pixelSize: Theme.fontSizeNormal
                                 wrapMode: TextArea.Wrap
 
@@ -231,19 +248,13 @@ WidgetWindow {
                             Layout.fillWidth: true
                             spacing: Theme.spacing
 
-                            Text {
-                                text: "Bg:"
-                                color: Theme.textSecondary
-                                font.pixelSize: Theme.fontSizeSmall
-                            }
-
                             Repeater {
                                 model: ["#313244", "#f38ba8", "#fab387", "#a6e3a1", "#89b4fa", "#cba6f7"]
 
                                 delegate: Rectangle {
-                                    width: 20
-                                    height: 20
-                                    radius: 10
+                                    width: 24
+                                    height: 24
+                                    radius: 12
                                     color: modelData
                                     border.color: notesBackend.currentNote?.color === modelData ? Theme.textPrimary : "transparent"
                                     border.width: 2
@@ -251,44 +262,6 @@ WidgetWindow {
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: notesBackend.updateNoteColor(notesBackend.currentNoteId, modelData)
-                                    }
-                                }
-                            }
-
-                            Rectangle {
-                                width: 1
-                                height: 20
-                                color: Theme.borderColor
-                            }
-
-                            Text {
-                                text: "Txt:"
-                                color: Theme.textSecondary
-                                font.pixelSize: Theme.fontSizeSmall
-                            }
-
-                            Repeater {
-                                model: ["#cdd6f4", "#313244", "#1e1e2e", "#45475a"]
-
-                                delegate: Rectangle {
-                                    width: 20
-                                    height: 20
-                                    radius: 10
-                                    color: modelData
-                                    border.color: notesBackend.currentNote?.textColor === modelData ? Theme.accentColor : Theme.borderColor
-                                    border.width: 2
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "A"
-                                        color: index < 1 ? "#313244" : "#cdd6f4"
-                                        font.pixelSize: 10
-                                        font.weight: Font.Bold
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: notesBackend.updateNoteTextColor(notesBackend.currentNoteId, modelData)
                                     }
                                 }
                             }

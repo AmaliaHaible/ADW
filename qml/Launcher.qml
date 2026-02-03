@@ -139,7 +139,6 @@ WidgetWindow {
                             color: addArea.containsMouse ? Theme.surfaceColor : "transparent"
                             border.color: Theme.borderColor
                             border.width: 1
-                            border.style: Qt.DashLine
 
                             ColumnLayout {
                                 anchors.centerIn: parent

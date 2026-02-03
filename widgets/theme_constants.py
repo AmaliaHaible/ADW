@@ -14,6 +14,8 @@ DEFAULT_THEME = {
     "textPrimary": "#cdd6f4",
     "textSecondary": "#a6adc8",
     "textMuted": "#6c7086",
+    "textPrimaryDark": "#1e1e2e",
+    "textSecondaryDark": "#313244",
     "borderColor": "#6c7086",
     "success": "#a6e3a1",
     "warning": "#f9e2af",
@@ -28,5 +30,5 @@ DEFAULT_THEME = {
     "windowRadius": 12,
     "spacing": 8,
     "padding": 12,
-    "textScrollSpeed": 50
+    "textScrollSpeed": 50,
 }

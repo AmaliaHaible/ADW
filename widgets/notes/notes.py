@@ -149,19 +149,6 @@ class NotesBackend(QObject):
             if note_id == self._current_note_id:
                 self.currentNoteChanged.emit()
 
-    @Slot(str, str)
-    def updateNoteTextColor(self, note_id, text_color):
-        """Update note text color."""
-        import time
-
-        note = next((n for n in self._notes if n.get("id") == note_id), None)
-        if note:
-            note["textColor"] = text_color
-            note["updated"] = int(time.time())
-            self._save_notes()
-            if note_id == self._current_note_id:
-                self.currentNoteChanged.emit()
-
     @Slot(str)
     def deleteNote(self, note_id):
         """Delete a note."""
