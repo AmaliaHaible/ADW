@@ -61,7 +61,9 @@ class MediaBackend(QObject):
 
         # Settings
         if self._settings:
-            self._max_sessions = self._settings.getWidgetSetting("media", "max_sessions") or 3
+            self._max_sessions = (
+                self._settings.getWidgetSetting("media", "max_sessions") or 3
+            )
             self._anchor_top = self._settings.getWidgetSetting("media", "anchor_top")
             if self._anchor_top is None:
                 self._anchor_top = True
@@ -186,28 +188,25 @@ class MediaBackend(QObject):
     def playPause(self, session_index=0):
         """Toggle play/pause on specific session."""
         if self._async_thread:
-            self._async_thread.enqueue_command({
-                "action": "play_pause",
-                "session_index": session_index
-            })
+            self._async_thread.enqueue_command(
+                {"action": "play_pause", "session_index": session_index}
+            )
 
     @Slot(int)
     def next(self, session_index=0):
         """Skip to next track on specific session."""
         if self._async_thread:
-            self._async_thread.enqueue_command({
-                "action": "next",
-                "session_index": session_index
-            })
+            self._async_thread.enqueue_command(
+                {"action": "next", "session_index": session_index}
+            )
 
     @Slot(int)
     def previous(self, session_index=0):
         """Skip to previous track on specific session."""
         if self._async_thread:
-            self._async_thread.enqueue_command({
-                "action": "previous",
-                "session_index": session_index
-            })
+            self._async_thread.enqueue_command(
+                {"action": "previous", "session_index": session_index}
+            )
 
     @Slot()
     def toggleShuffle(self):
@@ -229,10 +228,9 @@ class MediaBackend(QObject):
         self.positionTextChanged.emit()
 
         if self._async_thread:
-            self._async_thread.enqueue_command({
-                "action": "set_position",
-                "position": seconds
-            })
+            self._async_thread.enqueue_command(
+                {"action": "set_position", "position": seconds}
+            )
 
     @Slot(int)
     def switchSession(self, index):
@@ -242,10 +240,9 @@ class MediaBackend(QObject):
             self.currentSessionIndexChanged.emit()
 
             if self._async_thread:
-                self._async_thread.enqueue_command({
-                    "action": "switch_session",
-                    "index": index
-                })
+                self._async_thread.enqueue_command(
+                    {"action": "switch_session", "index": index}
+                )
 
     @Slot()
     def refreshSessions(self):
@@ -418,9 +415,9 @@ class MediaBackend(QObject):
 
     def cleanup(self):
         """Explicit cleanup - call from main.py on aboutToQuit."""
-        if hasattr(self, '_position_timer'):
+        if hasattr(self, "_position_timer"):
             self._position_timer.stop()
-        if hasattr(self, '_async_thread') and self._async_thread:
+        if hasattr(self, "_async_thread") and self._async_thread:
             self._async_thread.stop()
             self._async_thread.wait(2000)
 

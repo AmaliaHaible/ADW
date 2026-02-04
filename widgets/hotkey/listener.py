@@ -2,6 +2,7 @@
 Background thread for Windows global hotkey registration and listening.
 Uses ctypes to call Windows API directly.
 """
+
 import ctypes
 import ctypes.wintypes as wintypes
 import queue
@@ -25,6 +26,7 @@ MOD_NOREPEAT = 0x4000
 
 class HotkeyCommand(IntFlag):
     """Commands that can be sent to the listener thread."""
+
     REGISTER = auto()
     UNREGISTER = auto()
     STOP = auto()
@@ -33,60 +35,60 @@ class HotkeyCommand(IntFlag):
 # Virtual key codes mapping
 VK_CODES = {
     # Letters
-    **{chr(c): c for c in range(ord('A'), ord('Z') + 1)},
+    **{chr(c): c for c in range(ord("A"), ord("Z") + 1)},
     # Numbers
     **{str(i): 0x30 + i for i in range(10)},
     # Function keys
-    **{f'F{i}': 0x70 + i - 1 for i in range(1, 25)},
+    **{f"F{i}": 0x70 + i - 1 for i in range(1, 25)},
     # Special keys
-    'SPACE': 0x20,
-    'ENTER': 0x0D,
-    'RETURN': 0x0D,
-    'TAB': 0x09,
-    'ESCAPE': 0x1B,
-    'ESC': 0x1B,
-    'BACKSPACE': 0x08,
-    'DELETE': 0x2E,
-    'INSERT': 0x2D,
-    'HOME': 0x24,
-    'END': 0x23,
-    'PAGEUP': 0x21,
-    'PAGEDOWN': 0x22,
-    'UP': 0x26,
-    'DOWN': 0x28,
-    'LEFT': 0x25,
-    'RIGHT': 0x27,
-    'CAPSLOCK': 0x14,
-    'NUMLOCK': 0x90,
-    'SCROLLLOCK': 0x91,
-    'PRINTSCREEN': 0x2C,
-    'PAUSE': 0x13,
+    "SPACE": 0x20,
+    "ENTER": 0x0D,
+    "RETURN": 0x0D,
+    "TAB": 0x09,
+    "ESCAPE": 0x1B,
+    "ESC": 0x1B,
+    "BACKSPACE": 0x08,
+    "DELETE": 0x2E,
+    "INSERT": 0x2D,
+    "HOME": 0x24,
+    "END": 0x23,
+    "PAGEUP": 0x21,
+    "PAGEDOWN": 0x22,
+    "UP": 0x26,
+    "DOWN": 0x28,
+    "LEFT": 0x25,
+    "RIGHT": 0x27,
+    "CAPSLOCK": 0x14,
+    "NUMLOCK": 0x90,
+    "SCROLLLOCK": 0x91,
+    "PRINTSCREEN": 0x2C,
+    "PAUSE": 0x13,
     # Numpad
-    **{f'NUMPAD{i}': 0x60 + i for i in range(10)},
-    'MULTIPLY': 0x6A,
-    'ADD': 0x6B,
-    'SUBTRACT': 0x6D,
-    'DECIMAL': 0x6E,
-    'DIVIDE': 0x6F,
+    **{f"NUMPAD{i}": 0x60 + i for i in range(10)},
+    "MULTIPLY": 0x6A,
+    "ADD": 0x6B,
+    "SUBTRACT": 0x6D,
+    "DECIMAL": 0x6E,
+    "DIVIDE": 0x6F,
     # OEM keys
-    'SEMICOLON': 0xBA,
-    'EQUALS': 0xBB,
-    'COMMA': 0xBC,
-    'MINUS': 0xBD,
-    'PERIOD': 0xBE,
-    'SLASH': 0xBF,
-    'BACKTICK': 0xC0,
-    'TILDE': 0xC0,
-    'LEFTBRACKET': 0xDB,
-    'BACKSLASH': 0xDC,
-    'RIGHTBRACKET': 0xDD,
-    'QUOTE': 0xDE,
+    "SEMICOLON": 0xBA,
+    "EQUALS": 0xBB,
+    "COMMA": 0xBC,
+    "MINUS": 0xBD,
+    "PERIOD": 0xBE,
+    "SLASH": 0xBF,
+    "BACKTICK": 0xC0,
+    "TILDE": 0xC0,
+    "LEFTBRACKET": 0xDB,
+    "BACKSLASH": 0xDC,
+    "RIGHTBRACKET": 0xDD,
+    "QUOTE": 0xDE,
 }
 
 # Reverse mapping for key names
 VK_NAMES = {v: k for k, v in VK_CODES.items()}
 # Add lowercase letter names
-for c in range(ord('A'), ord('Z') + 1):
+for c in range(ord("A"), ord("Z") + 1):
     VK_NAMES[c] = chr(c)
 
 
@@ -98,7 +100,7 @@ def parse_hotkey_string(hotkey_str: str) -> tuple[int, int] | None:
     if not hotkey_str:
         return None
 
-    parts = [p.strip().upper() for p in hotkey_str.split('+')]
+    parts = [p.strip().upper() for p in hotkey_str.split("+")]
     if not parts:
         return None
 
@@ -106,13 +108,13 @@ def parse_hotkey_string(hotkey_str: str) -> tuple[int, int] | None:
     key = None
 
     for part in parts:
-        if part in ('WIN', 'LWIN', 'RWIN', 'SUPER', 'META'):
+        if part in ("WIN", "LWIN", "RWIN", "SUPER", "META"):
             modifiers |= MOD_WIN
-        elif part in ('CTRL', 'CONTROL'):
+        elif part in ("CTRL", "CONTROL"):
             modifiers |= MOD_CONTROL
-        elif part == 'ALT':
+        elif part == "ALT":
             modifiers |= MOD_ALT
-        elif part == 'SHIFT':
+        elif part == "SHIFT":
             modifiers |= MOD_SHIFT
         elif part in VK_CODES:
             key = VK_CODES[part]
@@ -135,18 +137,18 @@ def hotkey_to_string(modifiers: int, vk: int) -> str:
     mods = modifiers & ~MOD_NOREPEAT
 
     if mods & MOD_WIN:
-        parts.append('Win')
+        parts.append("Win")
     if mods & MOD_CONTROL:
-        parts.append('Ctrl')
+        parts.append("Ctrl")
     if mods & MOD_ALT:
-        parts.append('Alt')
+        parts.append("Alt")
     if mods & MOD_SHIFT:
-        parts.append('Shift')
+        parts.append("Shift")
 
-    key_name = VK_NAMES.get(vk, f'0x{vk:02X}')
+    key_name = VK_NAMES.get(vk, f"0x{vk:02X}")
     parts.append(key_name)
 
-    return '+'.join(parts)
+    return "+".join(parts)
 
 
 class HotkeyListener(QThread):
@@ -154,6 +156,7 @@ class HotkeyListener(QThread):
     Background thread that registers global hotkeys and listens for them.
     Uses Windows RegisterHotKey/UnregisterHotKey API.
     """
+
     hotkeyPressed = Signal(int)  # Emits hotkey ID when pressed
 
     def __init__(self, parent=None):

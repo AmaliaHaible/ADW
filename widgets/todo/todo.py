@@ -39,18 +39,17 @@ class TodoBackend(QObject):
         """Build hierarchical list of todos with children attached."""
         # Get parent todos matching the completion filter
         parents = [
-            t for t in self._todos
-            if t.get("parentId") is None and t.get("completed", False) == completed_filter
+            t
+            for t in self._todos
+            if t.get("parentId") is None
+            and t.get("completed", False) == completed_filter
         ]
         parents.sort(key=lambda t: t.get("order", 0))
 
         result = []
         for parent in parents:
             # Get children for this parent
-            children = [
-                t for t in self._todos
-                if t.get("parentId") == parent.get("id")
-            ]
+            children = [t for t in self._todos if t.get("parentId") == parent.get("id")]
             children.sort(key=lambda t: t.get("order", 0))
 
             # Create a copy with children attached
@@ -82,7 +81,7 @@ class TodoBackend(QObject):
             "text": text,
             "completed": False,
             "parentId": None,
-            "order": self._get_next_order(None)
+            "order": self._get_next_order(None),
         }
         self._todos.append(todo)
         self._save_todos()
@@ -104,7 +103,7 @@ class TodoBackend(QObject):
             "text": text,
             "completed": False,
             "parentId": parent_id,
-            "order": self._get_next_order(parent_id)
+            "order": self._get_next_order(parent_id),
         }
         self._todos.append(todo)
         self._save_todos()
@@ -138,7 +137,8 @@ class TodoBackend(QObject):
         # If it's a parent, also delete children
         if todo.get("parentId") is None:
             self._todos = [
-                t for t in self._todos
+                t
+                for t in self._todos
                 if t.get("id") != todo_id and t.get("parentId") != todo_id
             ]
         else:
@@ -160,7 +160,8 @@ class TodoBackend(QObject):
         if parent_id is None:
             # Root-level todos: filter by completion status
             siblings = [
-                t for t in self._todos
+                t
+                for t in self._todos
                 if t.get("parentId") is None and t.get("completed", False) == completed
             ]
         else:
@@ -171,8 +172,7 @@ class TodoBackend(QObject):
 
         # Find current index
         current_index = next(
-            (i for i, t in enumerate(siblings) if t.get("id") == todo_id),
-            None
+            (i for i, t in enumerate(siblings) if t.get("id") == todo_id), None
         )
         if current_index is None:
             return

@@ -11,6 +11,7 @@ try:
     from winrt.windows.media.control import (
         GlobalSystemMediaTransportControlsSessionManager as MediaManager,
     )
+
     WINRT_AVAILABLE = True
 except ImportError:
     WINRT_AVAILABLE = False
@@ -87,8 +88,10 @@ class MediaAsyncWorker(QThread):
             self._manager = await MediaManager.request_async()
 
             # Set up event listeners (store tokens for cleanup)
-            self._manager_session_changed_token = self._manager.add_current_session_changed(
-                self._on_current_session_changed
+            self._manager_session_changed_token = (
+                self._manager.add_current_session_changed(
+                    self._on_current_session_changed
+                )
             )
             self._manager_sessions_changed_token = self._manager.add_sessions_changed(
                 self._on_sessions_changed
@@ -99,7 +102,9 @@ class MediaAsyncWorker(QThread):
             await self._switch_to_current_session()
 
         except Exception as e:
-            self._emit_to_qt("errorOccurred", f"Failed to initialize media manager: {str(e)}")
+            self._emit_to_qt(
+                "errorOccurred", f"Failed to initialize media manager: {str(e)}"
+            )
             return
 
         # Main event loop
@@ -129,9 +134,13 @@ class MediaAsyncWorker(QThread):
         if self._manager:
             try:
                 if self._manager_session_changed_token is not None:
-                    self._manager.remove_current_session_changed(self._manager_session_changed_token)
+                    self._manager.remove_current_session_changed(
+                        self._manager_session_changed_token
+                    )
                 if self._manager_sessions_changed_token is not None:
-                    self._manager.remove_sessions_changed(self._manager_sessions_changed_token)
+                    self._manager.remove_sessions_changed(
+                        self._manager_sessions_changed_token
+                    )
             except Exception:
                 pass
 
@@ -139,9 +148,13 @@ class MediaAsyncWorker(QThread):
         if self._current_session:
             try:
                 if self._session_playback_token is not None:
-                    self._current_session.remove_playback_info_changed(self._session_playback_token)
+                    self._current_session.remove_playback_info_changed(
+                        self._session_playback_token
+                    )
                 if self._session_properties_token is not None:
-                    self._current_session.remove_media_properties_changed(self._session_properties_token)
+                    self._current_session.remove_media_properties_changed(
+                        self._session_properties_token
+                    )
             except Exception:
                 pass
 
@@ -186,17 +199,13 @@ class MediaAsyncWorker(QThread):
         """Event handler for current session changes."""
         if self._loop and not self._stop_requested:
             asyncio.run_coroutine_threadsafe(
-                self._switch_to_current_session(),
-                self._loop
+                self._switch_to_current_session(), self._loop
             )
 
     def _on_sessions_changed(self, manager, args):
         """Event handler for session list changes."""
         if self._loop and not self._stop_requested:
-            asyncio.run_coroutine_threadsafe(
-                self._update_sessions(),
-                self._loop
-            )
+            asyncio.run_coroutine_threadsafe(self._update_sessions(), self._loop)
 
     async def _switch_to_current_session(self):
         """Switch to the system's current media session."""
@@ -213,9 +222,13 @@ class MediaAsyncWorker(QThread):
         if self._current_session:
             try:
                 if self._session_playback_token is not None:
-                    self._current_session.remove_playback_info_changed(self._session_playback_token)
+                    self._current_session.remove_playback_info_changed(
+                        self._session_playback_token
+                    )
                 if self._session_properties_token is not None:
-                    self._current_session.remove_media_properties_changed(self._session_properties_token)
+                    self._current_session.remove_media_properties_changed(
+                        self._session_properties_token
+                    )
             except Exception:
                 pass
             self._session_playback_token = None
@@ -226,14 +239,20 @@ class MediaAsyncWorker(QThread):
         # Register new session listeners
         if self._current_session:
             try:
-                self._session_playback_token = self._current_session.add_playback_info_changed(
-                    self._on_playback_changed
+                self._session_playback_token = (
+                    self._current_session.add_playback_info_changed(
+                        self._on_playback_changed
+                    )
                 )
-                self._session_properties_token = self._current_session.add_media_properties_changed(
-                    self._on_media_properties_changed
+                self._session_properties_token = (
+                    self._current_session.add_media_properties_changed(
+                        self._on_media_properties_changed
+                    )
                 )
             except Exception as e:
-                self._emit_to_qt("errorOccurred", f"Failed to register listeners: {str(e)}")
+                self._emit_to_qt(
+                    "errorOccurred", f"Failed to register listeners: {str(e)}"
+                )
 
         # Refresh state immediately
         await self._refresh_state()
@@ -261,45 +280,63 @@ class MediaAsyncWorker(QThread):
                     # Get media properties for this session
                     info = await session.try_get_media_properties_async()
                     if info:
-                        title = info.title if info.title else f"Session {i+1}"
+                        title = info.title if info.title else f"Session {i + 1}"
                         artist = info.artist if info.artist else ""
 
                         # Get album art for this session
                         if info.thumbnail:
                             album_art_path = await self._get_album_art(info)
                 except Exception:
-                    title = f"Session {i+1}"
+                    title = f"Session {i + 1}"
 
                 # Get playback info for this session
                 try:
                     playback_info = session.get_playback_info()
-                    controls = playback_info.controls if hasattr(playback_info, 'controls') else None
+                    controls = (
+                        playback_info.controls
+                        if hasattr(playback_info, "controls")
+                        else None
+                    )
 
-                    can_go_next = getattr(controls, 'is_next_enabled', False) if controls else False
-                    can_go_previous = getattr(controls, 'is_previous_enabled', False) if controls else False
-                    can_play_pause = getattr(controls, 'is_play_pause_toggle_enabled', False) if controls else False
+                    can_go_next = (
+                        getattr(controls, "is_next_enabled", False)
+                        if controls
+                        else False
+                    )
+                    can_go_previous = (
+                        getattr(controls, "is_previous_enabled", False)
+                        if controls
+                        else False
+                    )
+                    can_play_pause = (
+                        getattr(controls, "is_play_pause_toggle_enabled", False)
+                        if controls
+                        else False
+                    )
 
                     # Get playback state
                     status = playback_info.playback_status
-                    is_playing = (status == 4)  # 4 = Playing
+                    is_playing = status == 4  # 4 = Playing
                 except Exception:
                     can_go_next = False
                     can_go_previous = False
                     can_play_pause = False
                     is_playing = False
 
-                session_list.append({
-                    "id": i,
-                    "name": title,
-                    "title": title,
-                    "artist": artist,
-                    "albumArtPath": album_art_path,
-                    "canGoNext": can_go_next,
-                    "canGoPrevious": can_go_previous,
-                    "canPlayPause": can_play_pause,
-                    "isPlaying": is_playing,
-                    "iconPath": ""
-                })
+                session_list.append(
+                    {
+                        "id": i,
+                        "name": title,
+                        "title": title,
+                        "artist": artist,
+                        "albumArtPath": album_art_path,
+                        "canGoNext": can_go_next,
+                        "canGoPrevious": can_go_previous,
+                        "canPlayPause": can_play_pause,
+                        "isPlaying": is_playing,
+                        "iconPath": "",
+                    }
+                )
 
             self._emit_to_qt("sessionListChanged", session_list)
 
@@ -309,18 +346,12 @@ class MediaAsyncWorker(QThread):
     def _on_playback_changed(self, session, args):
         """Event handler for playback state changes."""
         if self._loop and not self._stop_requested:
-            asyncio.run_coroutine_threadsafe(
-                self._update_sessions(),
-                self._loop
-            )
+            asyncio.run_coroutine_threadsafe(self._update_sessions(), self._loop)
 
     def _on_media_properties_changed(self, session, args):
         """Event handler for media property changes."""
         if self._loop and not self._stop_requested:
-            asyncio.run_coroutine_threadsafe(
-                self._update_sessions(),
-                self._loop
-            )
+            asyncio.run_coroutine_threadsafe(self._update_sessions(), self._loop)
 
     async def _refresh_state(self):
         """Refresh and emit the current media state."""
@@ -347,7 +378,9 @@ class MediaAsyncWorker(QThread):
         try:
             # Get playback info
             playback_info = self._current_session.get_playback_info()
-            controls = playback_info.controls if hasattr(playback_info, 'controls') else None
+            controls = (
+                playback_info.controls if hasattr(playback_info, "controls") else None
+            )
 
             # Get media properties
             media_props = await self._current_session.try_get_media_properties_async()
@@ -381,21 +414,23 @@ class MediaAsyncWorker(QThread):
             can_play_pause = False
 
             if controls:
-                can_go_next = getattr(controls, 'is_next_enabled', False)
-                can_go_previous = getattr(controls, 'is_previous_enabled', False)
-                can_play_pause = getattr(controls, 'is_play_pause_toggle_enabled', False)
+                can_go_next = getattr(controls, "is_next_enabled", False)
+                can_go_previous = getattr(controls, "is_previous_enabled", False)
+                can_play_pause = getattr(
+                    controls, "is_play_pause_toggle_enabled", False
+                )
 
             # Get shuffle and repeat states from playback_info
             shuffle_state = "Unknown"
             repeat_state = "Unknown"
 
-            if hasattr(playback_info, 'is_shuffle_active'):
-                is_shuffle = getattr(playback_info, 'is_shuffle_active', None)
+            if hasattr(playback_info, "is_shuffle_active"):
+                is_shuffle = getattr(playback_info, "is_shuffle_active", None)
                 if is_shuffle is not None:
                     shuffle_state = "On" if is_shuffle else "Off"
 
-            if hasattr(playback_info, 'auto_repeat_mode'):
-                repeat_mode = getattr(playback_info, 'auto_repeat_mode', None)
+            if hasattr(playback_info, "auto_repeat_mode"):
+                repeat_mode = getattr(playback_info, "auto_repeat_mode", None)
                 if repeat_mode is not None:
                     # AutoRepeatMode enum: None=0, Track=1, List=2
                     if repeat_mode == 0:
@@ -408,7 +443,9 @@ class MediaAsyncWorker(QThread):
             state = {
                 "has_session": True,
                 "title": media_props.title if media_props and media_props.title else "",
-                "artist": media_props.artist if media_props and media_props.artist else "",
+                "artist": media_props.artist
+                if media_props and media_props.artist
+                else "",
                 "album_art_path": album_art_path,
                 "playback_state": playback_state,
                 "is_playing": is_playing,
@@ -439,7 +476,7 @@ class MediaAsyncWorker(QThread):
                 cache_key_parts.append(media_props.title)
             if media_props.artist:
                 cache_key_parts.append(media_props.artist)
-            if hasattr(media_props, 'album_title') and media_props.album_title:
+            if hasattr(media_props, "album_title") and media_props.album_title:
                 cache_key_parts.append(media_props.album_title)
 
             cache_key = "|".join(cache_key_parts) if cache_key_parts else "unknown"
@@ -466,7 +503,7 @@ class MediaAsyncWorker(QThread):
                 reader.read_bytes(data)
 
                 # Save to cache
-                with open(cache_path, 'wb') as f:
+                with open(cache_path, "wb") as f:
                     f.write(data)
             finally:
                 # Close reader and stream to avoid handle leaks
@@ -491,7 +528,7 @@ class MediaAsyncWorker(QThread):
             cache_files.sort(key=lambda p: p.stat().st_mtime)
 
             # Remove oldest
-            for f in cache_files[:-self._max_cache_size]:
+            for f in cache_files[: -self._max_cache_size]:
                 try:
                     f.unlink()
                 except Exception:

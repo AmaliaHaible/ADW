@@ -6,8 +6,10 @@ from watchfiles import watch
 
 # This File is meant to auto restart the app on change
 
+
 def run_once():
     return subprocess.Popen([sys.executable, "main.py"], env=os.environ.copy())
+
 
 def main():
     p = run_once()
@@ -29,6 +31,6 @@ def main():
         except Exception:
             p.kill()
 
+
 if __name__ == "__main__":
     main()
-
