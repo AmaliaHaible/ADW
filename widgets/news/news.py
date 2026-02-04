@@ -17,7 +17,7 @@ class NewsBackend(QObject):
     selectedCategoriesChanged = Signal()
     activeCategoryChanged = Signal()
 
-    _categoriesFetched = Signal(list)
+    _categoriesFetched = Signal(list, dict, dict)
     _articlesFetched = Signal(str, list, int)
     _fetchError = Signal(str)
 
@@ -28,6 +28,9 @@ class NewsBackend(QObject):
         self._settings = settings_backend
 
         self._categories = []
+        self._category_id_map = {}  # Maps slug ("tech") -> UUID for API calls
+        self._category_timestamp_map = {}  # Maps slug -> Unix timestamp for Kagi links
+        self._pending_category_fetch = None  # Category waiting for id_map to load
         self._articles = []
         self._is_loading = False
         self._error = ""
@@ -77,11 +80,13 @@ class NewsBackend(QObject):
 
     def _load_cached_categories(self):
         """Load categories from cache."""
-        cache_file = self._cache_dir / "kite.json"
+        cache_file = self._cache_dir / "categories.json"
         if cache_file.exists():
             try:
                 data = json.loads(cache_file.read_text())
                 self._categories = data.get("categories", [])
+                self._category_id_map = data.get("id_map", {})
+                self._category_timestamp_map = data.get("timestamp_map", {})
                 self.categoriesChanged.emit()
             except:
                 pass
@@ -126,23 +131,50 @@ class NewsBackend(QObject):
     def _fetch_categories_thread(self):
         """Fetch categories in background thread."""
         try:
-            url = f"{self.BASE_URL}/kite.json"
+            url = f"{self.BASE_URL}/api/batches/latest/categories"
             with urllib.request.urlopen(url, timeout=10) as response:
                 data = json.loads(response.read().decode())
 
-            cache_file = self._cache_dir / "kite.json"
-            cache_file.write_text(json.dumps(data))
+            categories = []
+            id_map = {}
+            timestamp_map = {}
+            for cat in data.get("categories", []):
+                slug = cat.get("categoryId", "")
+                uuid = cat.get("id", "")
+                name = cat.get("categoryName", "")
+                timestamp = cat.get("timestamp", 0)
 
-            self._categoriesFetched.emit(data.get("categories", []))
+                categories.append({"name": name, "file": f"{slug}.json"})
+                id_map[slug] = uuid
+                timestamp_map[slug] = timestamp
+
+            cache_file = self._cache_dir / "categories.json"
+            cache_file.write_text(
+                json.dumps(
+                    {
+                        "categories": categories,
+                        "id_map": id_map,
+                        "timestamp_map": timestamp_map,
+                    }
+                )
+            )
+
+            self._categoriesFetched.emit(categories, id_map, timestamp_map)
         except Exception as e:
             self._fetchError.emit(f"Failed to load categories: {e}")
 
-    def _on_categories_fetched(self, categories):
+    def _on_categories_fetched(self, categories, id_map, timestamp_map):
         """Handle categories fetched from background thread."""
         self._categories = categories
+        self._category_id_map = id_map
+        self._category_timestamp_map = timestamp_map
         self.categoriesChanged.emit()
 
-        if self._selected_categories and self._active_category:
+        if self._pending_category_fetch:
+            pending = self._pending_category_fetch
+            self._pending_category_fetch = None
+            self._fetch_articles_background(pending)
+        elif self._selected_categories and self._active_category:
             if not self._is_cache_valid(self._active_category):
                 self._fetch_articles_background(self._active_category)
 
@@ -225,6 +257,10 @@ class NewsBackend(QObject):
         if not category:
             return
 
+        if not self._category_id_map.get(category):
+            self._pending_category_fetch = category
+            return
+
         self._is_loading = True
         self.isLoadingChanged.emit()
         self._error = ""
@@ -238,14 +274,23 @@ class NewsBackend(QObject):
     def _fetch_articles_thread(self, category):
         """Fetch articles in background thread."""
         try:
-            cat_file = f"{category}.json"
-            url = f"{self.BASE_URL}/{cat_file}"
+            category_uuid = self._category_id_map.get(category)
+            if not category_uuid:
+                self._fetchError.emit(f"Unknown category: {category}")
+                return
+
+            url = f"{self.BASE_URL}/api/batches/latest/categories/{category_uuid}/stories?limit=12"
             with urllib.request.urlopen(url, timeout=15) as response:
                 data = json.loads(response.read().decode())
 
-            self._save_cache(category, data)
-            articles = self._parse_articles(data, category)
-            file_timestamp = data.get("timestamp", 0)
+            file_timestamp = self._category_timestamp_map.get(category, 0)
+            cache_data = {
+                "timestamp": file_timestamp,
+                "clusters": data.get("stories", []),
+            }
+
+            self._save_cache(category, cache_data)
+            articles = self._parse_articles(cache_data, category)
             self._articlesFetched.emit(category, articles, file_timestamp)
 
         except Exception as e:
@@ -328,6 +373,8 @@ class NewsBackend(QObject):
     def _prefetch_category(self, category):
         """Prefetch a category in background without updating UI."""
         if self._is_cache_valid(category):
+            return
+        if not self._category_id_map.get(category):
             return
         thread = threading.Thread(
             target=self._fetch_articles_thread, args=(category,), daemon=True

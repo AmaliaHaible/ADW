@@ -3,6 +3,41 @@ revision = 3
 requires-python = ">=3.11"
 
 [[package]]
+name = "adw"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "dotenv" },
+    { name = "pillow" },
+    { name = "psutil" },
+    { name = "pyside6" },
+    { name = "pywin32" },
+    { name = "watchfiles" },
+    { name = "winotify" },
+    { name = "winrt-windows-foundation" },
+    { name = "winrt-windows-foundation-collections" },
+    { name = "winrt-windows-media-control" },
+    { name = "winrt-windows-storage" },
+    { name = "winrt-windows-storage-streams" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "pillow", specifier = ">=12.1.0" },
+    { name = "psutil", specifier = ">=5.9.0" },
+    { name = "pyside6", specifier = ">=6.10.1" },
+    { name = "pywin32", specifier = ">=311" },
+    { name = "watchfiles", specifier = ">=1.1.1" },
+    { name = "winotify", specifier = ">=1.1.0" },
+    { name = "winrt-windows-foundation", specifier = ">=3.2.1" },
+    { name = "winrt-windows-foundation-collections", specifier = ">=3.2.1" },
+    { name = "winrt-windows-media-control", specifier = ">=3.2.1" },
+    { name = "winrt-windows-storage", specifier = ">=3.2.1" },
+    { name = "winrt-windows-storage-streams", specifier = ">=3.2.1" },
+]
+
+[[package]]
 name = "anyio"
 version = "4.12.1"
 source = { registry = "https://pypi.org/simple" }
@@ -332,41 +367,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/bd/95/615e72cd27b85b61eec764a5ca51bd94d40b5adea5ff47567d9ebc4d275a/watchfiles-1.1.1-pp311-pypy311_pp73-macosx_11_0_arm64.whl", hash = "sha256:89eef07eee5e9d1fda06e38822ad167a044153457e6fd997f8a858ab7564a336", size = 396117, upload-time = "2025-10-14T15:06:11.28Z" },
     { url = "https://files.pythonhosted.org/packages/c9/81/e7fe958ce8a7fb5c73cc9fb07f5aeaf755e6aa72498c57d760af760c91f8/watchfiles-1.1.1-pp311-pypy311_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ce19e06cbda693e9e7686358af9cd6f5d61312ab8b00488bc36f5aabbaf77e24", size = 450493, upload-time = "2025-10-14T15:06:12.321Z" },
     { url = "https://files.pythonhosted.org/packages/6e/d4/ed38dd3b1767193de971e694aa544356e63353c33a85d948166b5ff58b9e/watchfiles-1.1.1-pp311-pypy311_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3e6f39af2eab0118338902798b5aa6664f46ff66bc0280de76fca67a7f262a49", size = 457546, upload-time = "2025-10-14T15:06:13.372Z" },
-]
-
-[[package]]
-name = "widgets"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "dotenv" },
-    { name = "pillow" },
-    { name = "psutil" },
-    { name = "pyside6" },
-    { name = "pywin32" },
-    { name = "watchfiles" },
-    { name = "winotify" },
-    { name = "winrt-windows-foundation" },
-    { name = "winrt-windows-foundation-collections" },
-    { name = "winrt-windows-media-control" },
-    { name = "winrt-windows-storage" },
-    { name = "winrt-windows-storage-streams" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "dotenv", specifier = ">=0.9.9" },
-    { name = "pillow", specifier = ">=12.1.0" },
-    { name = "psutil", specifier = ">=5.9.0" },
-    { name = "pyside6", specifier = ">=6.10.1" },
-    { name = "pywin32", specifier = ">=311" },
-    { name = "watchfiles", specifier = ">=1.1.1" },
-    { name = "winotify", specifier = ">=1.1.0" },
-    { name = "winrt-windows-foundation", specifier = ">=3.2.1" },
-    { name = "winrt-windows-foundation-collections", specifier = ">=3.2.1" },
-    { name = "winrt-windows-media-control", specifier = ">=3.2.1" },
-    { name = "winrt-windows-storage", specifier = ">=3.2.1" },
-    { name = "winrt-windows-storage-streams", specifier = ">=3.2.1" },
 ]
 
 [[package]]
