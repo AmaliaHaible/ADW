@@ -20,6 +20,9 @@ class NewsBackend(QObject):
     _categoriesFetched = Signal(list, dict, dict)
     _articlesFetched = Signal(str, list, int)
     _fetchError = Signal(str)
+    _categoriesRefreshDone = (
+        Signal()
+    )  # Emitted when a refresh-triggered category fetch completes
 
     BASE_URL = "https://kite.kagi.com"
 
@@ -28,9 +31,9 @@ class NewsBackend(QObject):
         self._settings = settings_backend
 
         self._categories = []
-        self._category_id_map = {}  # Maps slug ("tech") -> UUID for API calls
-        self._category_timestamp_map = {}  # Maps slug -> Unix timestamp for Kagi links
-        self._pending_category_fetch = None  # Category waiting for id_map to load
+        self._category_id_map = {}
+        self._category_timestamp_map = {}
+        self._pending_category_fetch = None
         self._articles = []
         self._is_loading = False
         self._error = ""
@@ -38,10 +41,13 @@ class NewsBackend(QObject):
         self._active_category = "tech"
         self._cache_dir = Path(__file__).parent / "cache"
         self._cache_dir.mkdir(exist_ok=True)
+        self._is_refreshing = False
+        self._refresh_wants_articles = False
 
         self._categoriesFetched.connect(self._on_categories_fetched)
         self._articlesFetched.connect(self._on_articles_fetched)
         self._fetchError.connect(self._on_fetch_error)
+        self._categoriesRefreshDone.connect(self._on_categories_refresh_done)
 
         self._load_settings()
         self._load_cached_categories()
@@ -121,7 +127,7 @@ class NewsBackend(QObject):
     def _check_and_refresh(self):
         """Check if we need to refresh based on 12:00 UTC schedule."""
         if self._active_category and not self._is_cache_valid(self._active_category):
-            self._fetch_articles_background(self._active_category)
+            self._refresh_with_categories()
 
     def _start_background_fetch_categories(self):
         """Start background thread to fetch categories."""
@@ -170,6 +176,12 @@ class NewsBackend(QObject):
         self._category_timestamp_map = timestamp_map
         self.categoriesChanged.emit()
 
+        if self._refresh_wants_articles:
+            self._refresh_wants_articles = False
+            self._is_refreshing = False
+            self._categoriesRefreshDone.emit()
+            return
+
         if self._pending_category_fetch:
             pending = self._pending_category_fetch
             self._pending_category_fetch = None
@@ -177,6 +189,23 @@ class NewsBackend(QObject):
         elif self._selected_categories and self._active_category:
             if not self._is_cache_valid(self._active_category):
                 self._fetch_articles_background(self._active_category)
+
+    def _refresh_with_categories(self):
+        """Re-fetch categories to get fresh UUIDs, then fetch articles."""
+        if self._is_refreshing:
+            return
+        self._is_refreshing = True
+        self._refresh_wants_articles = True
+        self._is_loading = True
+        self.isLoadingChanged.emit()
+        self._error = ""
+        self.errorChanged.emit()
+        self._start_background_fetch_categories()
+
+    def _on_categories_refresh_done(self):
+        """Called after a refresh-triggered category fetch completes."""
+        if self._active_category:
+            self._fetch_articles_background(self._active_category)
 
     def _load_settings(self):
         """Load settings from backend."""
@@ -271,7 +300,7 @@ class NewsBackend(QObject):
         )
         thread.start()
 
-    def _fetch_articles_thread(self, category):
+    def _fetch_articles_thread(self, category, is_retry=False):
         """Fetch articles in background thread."""
         try:
             category_uuid = self._category_id_map.get(category)
@@ -293,8 +322,43 @@ class NewsBackend(QObject):
             articles = self._parse_articles(cache_data, category)
             self._articlesFetched.emit(category, articles, file_timestamp)
 
+        except urllib.error.HTTPError as e:
+            if e.code == 404 and not is_retry:
+                self._retry_with_fresh_categories(category)
+            else:
+                self._fetchError.emit(f"Failed to load news: {e}")
         except Exception as e:
             self._fetchError.emit(f"Failed to load news: {e}")
+
+    def _retry_with_fresh_categories(self, category):
+        """Re-fetch categories synchronously in background thread, then retry article fetch once."""
+        try:
+            url = f"{self.BASE_URL}/api/batches/latest/categories"
+            with urllib.request.urlopen(url, timeout=10) as response:
+                data = json.loads(response.read().decode())
+
+            id_map = {}
+            timestamp_map = {}
+            categories = []
+            for cat in data.get("categories", []):
+                slug = cat.get("categoryId", "")
+                uuid = cat.get("id", "")
+                name = cat.get("categoryName", "")
+                timestamp = cat.get("timestamp", 0)
+                categories.append({"name": name, "file": f"{slug}.json"})
+                id_map[slug] = uuid
+                timestamp_map[slug] = timestamp
+
+            self._categoriesFetched.emit(categories, id_map, timestamp_map)
+
+            if id_map.get(category):
+                self._category_id_map = id_map
+                self._category_timestamp_map = timestamp_map
+                self._fetch_articles_thread(category, is_retry=True)
+            else:
+                self._fetchError.emit(f"Category '{category}' not found after refresh")
+        except Exception as e:
+            self._fetchError.emit(f"Failed to refresh categories: {e}")
 
     def _on_articles_fetched(self, category, articles, timestamp):
         """Handle articles fetched from background thread."""
@@ -310,6 +374,8 @@ class NewsBackend(QObject):
         self.errorChanged.emit()
         self._is_loading = False
         self.isLoadingChanged.emit()
+        self._is_refreshing = False
+        self._refresh_wants_articles = False
 
     def _fetch_articles(self):
         """Fetch articles for active category."""
@@ -393,7 +459,7 @@ class NewsBackend(QObject):
     def refresh(self):
         """Force refresh articles, ignoring cache."""
         if self._active_category:
-            self._fetch_articles_background(self._active_category)
+            self._refresh_with_categories()
 
     @Slot(str)
     def openArticle(self, url):
