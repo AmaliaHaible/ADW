@@ -17,8 +17,8 @@ class NewsBackend(QObject):
     selectedCategoriesChanged = Signal()
     activeCategoryChanged = Signal()
 
-    _categoriesFetched = Signal(list, dict, dict)
-    _articlesFetched = Signal(str, list, int)
+    _categoriesFetched = Signal(list, dict, dict, str)
+    _articlesFetched = Signal(str, list)
     _fetchError = Signal(str)
     _categoriesRefreshDone = (
         Signal()
@@ -39,6 +39,7 @@ class NewsBackend(QObject):
         self._error = ""
         self._selected_categories = ["tech"]
         self._active_category = "tech"
+        self._date_slug = ""
         self._cache_dir = Path(__file__).parent / "cache"
         self._cache_dir.mkdir(exist_ok=True)
         self._is_refreshing = False
@@ -93,6 +94,7 @@ class NewsBackend(QObject):
                 self._categories = data.get("categories", [])
                 self._category_id_map = data.get("id_map", {})
                 self._category_timestamp_map = data.get("timestamp_map", {})
+                self._date_slug = data.get("date_slug", "")
                 self.categoriesChanged.emit()
             except:
                 pass
@@ -141,6 +143,11 @@ class NewsBackend(QObject):
             with urllib.request.urlopen(url, timeout=10) as response:
                 data = json.loads(response.read().decode())
 
+            batch_url = f"{self.BASE_URL}/api/batches/latest"
+            with urllib.request.urlopen(batch_url, timeout=10) as response:
+                batch_data = json.loads(response.read().decode())
+            date_slug = batch_data.get("dateSlug", "")
+
             categories = []
             id_map = {}
             timestamp_map = {}
@@ -161,19 +168,21 @@ class NewsBackend(QObject):
                         "categories": categories,
                         "id_map": id_map,
                         "timestamp_map": timestamp_map,
+                        "date_slug": date_slug,
                     }
                 )
             )
 
-            self._categoriesFetched.emit(categories, id_map, timestamp_map)
+            self._categoriesFetched.emit(categories, id_map, timestamp_map, date_slug)
         except Exception as e:
             self._fetchError.emit(f"Failed to load categories: {e}")
 
-    def _on_categories_fetched(self, categories, id_map, timestamp_map):
+    def _on_categories_fetched(self, categories, id_map, timestamp_map, date_slug):
         """Handle categories fetched from background thread."""
         self._categories = categories
         self._category_id_map = id_map
         self._category_timestamp_map = timestamp_map
+        self._date_slug = date_slug
         self.categoriesChanged.emit()
 
         if self._refresh_wants_articles:
@@ -228,22 +237,19 @@ class NewsBackend(QObject):
                 "news", "selected_categories", self._selected_categories
             )
 
-    def _build_kagi_link(self, json_category, cluster_number, title, file_timestamp):
+    def _build_kagi_link(self, json_category, cluster_number, title, date_slug):
         """Build Kagi news link from cluster data."""
         import urllib.parse
         import re
 
-        if (
-            not json_category
-            or not title
-            or cluster_number is None
-            or not file_timestamp
-        ):
+        if not json_category or not title or cluster_number is None or not date_slug:
             return ""
 
-        dt = datetime.fromtimestamp(file_timestamp)
-        date_part = dt.strftime("%Y%m%d")
-        timestamp = f"{date_part}1{cluster_number}"
+        # date_slug format: "2026-02-11.1" -> date "20260211", batch number "1"
+        parts = date_slug.split(".")
+        date_part = parts[0].replace("-", "")
+        batch_number = parts[1] if len(parts) > 1 else "1"
+        timestamp = f"{date_part}{batch_number}{cluster_number}"
 
         slug = title.lower()
         slug = re.sub(r"[^\w\s-]", "", slug)
@@ -255,7 +261,7 @@ class NewsBackend(QObject):
 
     def _parse_articles(self, data, category):
         """Parse articles from API response data."""
-        file_timestamp = data.get("timestamp", 0)
+        date_slug = data.get("date_slug", "")
         articles = []
         for cluster in data.get("clusters", [])[:10]:
             title = cluster.get("title", "")
@@ -263,7 +269,7 @@ class NewsBackend(QObject):
             cluster_number = cluster.get("cluster_number", 0)
             cluster_articles = cluster.get("articles", [])
             kagi_link = self._build_kagi_link(
-                category, cluster_number, title, file_timestamp
+                category, cluster_number, title, date_slug
             )
 
             articles.append(
@@ -312,15 +318,14 @@ class NewsBackend(QObject):
             with urllib.request.urlopen(url, timeout=15) as response:
                 data = json.loads(response.read().decode())
 
-            file_timestamp = self._category_timestamp_map.get(category, 0)
             cache_data = {
-                "timestamp": file_timestamp,
+                "date_slug": self._date_slug,
                 "clusters": data.get("stories", []),
             }
 
             self._save_cache(category, cache_data)
             articles = self._parse_articles(cache_data, category)
-            self._articlesFetched.emit(category, articles, file_timestamp)
+            self._articlesFetched.emit(category, articles)
 
         except urllib.error.HTTPError as e:
             if e.code == 404 and not is_retry:
@@ -337,6 +342,11 @@ class NewsBackend(QObject):
             with urllib.request.urlopen(url, timeout=10) as response:
                 data = json.loads(response.read().decode())
 
+            batch_url = f"{self.BASE_URL}/api/batches/latest"
+            with urllib.request.urlopen(batch_url, timeout=10) as response:
+                batch_data = json.loads(response.read().decode())
+            date_slug = batch_data.get("dateSlug", "")
+
             id_map = {}
             timestamp_map = {}
             categories = []
@@ -349,18 +359,19 @@ class NewsBackend(QObject):
                 id_map[slug] = uuid
                 timestamp_map[slug] = timestamp
 
-            self._categoriesFetched.emit(categories, id_map, timestamp_map)
+            self._categoriesFetched.emit(categories, id_map, timestamp_map, date_slug)
 
             if id_map.get(category):
                 self._category_id_map = id_map
                 self._category_timestamp_map = timestamp_map
+                self._date_slug = date_slug
                 self._fetch_articles_thread(category, is_retry=True)
             else:
                 self._fetchError.emit(f"Category '{category}' not found after refresh")
         except Exception as e:
             self._fetchError.emit(f"Failed to refresh categories: {e}")
 
-    def _on_articles_fetched(self, category, articles, timestamp):
+    def _on_articles_fetched(self, category, articles):
         """Handle articles fetched from background thread."""
         if category == self._active_category:
             self._articles = articles
