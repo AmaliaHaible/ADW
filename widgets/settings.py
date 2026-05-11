@@ -14,6 +14,7 @@ DEFAULT_LAYOUT = {
         "notes": {"visible": False, "x": 100, "y": 700, "width": 300, "height": 400},
     },
     "hotkeys": {"always_on_top": "ctrl+alt+j"},
+    "snap": {"margin": 0},
 }
 
 DEFAULT_WIDGET_CONFIGS: dict[str, dict] = {
@@ -75,6 +76,8 @@ class SettingsBackend(QObject):
                     result["widgets"][widget] = props
         if "hotkeys" in loaded:
             result["hotkeys"].update(loaded["hotkeys"])
+        if "snap" in loaded:
+            result["snap"].update(loaded["snap"])
         return result
 
     def _save_layout(self):
@@ -205,6 +208,18 @@ class SettingsBackend(QObject):
         self._save_layout()
         self.settingsChanged.emit()
 
+    @Slot(result=int)
+    def getSnapMargin(self) -> int:
+        return self._layout.get("snap", {}).get("margin", 0)
+
+    @Slot(int)
+    def setSnapMargin(self, value: int):
+        if "snap" not in self._layout:
+            self._layout["snap"] = {}
+        self._layout["snap"]["margin"] = value
+        self._save_layout()
+        self.settingsChanged.emit()
+
     # ── Snap registry ──────────────────────────────────────────────
 
     @Slot(str, int, int, int, int)
@@ -220,10 +235,9 @@ class SettingsBackend(QObject):
     @Slot(str, int, int, int, int, result="QVariantList")
     def getSnapPosition(self, name: str, x: int, y: int, w: int, h: int) -> list:
         threshold = 12
-        margin = 0
-        screen_margin = 0
-        al, at = self._avail_x + screen_margin, self._avail_y + screen_margin
-        ar, ab = self._avail_r - screen_margin, self._avail_b - screen_margin
+        margin = self._layout.get("snap", {}).get("margin", 0)
+        al, at = self._avail_x + margin, self._avail_y + margin
+        ar, ab = self._avail_r - margin, self._avail_b - margin
 
         snap_x, snap_y = x, y
         best_dx, best_dy = threshold + 1, threshold + 1
@@ -269,10 +283,9 @@ class SettingsBackend(QObject):
     @Slot(str, int, int, int, int, result="QVariantList")
     def getSnapSize(self, name: str, x: int, y: int, w: int, h: int) -> list:
         threshold = 12
-        margin = 0
-        screen_margin = 0
-        ar = self._avail_r - screen_margin
-        ab = self._avail_b - screen_margin
+        margin = self._layout.get("snap", {}).get("margin", 0)
+        ar = self._avail_r - margin
+        ab = self._avail_b - margin
 
         snap_w, snap_h = w, h
         best_dw, best_dh = threshold + 1, threshold + 1

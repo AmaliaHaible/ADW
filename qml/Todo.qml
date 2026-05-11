@@ -39,7 +39,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: todoWindow.showingFinished ? "Finished" : "Todo"
-            dragEnabled: todoWindow.editMode
+            dragEnabled: true
             minimized: todoWindow.minimized
             effectiveRadius: todoWindow.effectiveWindowRadius
             leftButtons: todoWindow.showingFinished ? [

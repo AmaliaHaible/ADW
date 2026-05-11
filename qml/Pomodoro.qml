@@ -30,7 +30,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: pomodoroWindow.showSettings ? "Settings" : "Pomodoro"
-            dragEnabled: pomodoroWindow.editMode
+            dragEnabled: true
             minimized: pomodoroWindow.minimized
             effectiveRadius: pomodoroWindow.effectiveWindowRadius
             leftButtons: pomodoroWindow.showSettings ? [

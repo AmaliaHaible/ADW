@@ -54,7 +54,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: launcherWindow.currentView === 0 ? "Launcher" : (launcherWindow.currentView === 2 ? "Settings" : (launcherWindow.editingShortcutId ? "Edit Shortcut" : "Add Shortcut"))
-            dragEnabled: launcherWindow.editMode
+            dragEnabled: true
             minimized: launcherWindow.minimized
             effectiveRadius: launcherWindow.effectiveWindowRadius
             leftButtons: launcherWindow.currentView !== 0 ? [

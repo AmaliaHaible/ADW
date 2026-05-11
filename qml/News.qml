@@ -30,7 +30,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: newsWindow.showCategories ? "Categories" : "Kagi News"
-            dragEnabled: newsWindow.editMode
+            dragEnabled: true
             minimized: newsWindow.minimized
             effectiveRadius: newsWindow.effectiveWindowRadius
             leftButtons: newsWindow.showCategories ? [

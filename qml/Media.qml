@@ -66,7 +66,7 @@ WidgetWindow {
         TitleBar {
             width: parent.width
             title: "Media Control"
-            dragEnabled: mediaWindow.editMode
+            dragEnabled: true
             minimized: mediaWindow.minimized
             effectiveRadius: mediaWindow.effectiveWindowRadius
             leftButtons: stackView.depth > 1 ? [

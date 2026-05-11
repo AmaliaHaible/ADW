@@ -29,7 +29,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: "General Settings"
-            dragEnabled: themeWindow.editMode
+            dragEnabled: true
             minimized: themeWindow.minimized
             effectiveRadius: themeWindow.effectiveWindowRadius
             leftButtons: [

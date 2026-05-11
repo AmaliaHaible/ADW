@@ -39,7 +39,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: netMonWindow.currentView === 0 ? "Network" : "Settings"
-            dragEnabled: netMonWindow.editMode
+            dragEnabled: true
             minimized: netMonWindow.minimized
             effectiveRadius: netMonWindow.effectiveWindowRadius
             leftButtons: netMonWindow.currentView === 0 ? [
