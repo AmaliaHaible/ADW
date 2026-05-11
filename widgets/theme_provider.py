@@ -26,6 +26,7 @@ class ThemeProvider(QObject):
     textPrimaryInvertedChanged = Signal()
     textSecondaryInvertedChanged = Signal()
     borderColorChanged = Signal()
+    symbolColorChanged = Signal()
     colorRedChanged = Signal()
     colorOrangeChanged = Signal()
     colorYellowChanged = Signal()
@@ -173,6 +174,16 @@ class ThemeProvider(QObject):
     @Property(QColor, notify=borderColorChanged)
     def borderColor(self):
         return QColor(self._theme["borderColor"])
+
+    @Property(QColor, notify=symbolColorChanged)
+    def symbolColor(self):
+        return QColor(self._theme.get("symbolColor", "#cdd6f4"))
+
+    @symbolColor.setter
+    def symbolColor(self, value):
+        if self._theme.get("symbolColor") != value:
+            self._theme["symbolColor"] = value
+            self.symbolColorChanged.emit()
 
     @Property(QColor, notify=colorRedChanged)
     def colorRed(self):

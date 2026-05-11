@@ -16,6 +16,7 @@ DEFAULT_THEME = {
     "textPrimaryInverted": "#1e1e2e",
     "textSecondaryInverted": "#313244",
     "borderColor": "#6c7086",
+    "symbolColor": "#cdd6f4",
     "colorRed": "#f38ba8",
     "colorOrange": "#fab387",
     "colorYellow": "#f9e2af",
