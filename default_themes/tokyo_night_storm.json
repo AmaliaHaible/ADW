@@ -29,5 +29,6 @@
   "padding": 12,
   "textScrollSpeed": 30,
   "textPrimaryInverted": "#24283b",
-  "textSecondaryInverted": "#343b58"
+  "textSecondaryInverted": "#343b58",
+  "symbolColor": "#c0caf5"
 }

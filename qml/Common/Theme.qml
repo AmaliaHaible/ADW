@@ -24,6 +24,7 @@ QtObject {
     readonly property color textPrimaryInverted: themeProvider ? themeProvider.textPrimaryInverted : "#1e1e2e"
     readonly property color textSecondaryInverted: themeProvider ? themeProvider.textSecondaryInverted : "#313244"
     readonly property color borderColor: themeProvider ? themeProvider.borderColor : "#6c7086"
+    readonly property color symbolColor: themeProvider ? themeProvider.symbolColor : "#cdd6f4"
 
     // Custom palette colors
     readonly property color colorRed: themeProvider ? themeProvider.colorRed : "#f38ba8"
