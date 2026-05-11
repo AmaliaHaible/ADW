@@ -95,6 +95,7 @@ WidgetWindow {
                             {name: "textPrimaryInverted", label: "Text Primary Inverted"},
                             {name: "textSecondaryInverted", label: "Text Secondary Inverted"},
                                 {name: "borderColor", label: "Border"},
+                                {name: "symbolColor", label: "Symbol (Icon)"},
                                 {name: "colorRed", label: "Red"},
                                 {name: "colorOrange", label: "Orange"},
                                 {name: "colorYellow", label: "Yellow"},
