@@ -4,3 +4,5 @@ TitleBar 1.0 TitleBar.qml
 WidgetWindow 1.0 WidgetWindow.qml
 ColorPicker 1.0 ColorPicker.qml
 ScrollingText 1.0 ScrollingText.qml
+ThemedIcon 1.0 ThemedIcon.qml
+ThemedButton 1.0 ThemedButton.qml
