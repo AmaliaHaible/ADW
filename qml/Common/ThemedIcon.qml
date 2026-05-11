@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import Qt5Compat.GraphicalEffects
 import Common 1.0
 
 Item {
@@ -13,15 +14,13 @@ Item {
 
     Image {
         id: sourceImage
+        anchors.fill: parent
         source: iconName ? iconsPath + iconName : ""
         sourceSize: Qt.size(size, size)
-        visible: false
-    }
-
-    ColorOverlay {
-        anchors.fill: parent
-        source: sourceImage
-        color: root.customColor
-        visible: root.iconName !== ""
+        fillMode: Image.PreserveAspectFit
+        layer.enabled: true
+        layer.effect: ColorOverlay {
+            color: root.customColor
+        }
     }
 }
