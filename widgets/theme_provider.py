@@ -45,41 +45,28 @@ class ThemeProvider(QObject):
     paddingChanged = Signal()
     textScrollSpeedChanged = Signal()
 
-    def __init__(self, settings_path: Path, parent=None):
+    def __init__(self, theme_path: Path, parent=None):
         super().__init__(parent)
-        self._settings_path = settings_path
+        self._theme_path = theme_path
         self._theme = self._load_theme()
 
     def _load_theme(self) -> dict:
-        """Load theme from settings file."""
-        if self._settings_path.exists():
+        if self._theme_path.exists():
             try:
-                with open(self._settings_path, "r") as f:
+                with open(self._theme_path) as f:
                     data = json.load(f)
-                    if "theme" in data:
-                        result = DEFAULT_THEME.copy()
-                        result.update(data["theme"])
-                        return result
+                result = DEFAULT_THEME.copy()
+                result.update(data)
+                return result
             except (json.JSONDecodeError, IOError):
                 pass
         return DEFAULT_THEME.copy()
 
     def _save_theme(self):
-        """Save theme to settings file."""
         try:
-            # Load existing settings
-            data = {}
-            if self._settings_path.exists():
-                try:
-                    with open(self._settings_path, "r") as f:
-                        data = json.load(f)
-                except (json.JSONDecodeError, IOError):
-                    pass
-
-            data["theme"] = self._theme
-
-            with open(self._settings_path, "w") as f:
-                json.dump(data, f, indent=2)
+            self._theme_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self._theme_path, "w") as f:
+                json.dump(self._theme, f, indent=2)
         except IOError as e:
             print(f"Error saving theme: {e}")
 

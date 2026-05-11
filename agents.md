@@ -83,8 +83,23 @@ ADW/
 ├── pyproject.toml             # Project config, dependencies
 ├── uv.lock                    # uv lockfile
 ├── enabled_widgets.toml       # Widget enable/disable config (auto-generated)
-├── settings.json              # Persistent settings (auto-generated)
+├── migrate_settings.py        # One-time migration script (old settings.json → data/)
 ├── .env                       # Environment variables (LOCATIONIQ_KEY)
+│
+├── data/                      # Persistent data (auto-generated, split files)
+│   ├── theme.json             # Theme colors, fonts, dimensions
+│   ├── layout.json            # Widget geometry/visibility + hotkeys
+│   └── widgets/               # Per-widget config files
+│       ├── hub.json           # Hub-specific config (always_on_top)
+│       ├── weather.json       # Weather config (location, forecast_hours)
+│       ├── media.json         # Media config (max_sessions, anchor_top)
+│       ├── todo.json          # Todo list data
+│       ├── notes.json         # Notes data (notes, colors, current_note_id)
+│       ├── pomodoro.json      # Pomodoro config (durations, sessions)
+│       ├── launcher.json      # Launcher config (columns, shortcuts)
+│       ├── system_monitor.json # SystemMonitor config (colors, duration)
+│       ├── network_monitor.json # NetworkMonitor config (colors, duration)
+│       └── news.json          # News config (selected_categories)
 ├── .python-version            # Python version (3.13)
 │
 ├── qml/                       # QML UI files

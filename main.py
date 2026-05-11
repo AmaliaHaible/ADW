@@ -108,7 +108,7 @@ def main():
 
     qml_dir = Path(__file__).parent / "qml"
     icons_dir = Path(__file__).parent / "icons"
-    settings_path = Path(__file__).parent / "settings.json"
+    data_dir = Path(__file__).parent / "data"
 
     engine.addImportPath(qml_dir)
     engine.rootContext().setContextProperty(
@@ -120,7 +120,7 @@ def main():
     engine.rootContext().setContextProperty("settingsBackend", settings)
     debug_timing("SettingsBackend initialized")
 
-    theme_provider = ThemeProvider(settings_path)
+    theme_provider = ThemeProvider(data_dir / "theme.json")
     engine.rootContext().setContextProperty("themeProvider", theme_provider)
     debug_timing("ThemeProvider initialized")
 
