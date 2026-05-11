@@ -64,29 +64,14 @@ Rectangle {
         Repeater {
             model: titleBar.leftButtons
 
-            Rectangle {
+            ThemedButton {
                 width: titleBar.buttonSize
                 height: titleBar.buttonSize
+                icon: modelData.icon
+                iconSize: titleBar.iconSize
                 radius: 4
-                color: leftMouseArea.containsMouse && leftMouseArea.enabled
-                       ? (leftMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
-                       : "transparent"
-
-                Image {
-                    anchors.centerIn: parent
-                    width: titleBar.iconSize
-                    height: titleBar.iconSize
-                    source: iconsPath + modelData.icon
-                    sourceSize: Qt.size(titleBar.iconSize, titleBar.iconSize)
-                }
-
-                MouseArea {
-                    id: leftMouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    enabled: modelData.enabled === undefined ? true : modelData.enabled
-                    onClicked: titleBar.buttonClicked(modelData.action)
-                }
+                enabled: modelData.enabled === undefined ? true : modelData.enabled
+                onClicked: titleBar.buttonClicked(modelData.action)
             }
         }
 
@@ -104,29 +89,14 @@ Rectangle {
         Repeater {
             model: titleBar.rightButtons
 
-            Rectangle {
+            ThemedButton {
                 width: titleBar.buttonSize
                 height: titleBar.buttonSize
+                icon: modelData.icon
+                iconSize: titleBar.iconSize
                 radius: 4
-                color: rightMouseArea.containsMouse && rightMouseArea.enabled
-                       ? (rightMouseArea.pressed ? Theme.titleBarButtonPressed : Theme.titleBarButtonHover)
-                       : "transparent"
-
-                Image {
-                    anchors.centerIn: parent
-                    width: titleBar.iconSize
-                    height: titleBar.iconSize
-                    source: iconsPath + modelData.icon
-                    sourceSize: Qt.size(titleBar.iconSize, titleBar.iconSize)
-                }
-
-                MouseArea {
-                    id: rightMouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    enabled: modelData.enabled === undefined ? true : modelData.enabled
-                    onClicked: titleBar.buttonClicked(modelData.action)
-                }
+                enabled: modelData.enabled === undefined ? true : modelData.enabled
+                onClicked: titleBar.buttonClicked(modelData.action)
             }
         }
     }
