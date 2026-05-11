@@ -9,14 +9,13 @@ Rectangle {
     property string style: "hover-only"
     property color customColor: Theme.symbolColor
     property int buttonSize: 32
-    property real radius: 4
     property bool enabled: true
 
     signal clicked()
 
     width: buttonSize
     height: buttonSize
-    radius: root.radius
+    radius: 4
     color: {
         if (!root.enabled) return "transparent"
         return mouseArea.pressed ? Theme.titleBarButtonPressed :
