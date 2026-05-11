@@ -14,11 +14,10 @@ DEFAULT_LAYOUT = {
         "notes": {"visible": False, "x": 100, "y": 700, "width": 300, "height": 400},
     },
     "hotkeys": {"always_on_top": "ctrl+alt+j"},
-    "snap": {"margin": 0},
+    "snap": {"enabled": True, "margin": 0},
 }
 
 DEFAULT_WIDGET_CONFIGS: dict[str, dict] = {
-    "media": {"max_sessions": 3, "anchor_top": True},
     "notes": {"colors": []},
 }
 
@@ -208,6 +207,18 @@ class SettingsBackend(QObject):
         self._save_layout()
         self.settingsChanged.emit()
 
+    @Slot(result=bool)
+    def getSnapEnabled(self) -> bool:
+        return self._layout.get("snap", {}).get("enabled", True)
+
+    @Slot(bool)
+    def setSnapEnabled(self, value: bool):
+        if "snap" not in self._layout:
+            self._layout["snap"] = {}
+        self._layout["snap"]["enabled"] = value
+        self._save_layout()
+        self.settingsChanged.emit()
+
     @Slot(result=int)
     def getSnapMargin(self) -> int:
         return self._layout.get("snap", {}).get("margin", 0)
@@ -234,6 +245,8 @@ class SettingsBackend(QObject):
 
     @Slot(str, int, int, int, int, result="QVariantList")
     def getSnapPosition(self, name: str, x: int, y: int, w: int, h: int) -> list:
+        if not self._layout.get("snap", {}).get("enabled", True):
+            return [x, y]
         threshold = 12
         margin = self._layout.get("snap", {}).get("margin", 0)
         al, at = self._avail_x + margin, self._avail_y + margin
@@ -282,6 +295,8 @@ class SettingsBackend(QObject):
 
     @Slot(str, int, int, int, int, result="QVariantList")
     def getSnapSize(self, name: str, x: int, y: int, w: int, h: int) -> list:
+        if not self._layout.get("snap", {}).get("enabled", True):
+            return [w, h]
         threshold = 12
         margin = self._layout.get("snap", {}).get("margin", 0)
         ar = self._avail_r - margin

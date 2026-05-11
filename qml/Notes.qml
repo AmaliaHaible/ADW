@@ -85,7 +85,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: notesWindow.showingEditor ? "Edit Note" : "Notes"
-            dragEnabled: true
+            dragEnabled: notesWindow.editMode
             minimized: notesWindow.minimized
             effectiveRadius: notesWindow.effectiveWindowRadius
             leftButtons: notesWindow.showingEditor ? [

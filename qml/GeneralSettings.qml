@@ -29,7 +29,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: "General Settings"
-            dragEnabled: true
+            dragEnabled: themeWindow.editMode
             minimized: themeWindow.minimized
             effectiveRadius: themeWindow.effectiveWindowRadius
             leftButtons: [
@@ -480,6 +480,136 @@ WidgetWindow {
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    // Spacing
+                    Item { height: Theme.spacing }
+
+                    // Snapping section
+                    Text {
+                        text: "Snapping"
+                        color: Theme.textPrimary
+                        font.pixelSize: Theme.fontSizeLarge
+                        font.weight: Font.Medium
+                    }
+
+                    // Snap toggle
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 36
+                        radius: Theme.borderRadius / 2
+                        color: Theme.surfaceColor
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.spacing
+                            anchors.rightMargin: Theme.spacing
+                            spacing: Theme.spacing
+
+                            Text {
+                                text: "Enabled"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                                Layout.fillWidth: true
+                            }
+
+                            Rectangle {
+                                width: 44
+                                height: 24
+                                radius: 12
+                                color: settingsBackend && settingsBackend.getSnapEnabled() ? Theme.accentColor : Theme.accentInactive
+
+                                Rectangle {
+                                    width: 20
+                                    height: 20
+                                    radius: 10
+                                    color: Theme.textPrimary
+                                    x: parent.parent.color === Theme.accentColor ? 22 : 2
+                                    y: 2
+
+                                    Behavior on x { NumberAnimation { duration: 100 } }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        if (settingsBackend) {
+                                            settingsBackend.setSnapEnabled(!settingsBackend.getSnapEnabled())
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Snap margin slider
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 36
+                        radius: Theme.borderRadius / 2
+                        color: Theme.surfaceColor
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.spacing
+                            anchors.rightMargin: Theme.spacing
+                            spacing: Theme.spacing
+
+                            Text {
+                                text: "Margin"
+                                color: Theme.textSecondary
+                                font.pixelSize: Theme.fontSizeSmall
+                                Layout.preferredWidth: 50
+                            }
+
+                            Slider {
+                                id: snapMarginSlider
+                                Layout.fillWidth: true
+                                from: 0
+                                to: 32
+                                stepSize: 1
+                                value: settingsBackend ? settingsBackend.getSnapMargin() : 0
+
+                                onMoved: {
+                                    if (settingsBackend) {
+                                        settingsBackend.setSnapMargin(Math.round(value))
+                                    }
+                                }
+
+                                background: Rectangle {
+                                    x: snapMarginSlider.leftPadding
+                                    y: snapMarginSlider.topPadding + snapMarginSlider.availableHeight / 2 - height / 2
+                                    width: snapMarginSlider.availableWidth
+                                    height: 4
+                                    radius: 2
+                                    color: Theme.accentInactive
+
+                                    Rectangle {
+                                        width: snapMarginSlider.visualPosition * parent.width
+                                        height: parent.height
+                                        radius: 2
+                                        color: Theme.accentColor
+                                    }
+                                }
+
+                                handle: Rectangle {
+                                    x: snapMarginSlider.leftPadding + snapMarginSlider.visualPosition * (snapMarginSlider.availableWidth - width)
+                                    y: snapMarginSlider.topPadding + snapMarginSlider.availableHeight / 2 - height / 2
+                                    width: 14
+                                    height: 14
+                                    radius: 7
+                                    color: Theme.textPrimary
+                                }
+                            }
+
+                            Text {
+                                text: Math.round(snapMarginSlider.value) + "px"
+                                color: Theme.textMuted
+                                font.pixelSize: Theme.fontSizeSmall
+                                Layout.preferredWidth: 32
+                                horizontalAlignment: Text.AlignRight
                             }
                         }
                     }

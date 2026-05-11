@@ -29,7 +29,6 @@ class MediaBackend(QObject):
     errorMessageChanged = Signal()
     isLoadingChanged = Signal()
     maxSessionsChanged = Signal()
-    anchorTopChanged = Signal()
 
     def __init__(self, settings_backend=None, parent=None):
         super().__init__(parent)
@@ -61,15 +60,7 @@ class MediaBackend(QObject):
 
         # Settings
         if self._settings:
-            self._max_sessions = (
-                self._settings.getWidgetSetting("media", "max_sessions") or 3
-            )
-            self._anchor_top = self._settings.getWidgetSetting("media", "anchor_top")
-            if self._anchor_top is None:
-                self._anchor_top = True
-        else:
             self._max_sessions = 3
-            self._anchor_top = True
 
         # Position tracking
         self._local_position = 0
@@ -179,10 +170,6 @@ class MediaBackend(QObject):
     def maxSessions(self):
         return self._max_sessions
 
-    @Property(bool, notify=anchorTopChanged)
-    def anchorTop(self):
-        return self._anchor_top
-
     # Slots
     @Slot(int)
     def playPause(self, session_index=0):
@@ -258,15 +245,6 @@ class MediaBackend(QObject):
             if self._settings:
                 self._settings.setWidgetSetting("media", "max_sessions", count)
             self.maxSessionsChanged.emit()
-
-    @Slot(bool)
-    def setAnchorTop(self, anchor_top):
-        """Set whether to anchor top or bottom when resizing."""
-        if self._anchor_top != anchor_top:
-            self._anchor_top = anchor_top
-            if self._settings:
-                self._settings.setWidgetSetting("media", "anchor_top", anchor_top)
-            self.anchorTopChanged.emit()
 
     # Internal slots
     @Slot(dict)

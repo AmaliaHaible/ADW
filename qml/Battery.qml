@@ -28,7 +28,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: "Battery"
-            dragEnabled: true
+            dragEnabled: batteryWindow.editMode
             minimized: batteryWindow.minimized
             effectiveRadius: batteryWindow.effectiveWindowRadius
             rightButtons: [

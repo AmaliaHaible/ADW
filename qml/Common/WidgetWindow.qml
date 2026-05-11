@@ -322,7 +322,7 @@ Window {
                 }
             }
             onPositionChanged: function(mouse) {
-                if (pressed && mouse.button === Qt.LeftButton) {
+                if (pressed) {
                     handleDragMoved(mouse.x - pressX, mouse.y - pressY)
                 }
             }

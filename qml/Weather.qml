@@ -29,7 +29,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: "Weather"
-            dragEnabled: true
+            dragEnabled: weatherWindow.editMode
             minimized: weatherWindow.minimized
             effectiveRadius: weatherWindow.effectiveWindowRadius
             leftButtons: stackView.depth > 1 ? [

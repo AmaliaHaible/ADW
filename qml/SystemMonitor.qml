@@ -39,7 +39,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: sysMonWindow.currentView === 0 ? "System" : "Settings"
-            dragEnabled: true
+            dragEnabled: sysMonWindow.editMode
             minimized: sysMonWindow.minimized
             effectiveRadius: sysMonWindow.effectiveWindowRadius
             leftButtons: sysMonWindow.currentView === 0 ? [

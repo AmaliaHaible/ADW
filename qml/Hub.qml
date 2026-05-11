@@ -48,7 +48,7 @@ WidgetWindow {
             id: titleBar
             width: parent.width
             title: "Widget Hub"
-            dragEnabled: true
+            dragEnabled: hubBackend.editMode
             rightButtons: [
                 {icon: "eye-off.svg", action: "hide"},
                 {icon: "x.svg", action: "exit"}

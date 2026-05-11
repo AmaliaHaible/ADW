@@ -66,7 +66,7 @@ WidgetWindow {
         TitleBar {
             width: parent.width
             title: "Media Control"
-            dragEnabled: true
+            dragEnabled: mediaWindow.editMode
             minimized: mediaWindow.minimized
             effectiveRadius: mediaWindow.effectiveWindowRadius
             leftButtons: stackView.depth > 1 ? [
@@ -175,80 +175,6 @@ WidgetWindow {
                                     height: 16
                                     radius: 8
                                     color: Theme.accentColor
-                                }
-                            }
-                        }
-                    }
-
-                    // Anchor Position Setting
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.margins: Theme.padding
-                        Layout.preferredHeight: 80
-                        color: Theme.surfaceColor
-                        radius: Theme.borderRadius
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: Theme.padding
-                            spacing: Theme.spacing
-
-                            Text {
-                                text: "Resize Anchor"
-                                color: Theme.textPrimary
-                                font.pixelSize: Theme.fontSizeNormal
-                            }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: Theme.spacing
-
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    Layout.preferredHeight: 32
-                                    radius: 4
-                                    color: mediaWindow.anchorTop ? Theme.accentColor : Theme.surfaceColor
-                                    border.color: Theme.borderColor
-                                    border.width: 1
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "Anchor Top"
-                                        color: mediaWindow.anchorTop ? Theme.windowBackground : Theme.textSecondary
-                                        font.pixelSize: Theme.fontSizeSmall
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: {
-                                            mediaWindow.anchorTop = true
-                                            mediaWindow.saveAnchorSetting()
-                                        }
-                                    }
-                                }
-
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    Layout.preferredHeight: 32
-                                    radius: 4
-                                    color: !mediaWindow.anchorTop ? Theme.accentColor : Theme.surfaceColor
-                                    border.color: Theme.borderColor
-                                    border.width: 1
-
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "Anchor Bottom"
-                                        color: !mediaWindow.anchorTop ? Theme.windowBackground : Theme.textSecondary
-                                        font.pixelSize: Theme.fontSizeSmall
-                                    }
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: {
-                                            mediaWindow.anchorTop = false
-                                            mediaWindow.saveAnchorSetting()
-                                        }
-                                    }
                                 }
                             }
                         }
