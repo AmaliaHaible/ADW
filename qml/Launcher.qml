@@ -86,6 +86,8 @@ WidgetWindow {
                     launcherWindow.currentView = 0
                 }
             }
+            onDragMoved: function(dx, dy) { launcherWindow.handleDragMoved(dx, dy) }
+            onDragEnded: launcherWindow.handleDragEnded()
         }
 
         Rectangle {

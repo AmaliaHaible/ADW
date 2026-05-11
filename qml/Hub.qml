@@ -62,6 +62,8 @@ WidgetWindow {
                     hubBackend.exitApp()
                 }
             }
+            onDragMoved: function(dx, dy) { hubWindow.handleDragMoved(dx, dy) }
+            onDragEnded: hubWindow.handleDragEnded()
         }
 
         // Content area

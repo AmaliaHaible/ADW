@@ -121,6 +121,19 @@ Window {
         }
     }
 
+    function handleDragMoved(dx, dy) {
+        var newX = widgetWindow.x + dx
+        var newY = widgetWindow.y + dy
+        var snapped = settingsBackend.getSnapPosition(geometryKey, newX, newY, widgetWindow.width, widgetWindow.height)
+        widgetWindow.x = snapped[0]
+        widgetWindow.y = snapped[1]
+        settingsBackend.updatePosition(geometryKey, widgetWindow.x, widgetWindow.y, widgetWindow.width, widgetWindow.height)
+    }
+
+    function handleDragEnded() {
+        settingsBackend.setWidgetGeometry(geometryKey, widgetWindow.x, widgetWindow.y, widgetWindow.width, widgetWindow.height)
+    }
+
     minimumWidth: minResizeWidth
     minimumHeight: minResizeHeight
 
@@ -179,6 +192,10 @@ Window {
         applyGeometryFromSettings()
         loadAnchorSetting()
         loadMinimizedSetting()
+        settingsBackend.updatePosition(geometryKey, widgetWindow.x, widgetWindow.y, widgetWindow.width, widgetWindow.height)
+    }
+    Component.onDestruction: {
+        if (settingsBackend && geometryKey !== "") settingsBackend.unregister(geometryKey)
     }
     onSettingsStoreChanged: {
         applyGeometryFromSettings()
@@ -295,10 +312,23 @@ Window {
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             hoverEnabled: true
+            property real pressX: 0
+            property real pressY: 0
 
             onPressed: function(mouse) {
                 if (mouse.button === Qt.LeftButton) {
-                    widgetWindow.startSystemMove()
+                    pressX = mouse.x
+                    pressY = mouse.y
+                }
+            }
+            onPositionChanged: function(mouse) {
+                if (pressed && mouse.button === Qt.LeftButton) {
+                    handleDragMoved(mouse.x - pressX, mouse.y - pressY)
+                }
+            }
+            onReleased: function(mouse) {
+                if (mouse.button === Qt.LeftButton) {
+                    handleDragEnded()
                 }
             }
 
@@ -340,10 +370,32 @@ Window {
         MouseArea {
             anchors.fill: parent
             cursorShape: Qt.SizeFDiagCursor
+            property real startGlobalX: 0
+            property real startGlobalY: 0
+            property real startW: 0
+            property real startH: 0
+
             onPressed: function(mouse) {
                 if (mouse.button === Qt.LeftButton) {
-                    widgetWindow.startSystemResize(Qt.RightEdge | Qt.BottomEdge)
+                    var g = mapToGlobal(mouse.x, mouse.y)
+                    startGlobalX = g.x
+                    startGlobalY = g.y
+                    startW = widgetWindow.width
+                    startH = widgetWindow.height
                 }
+            }
+            onPositionChanged: function(mouse) {
+                if (!pressed) return
+                var g = mapToGlobal(mouse.x, mouse.y)
+                var newW = Math.max(widgetWindow.minResizeWidth, startW + (g.x - startGlobalX))
+                var newH = Math.max(widgetWindow.minResizeHeight, startH + (g.y - startGlobalY))
+                var snapped = settingsBackend.getSnapSize(geometryKey, widgetWindow.x, widgetWindow.y, newW, newH)
+                widgetWindow.width = snapped[0]
+                widgetWindow.height = snapped[1]
+                settingsBackend.updatePosition(geometryKey, widgetWindow.x, widgetWindow.y, widgetWindow.width, widgetWindow.height)
+            }
+            onReleased: {
+                settingsBackend.setWidgetGeometry(geometryKey, widgetWindow.x, widgetWindow.y, widgetWindow.width, widgetWindow.height)
             }
         }
     }

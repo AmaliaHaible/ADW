@@ -40,6 +40,8 @@ WidgetWindow {
                     batteryWindow.toggleMinimize()
                 }
             }
+            onDragMoved: function(dx, dy) { batteryWindow.handleDragMoved(dx, dy) }
+            onDragEnded: batteryWindow.handleDragEnded()
         }
 
         Rectangle {

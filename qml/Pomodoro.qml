@@ -51,6 +51,8 @@ WidgetWindow {
                     pomodoroWindow.showSettings = false
                 }
             }
+            onDragMoved: function(dx, dy) { pomodoroWindow.handleDragMoved(dx, dy) }
+            onDragEnded: pomodoroWindow.handleDragEnded()
         }
 
         Rectangle {

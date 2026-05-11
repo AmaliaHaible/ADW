@@ -52,6 +52,8 @@ WidgetWindow {
                     themeWindow.toggleMinimize()
                 }
             }
+            onDragMoved: function(dx, dy) { themeWindow.handleDragMoved(dx, dy) }
+            onDragEnded: themeWindow.handleDragEnded()
         }
 
         // Content area with scroll

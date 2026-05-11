@@ -106,6 +106,8 @@ WidgetWindow {
                     notesBackend.selectNote("")
                 }
             }
+            onDragMoved: function(dx, dy) { notesWindow.handleDragMoved(dx, dy) }
+            onDragEnded: notesWindow.handleDragEnded()
         }
 
         Rectangle {

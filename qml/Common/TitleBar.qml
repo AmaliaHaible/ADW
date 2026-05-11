@@ -31,14 +31,27 @@ Rectangle {
     bottomRightRadius: minimized ? effectiveRadius : 0 
 
     // Drag handler for moving the window
-    DragHandler {
+    signal dragStarted()
+    signal dragMoved(real dx, real dy)
+    signal dragEnded()
+
+    MouseArea {
+        id: dragArea
+        anchors.fill: parent
         enabled: titleBar.dragEnabled
-        target: null
-        onActiveChanged: {
-            if (active) {
-                titleBar.Window.window.startSystemMove()
-            }
+        property real pressX: 0
+        property real pressY: 0
+
+        onPressed: function(mouse) {
+            pressX = mouse.x
+            pressY = mouse.y
+            titleBar.dragStarted()
         }
+        onPositionChanged: function(mouse) {
+            if (pressed)
+                titleBar.dragMoved(mouse.x - pressX, mouse.y - pressY)
+        }
+        onReleased: titleBar.dragEnded()
     }
 
     RowLayout {

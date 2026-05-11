@@ -60,6 +60,8 @@ WidgetWindow {
                     todoWindow.showingFinished = false
                 }
             }
+            onDragMoved: function(dx, dy) { todoWindow.handleDragMoved(dx, dy) }
+            onDragEnded: todoWindow.handleDragEnded()
         }
 
         // Content area (hidden when minimized)

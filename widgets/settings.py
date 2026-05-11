@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtGui import QGuiApplication
 
 DEFAULT_LAYOUT = {
     "widgets": {
@@ -33,6 +34,19 @@ class SettingsBackend(QObject):
         self._layout = self._load_layout()
         self._widget_configs: dict[str, dict] = {}
         self._load_all_widget_configs()
+        self._snap_registry: dict[str, tuple[int, int, int, int]] = {}
+        screen = QGuiApplication.primaryScreen()
+        if screen:
+            ag = screen.availableGeometry()
+            self._avail_x = ag.x()
+            self._avail_y = ag.y()
+            self._avail_r = ag.x() + ag.width()
+            self._avail_b = ag.y() + ag.height()
+        else:
+            self._avail_x = 0
+            self._avail_y = 0
+            self._avail_r = 1920
+            self._avail_b = 1080
 
     # ── Layout I/O ──────────────────────────────────────────────────
 
@@ -190,3 +204,101 @@ class SettingsBackend(QObject):
         self._layout["hotkeys"][name] = value
         self._save_layout()
         self.settingsChanged.emit()
+
+    # ── Snap registry ──────────────────────────────────────────────
+
+    @Slot(str, int, int, int, int)
+    def updatePosition(self, widget_name: str, x: int, y: int, w: int, h: int):
+        self._snap_registry[widget_name] = (x, y, w, h)
+
+    @Slot(str)
+    def unregister(self, widget_name: str):
+        self._snap_registry.pop(widget_name, None)
+
+    # ── Snap: move ─────────────────────────────────────────────────
+
+    @Slot(str, int, int, int, int, result="QVariantList")
+    def getSnapPosition(self, name: str, x: int, y: int, w: int, h: int) -> list:
+        threshold = 12
+        margin = 0
+        screen_margin = 0
+        al, at = self._avail_x + screen_margin, self._avail_y + screen_margin
+        ar, ab = self._avail_r - screen_margin, self._avail_b - screen_margin
+
+        snap_x, snap_y = x, y
+        best_dx, best_dy = threshold + 1, threshold + 1
+
+        for other_name, (ox, oy, ow, oh) in self._snap_registry.items():
+            if other_name == name:
+                continue
+            for delta, candidate in [
+                ((x + w) - (ox - margin), ox - margin - w),
+                (x - (ox + ow + margin), ox + ow + margin),
+                (x - ox, ox),
+                ((x + w) - (ox + ow), ox + ow - w),
+            ]:
+                if abs(delta) < best_dx:
+                    best_dx, snap_x = abs(delta), candidate
+            for delta, candidate in [
+                ((y + h) - (oy - margin), oy - margin - h),
+                (y - (oy + oh + margin), oy + oh + margin),
+                (y - oy, oy),
+                ((y + h) - (oy + oh), oy + oh - h),
+            ]:
+                if abs(delta) < best_dy:
+                    best_dy, snap_y = abs(delta), candidate
+
+        for delta, candidate in [
+            (x - al, al),
+            ((x + w) - ar, ar - w),
+        ]:
+            if abs(delta) < best_dx:
+                best_dx, snap_x = abs(delta), candidate
+
+        for delta, candidate in [
+            (y - at, at),
+            ((y + h) - ab, ab - h),
+        ]:
+            if abs(delta) < best_dy:
+                best_dy, snap_y = abs(delta), candidate
+
+        return [snap_x, snap_y]
+
+    # ── Snap: resize ───────────────────────────────────────────────
+
+    @Slot(str, int, int, int, int, result="QVariantList")
+    def getSnapSize(self, name: str, x: int, y: int, w: int, h: int) -> list:
+        threshold = 12
+        margin = 0
+        screen_margin = 0
+        ar = self._avail_r - screen_margin
+        ab = self._avail_b - screen_margin
+
+        snap_w, snap_h = w, h
+        best_dw, best_dh = threshold + 1, threshold + 1
+
+        for other_name, (ox, oy, ow, oh) in self._snap_registry.items():
+            if other_name == name:
+                continue
+            for delta, candidate in [
+                ((x + w) - (ox - margin), ox - margin - x),
+                ((x + w) - (ox + ow), ox + ow - x),
+            ]:
+                if abs(delta) < best_dw:
+                    best_dw, snap_w = abs(delta), candidate
+            for delta, candidate in [
+                ((y + h) - (oy - margin), oy - margin - y),
+                ((y + h) - (oy + oh), oy + oh - y),
+            ]:
+                if abs(delta) < best_dh:
+                    best_dh, snap_h = abs(delta), candidate
+
+        delta = (x + w) - ar
+        if abs(delta) < best_dw:
+            best_dw, snap_w = abs(delta), ar - x
+
+        delta = (y + h) - ab
+        if abs(delta) < best_dh:
+            best_dh, snap_h = abs(delta), ab - y
+
+        return [snap_w, snap_h]

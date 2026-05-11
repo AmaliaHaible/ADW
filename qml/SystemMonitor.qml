@@ -60,6 +60,8 @@ WidgetWindow {
                     sysMonWindow.currentView = 0
                 }
             }
+            onDragMoved: function(dx, dy) { sysMonWindow.handleDragMoved(dx, dy) }
+            onDragEnded: sysMonWindow.handleDragEnded()
         }
 
         Rectangle {

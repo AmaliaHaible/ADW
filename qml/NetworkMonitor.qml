@@ -60,6 +60,8 @@ WidgetWindow {
                     netMonWindow.currentView = 0
                 }
             }
+            onDragMoved: function(dx, dy) { netMonWindow.handleDragMoved(dx, dy) }
+            onDragEnded: netMonWindow.handleDragEnded()
         }
 
         Rectangle {

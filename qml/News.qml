@@ -54,6 +54,8 @@ WidgetWindow {
                     newsBackend.refresh()
                 }
             }
+            onDragMoved: function(dx, dy) { newsWindow.handleDragMoved(dx, dy) }
+            onDragEnded: newsWindow.handleDragEnded()
         }
 
         Rectangle {

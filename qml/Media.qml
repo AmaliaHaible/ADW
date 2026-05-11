@@ -87,6 +87,8 @@ WidgetWindow {
                     mediaWindow.toggleMinimize()
                 }
             }
+            onDragMoved: function(dx, dy) { mediaWindow.handleDragMoved(dx, dy) }
+            onDragEnded: mediaWindow.handleDragEnded()
         }
 
         // StackView for main/settings views

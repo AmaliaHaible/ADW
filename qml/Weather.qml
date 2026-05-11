@@ -46,12 +46,15 @@ WidgetWindow {
                 if (action === "settings") {
                     stackView.push(settingsViewComponent)
                 } else if (action === "refresh") {
-                    weatherBackend.refreshWeather()
+                    weatherBackend.refresh()
                 } else if (action === "back") {
                     stackView.pop()
                 } else if (action === "minimize") {
                     weatherWindow.toggleMinimize()
                 }
+            }
+            onDragMoved: function(dx, dy) { weatherWindow.handleDragMoved(dx, dy) }
+            onDragEnded: weatherWindow.handleDragEnded()
             }
         }
 
